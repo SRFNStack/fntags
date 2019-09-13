@@ -1,0 +1,30 @@
+{
+  "name": "brighton",
+  "version": "0.0.1",
+  "author": "Robert Kempton <r@snow87.com>",
+  "private": false,
+  "homepage": "https://github.com/narcolepticsnowman/brighton",
+  "license": "MIT",
+  "files": [
+    "src/*",
+    "LICENSE.txt",
+    "README.md"
+  ],
+  "main": "src/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:narcolepticsnowman/brighton.git"
+  },
+  "keywords": [
+    "html",
+    "javascript",
+    "frontend",
+    "data",
+    "bind",
+    "binding",
+    "framework",
+    "state",
+    "two-way",
+    "state-management"
+  ]
+}
