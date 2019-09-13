@@ -26,7 +26,7 @@
     }
 
     brighton.tags = tags.reduce( ( tags, tag ) => tags[ tag ] = htmlElement( tag ), {} )
-    brighton.hoistTags = () => Object.assign( document, brighton.tags )
+    brighton.hoistTags = () => Object.assign( window, brighton.tags )
 
     const badElementType = ( el ) => {
         throw `Element type ${el.constructor &&
@@ -83,5 +83,5 @@
             return element
         } ]
     }
-    document.brighton = brighton
+    window.brighton = brighton
 } )()
