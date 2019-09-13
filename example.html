@@ -1,0 +1,42 @@
+<html>
+<head>
+    <script src="https://raw.githubusercontent.com/narcolepticsnowman/brighton/master/src/index.js"></script>
+</head>
+<body>
+<script type="text/javascript">
+
+
+    brighton.hoistTags()
+
+
+    let [state, bind] = brighton.initState({ data: 'hello' })
+
+    const myInput = ( attrs ) =>
+        div( attrs,
+             input( {
+                        value: state.data,
+                        oninput: ( e ) => {
+                            state.data = e.target.value
+                        }
+                    } ),
+             p(
+                 bind(() =>`here's my attrs: ${attrs} here's my data ${state.data}`),
+                 input( { value: 'hi' } )
+             )
+        )
+
+
+    document.body.append(
+        div( {id: "App"},
+             myInput( 'mah datas' ),
+             p( 'Create the start script, ',
+                div( div( div( { style: 'color: limegreen' }, div( bind( ()=> `nested divs ${state.data}` )) ) ) ),
+                code( 'vi ~/app/serve.js' ) ),
+             pre( code( { class: 'lang-js' }, 'require(\'spliffy\')({routeDir: __dirname+ \'/www\'})' ) )
+        )
+    )
+
+
+</script>
+</body>
+</html>

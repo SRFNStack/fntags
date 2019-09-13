@@ -83,4 +83,5 @@
             return element
         } ]
     }
+    document.brighton = brighton
 } )()
