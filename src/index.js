@@ -1,6 +1,4 @@
 ( () => {
-    const brighton = {}
-
     const tags = [
         'a', 'abbr', 'acronym', 'address', 'applet', 'area', 'article', 'aside', 'audio', 'b', 'base', 'basefont', 'bdi', 'bdo', 'big', 'blockquote', 'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'data',
         'datalist', 'dd', 'del', 'details', 'dfn', 'dialog', 'dir', 'div', 'dl', 'dt', 'em', 'embed', 'fieldset', 'figcaption', 'figure', 'font', 'footer', 'form', 'frame', 'frameset', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hr', 'i',
@@ -25,21 +23,13 @@
         return element
     }
 
-    brighton.tags = tags.reduce( ( tags, tag ) => tags[ tag ] = htmlElement( tag ), {} )
-    brighton.hoistTags = () => Object.assign( window, brighton.tags )
-
     const badElementType = ( el ) => {
-        throw `Element type ${el.constructor &&
-                              el.constructor.name ||
-                              typeof el} is not supported. All elements must be one of or an array of [String, Function, Element, HTMLElement]`
+        throw `Element type ${el.constructor && el.constructor.name || typeof el}
+         is not supported. All elements must be one of or an array of [String, Function, Element, HTMLElement]`
     }
 
-    const isNode = ( el ) => el instanceof
-                             Node ||
-                             el instanceof
-                             Element ||
-                             el.constructor.toString().search( /object HTML.+Element/ ) >
-                             -1
+    const isNode = ( el ) => el instanceof Node || el instanceof Element ||
+                             el.constructor.toString().search( /object HTML.+Element/ ) > -1
 
     const renderElement = ( el ) => {
         if( el.constructor.name === 'String' )
@@ -57,7 +47,7 @@
     }
 
 
-    brighton.initState = ( state ) => {
+    window.initState = ( state ) => {
         const observers = []
         const notify = ( method ) => ( ...args ) => {
             let result = Reflect[ method ]( ...args )
@@ -83,5 +73,13 @@
             return element
         } ]
     }
-    window.brighton = brighton
+
+    tags.forEach( ( key ) => {
+        if( window[ key ] ) {
+            console.log( `window already has property ${key}. Use _${key} to use this tag.` )
+            window[ '_' + key ] = htmlElement( key )
+        } else {
+            window[ key ] = htmlElement( key )
+        }
+    } )
 } )()

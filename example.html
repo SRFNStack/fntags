@@ -1,15 +1,11 @@
 <html>
 <head>
-    <script src="https://raw.githubusercontent.com/narcolepticsnowman/brighton/master/src/index.js"></script>
+    <script src="src/index.js"></script>
 </head>
 <body>
 <script type="text/javascript">
 
-
-    brighton.hoistTags()
-
-
-    let [state, bind] = brighton.initState({ data: 'hello' })
+    let [state, bind] = initState({ data: 'hello' })
 
     const myInput = ( attrs ) =>
         div( attrs,
