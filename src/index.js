@@ -48,6 +48,7 @@
 
 
     window.initState = ( state ) => {
+        if(typeof state !== 'object') throw "initState must be called with an object. Primitive values are not supported."
         const observers = []
         const notify = ( method ) => ( ...args ) => {
             let result = Reflect[ method ]( ...args )
@@ -61,6 +62,7 @@
         } )
         p.watchState = ( observer ) => observers.push( observer )
         return [ p, ( el, update ) => {
+            debugger
             if( typeof el !== 'function' && !isNode(el)) throw 'You can only bind functions and Elements to state changes.'
             if( isNode(el) && typeof update !== 'function') throw 'You must supply an update function when binding directly to an element'
             let element = typeof el === 'function' ? renderElement( el( state ) ) : el

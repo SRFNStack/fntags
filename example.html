@@ -5,85 +5,53 @@
 <body>
 <script type="text/javascript">
 
-    let [ appState, bindAppState ] = initState( { data: 'hello' } )
+    const [ appState, bindAppState ] = initState( {} )
 
-
-    const myForm = ( { message, fontSize, stateColor, inputStateColor } ) => {
-        let [ inputState, bindInputState ] = initState( { color: inputStateColor } )
-        return form( { style: `font-size: ${fontSize}` },
-                     'State Data: ',
-                     bindAppState(
-                         input( {
-                                    value: appState.data,
-                                    oninput: ( e ) => {
-                                        appState.data = e.target.value
-                                    }
-                                } ),
-                         ( el, st ) => el.value = st.data
-                     ),
-                     br(), br(),
-                     'InputState Color: ',
-                     bindInputState(
-                         input( {
-                                    value: inputState.color,
-                                    oninput: ( e ) => {
-                                        inputState.color = e.target.value
-                                    }
-                                } ),
-                         ( el, st ) => el.value = st.color
-                     ),
-                     p(
-                         bindAppState(
-                             () =>
-                                 div(
-                                     h4(message),
-                                     span( { style: `color: ${stateColor}` },
-                                           `appState.data: ${appState.data}`
-                                     ),
-                                     br(),
-                                     bindInputState(
-                                         () =>
-                                             span( { style: `color: ${inputState.color}` },
-                                                   `inputState.color: ${inputState.color}`
-                                             )
-                                     )
-                                 ) ),
-                         br(),
-                         input( { value: 'unbound input' } )
-                     )
+    const card = ( { title, content } ) =>
+        div( { class: 'card' },
+             h4( { class: 'card-title' }, title ),
+             div( { class: 'card-content' }, content )
         )
+
+    const greeting = () => {
+        const [ greetingState, bindGreetingState ] = initState( { greeting: 'Hello' } )
+
+        return bindAppState( () => {
+            if( appState.currentUser ) {
+                return div(
+                    bindGreetingState( () => `${greetingState.greeting} ${appState.currentUser.name}` ),
+                    br(), br(),
+                    bindGreetingState(
+                        input( {
+                                   value: greetingState.greeting,
+                                   oninput: ( e ) => {greetingState.greeting = e.target.value}
+                               } ),
+                        ( el, st ) => el.value = st.greeting
+                    )
+                )
+            } else return 'Welcome!'
+        } )
     }
 
-
     document.body.append(
-        div( { id: 'App' },
-             myForm( {
-                         message: 'mah datas',
-                         fontSize: '20px',
-                         stateColor: 'blue',
-                         inputStateColor: 'lime'
-                     } ),
-             p( 'This is an example of some static text',
-                div(
-                    div(
-                        div( { style: 'color: limegreen' },
-                             div(
-                                 bindAppState( () => `nested divs with bound state ${appState.data}` )
-                             )
-                        )
-                    )
-                ),
-                pre( code( { class: 'lang-js' }, 'console.log("code tags!")' ) )
-             ),
-             myForm( {
-                         message: 'mo dataz',
-                         fontSize: '24px',
-                         stateColor: 'ping',
-                         inputStateColor: 'purple'
-                     } )
+        p(
+            'fntags ',
+            span({style: "color: green"},
+                 "it's just javascript"
+            )
+        ),
+        card( { title: 'fntags', content: 'is awesome' } ),
+        card( { title: 'fntags', content: 'is simple' } ),
+        p( { class: 'header' },
+           greeting()
         )
     )
 
+    setTimeout( () => {
+                    console.log( 'hello' )
+                    appState.currentUser = { name: 'fntags' }
+                },
+                1000 )
 
 </script>
 </body>
