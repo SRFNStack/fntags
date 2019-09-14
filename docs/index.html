@@ -1,0 +1,100 @@
+<html lang="en">
+<head>
+    <script type="text/javascript">
+
+    </script>
+    <title>fntags framework example</title>
+</head>
+<body>
+<script type="text/javascript">
+    window.addEventListener( 'fntagsLoaded', () => {
+
+        let [ appState, bindAppState ] = initState( { data: 'hello' } )
+
+
+        const myForm = ( { message, fontSize, stateColor, inputStateColor } ) => {
+            let [ inputState, bindInputState ] = initState( { color: inputStateColor } )
+            return form( { style: `font-size: ${fontSize}` },
+                         'State Data: ',
+                         bindAppState(
+                             input( {
+                                        value: appState.data,
+                                        oninput: ( e ) => {
+                                            appState.data = e.target.value
+                                        }
+                                    } ),
+                             ( el, st ) => el.value = st.data
+                         ),
+                         br(), br(),
+                         'InputState Color: ',
+                         bindInputState(
+                             input( {
+                                        value: inputState.color,
+                                        oninput: ( e ) => {
+                                            inputState.color = e.target.value
+                                        }
+                                    } ),
+                             ( el, st ) => el.value = st.color
+                         ),
+                         p(
+                             bindAppState(
+                                 () =>
+                                     div(
+                                         h4(message),
+                                         span( { style: `color: ${stateColor}` },
+                                               `appState.data: ${appState.data}`
+                                         ),
+                                         br(),
+                                         bindInputState(
+                                             () =>
+                                                 span( { style: `color: ${inputState.color}` },
+                                                       `inputState.color: ${inputState.color}`
+                                                 )
+                                         )
+                                     ) ),
+                             br(),
+                             input( { value: 'unbound input' } )
+                         )
+            )
+        }
+
+
+        document.body.append(
+            div( { id: 'App' },
+                 myForm( {
+                             message: 'mah datas',
+                             fontSize: '20px',
+                             stateColor: 'blue',
+                             inputStateColor: 'lime'
+                         } ),
+                 p( 'This is an example of some static text',
+                    div(
+                        div(
+                            div( { style: 'color: limegreen' },
+                                 div(
+                                     bindAppState( () => `nested divs with bound state ${appState.data}` )
+                                 )
+                            )
+                        )
+                    ),
+                    pre( code( { class: 'lang-js' }, 'console.log("code tags!")' ) )
+                 ),
+                 myForm( {
+                             message: 'mo dataz',
+                             fontSize: '24px',
+                             stateColor: 'ping',
+                             inputStateColor: 'purple'
+                         } )
+            )
+        )
+    } )
+
+    //hack to load fntags, this should normally be a legit served js file
+    fetch( 'https://raw.githubusercontent.com/narcolepticsnowman/fntags/master/src/index.js' )
+        .then( res => res.text() )
+        .then( js => eval( js ) )
+        .then( () => window.dispatchEvent( new CustomEvent( 'fntagsLoaded' ) ) )
+
+</script>
+</body>
+</html>

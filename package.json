@@ -1,9 +1,9 @@
 {
-  "name": "brighton",
+  "name": "fntags",
   "version": "0.0.1",
   "author": "Robert Kempton <r@snow87.com>",
   "private": false,
-  "homepage": "https://github.com/narcolepticsnowman/brighton",
+  "homepage": "https://github.com/narcolepticsnowman/fntags",
   "license": "MIT",
   "files": [
     "src/*",
@@ -13,7 +13,7 @@
   "main": "src/index.js",
   "repository": {
     "type": "git",
-    "url": "git@github.com:narcolepticsnowman/brighton.git"
+    "url": "git@github.com:narcolepticsnowman/fntags.git"
   },
   "keywords": [
     "html",

@@ -5,30 +5,82 @@
 <body>
 <script type="text/javascript">
 
-    let [state, bind] = initState({ data: 'hello' })
+    let [ appState, bindAppState ] = initState( { data: 'hello' } )
 
-    const myInput = ( attrs ) =>
-        div( attrs,
-             input( {
-                        value: state.data,
-                        oninput: ( e ) => {
-                            state.data = e.target.value
-                        }
-                    } ),
-             p(
-                 bind(() =>`here's my attrs: ${attrs} here's my data ${state.data}`),
-                 input( { value: 'hi' } )
-             )
+
+    const myForm = ( { message, fontSize, stateColor, inputStateColor } ) => {
+        let [ inputState, bindInputState ] = initState( { color: inputStateColor } )
+        return form( { style: `font-size: ${fontSize}` },
+                     'State Data: ',
+                     bindAppState(
+                         input( {
+                                    value: appState.data,
+                                    oninput: ( e ) => {
+                                        appState.data = e.target.value
+                                    }
+                                } ),
+                         ( el, st ) => el.value = st.data
+                     ),
+                     br(), br(),
+                     'InputState Color: ',
+                     bindInputState(
+                         input( {
+                                    value: inputState.color,
+                                    oninput: ( e ) => {
+                                        inputState.color = e.target.value
+                                    }
+                                } ),
+                         ( el, st ) => el.value = st.color
+                     ),
+                     p(
+                         bindAppState(
+                             () =>
+                                 div(
+                                     h4(message),
+                                     span( { style: `color: ${stateColor}` },
+                                           `appState.data: ${appState.data}`
+                                     ),
+                                     br(),
+                                     bindInputState(
+                                         () =>
+                                             span( { style: `color: ${inputState.color}` },
+                                                   `inputState.color: ${inputState.color}`
+                                             )
+                                     )
+                                 ) ),
+                         br(),
+                         input( { value: 'unbound input' } )
+                     )
         )
+    }
 
 
     document.body.append(
-        div( {id: "App"},
-             myInput( 'mah datas' ),
-             p( 'Create the start script, ',
-                div( div( div( { style: 'color: limegreen' }, div( bind( ()=> `nested divs ${state.data}` )) ) ) ),
-                code( 'vi ~/app/serve.js' ) ),
-             pre( code( { class: 'lang-js' }, 'require(\'spliffy\')({routeDir: __dirname+ \'/www\'})' ) )
+        div( { id: 'App' },
+             myForm( {
+                         message: 'mah datas',
+                         fontSize: '20px',
+                         stateColor: 'blue',
+                         inputStateColor: 'lime'
+                     } ),
+             p( 'This is an example of some static text',
+                div(
+                    div(
+                        div( { style: 'color: limegreen' },
+                             div(
+                                 bindAppState( () => `nested divs with bound state ${appState.data}` )
+                             )
+                        )
+                    )
+                ),
+                pre( code( { class: 'lang-js' }, 'console.log("code tags!")' ) )
+             ),
+             myForm( {
+                         message: 'mo dataz',
+                         fontSize: '24px',
+                         stateColor: 'ping',
+                         inputStateColor: 'purple'
+                     } )
         )
     )
 

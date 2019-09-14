@@ -60,16 +60,17 @@
             defineProperty: notify( 'defineProperty' )
         } )
         p.watchState = ( observer ) => observers.push( observer )
-        return [ p, ( el ) => {
-            if( typeof el !== 'function' ) throw 'You can only bind functions to state changes.'
-            let element = renderElement( el( state ) )
+        return [ p, ( el, update ) => {
+            if( typeof el !== 'function' && !isNode(el)) throw 'You can only bind functions and Elements to state changes.'
+            if( isNode(el) && typeof update !== 'function') throw 'You must supply an update function when binding directly to an element'
+            let element = typeof el === 'function' ? renderElement( el( state ) ) : el
 
-            const updateElement = ( newState ) => {
+            const updateElement = update ? update : ( current, newState ) => {
                 const newElement = renderElement( el( newState ) )
                 element.replaceWith( newElement )
                 element = newElement
             }
-            state.watchState( updateElement )
+            state.watchState( (state) => updateElement(element, state) )
             return element
         } ]
     }
