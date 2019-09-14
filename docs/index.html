@@ -4,12 +4,26 @@
 
     </script>
     <title>fntags framework example</title>
+    <style>
+        .foo {
+            background: darkcyan;
+        }
+    </style>
 </head>
 <body>
 <script type="text/javascript">
     window.addEventListener( 'fntagsLoaded', () => {
 
-        let [ appState, bindAppState ] = initState( { data: 'hello' } )
+        const foo = ( aFoo ) =>
+            div( { class: 'foo' },
+                "One of my foos: ",
+                aFoo.foo
+            )
+
+        let [ appState, bindAppState ] = initState( {
+                                                        data: 'hello',
+                                                        myFoos: [ { foo: 'Hannibal' }, {foo: 'Face(man)'}, {foo: 'Howling Mad'}, {foo: 'B.A.'} ]
+                                                    } )
 
 
         const myForm = ( { message, fontSize, stateColor, inputStateColor } ) => {
@@ -40,7 +54,7 @@
                              bindAppState(
                                  () =>
                                      div(
-                                         h4(message),
+                                         h4( message ),
                                          span( { style: `color: ${stateColor}` },
                                                `appState.data: ${appState.data}`
                                          ),
@@ -84,7 +98,15 @@
                              fontSize: '24px',
                              stateColor: 'ping',
                              inputStateColor: 'purple'
-                         } )
+                         } ),
+                 br(),br(),
+                 button({onclick: ()=>appState.myFoos = appState.myFoos.concat({foo: "foo"})},
+                        "More foos"
+                 ),
+                 button({onclick: ()=>appState.myFoos = appState.myFoos.slice(0, -1)},
+                        "Less foos"
+                 ),
+                 bindAppState(()=>div(...appState.myFoos.map(foo)))
             )
         )
     } )
