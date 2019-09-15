@@ -169,7 +169,7 @@
                     appState.loaded = true
                 },
                 2000 )
-    hack to load fntags, this should normally be a legit served js file
+    //hack to load fntags, this should normally be a legit served js file
     fetch( 'https://raw.githubusercontent.com/narcolepticsnowman/fntags/master/src/index.js' )
         .then( res => res.text() )
         .then( js => eval( js ) )
