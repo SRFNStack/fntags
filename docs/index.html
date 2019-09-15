@@ -163,12 +163,13 @@
                  greeting()
             )
         )
+        setTimeout( ((ast)=>() => {
+                        console.log( 'hello' )
+                        ast.loaded = true
+                    })(appState),
+                    2000 )
     } )
-    setTimeout( ((ast)=>() => {
-                    console.log( 'hello' )
-                    ast.loaded = true
-                })(appState),
-                2000 )
+
     //hack to load fntags, this should normally be a legit served js file
     fetch( 'https://raw.githubusercontent.com/narcolepticsnowman/fntags/master/src/index.js' )
         .then( res => res.text() )
