@@ -1,4 +1,4 @@
-#fntags
+# fntags
 
 > Functions instead of markup to enable two way data binding and automatic refreshes on state updates
 
@@ -115,28 +115,25 @@ setTimeout( () => {
             1000 )
 ```
 
-##Basics
 
-####Tags
+#### Tags
 All html tags are accessible via the `fntags` global property. To make the tags globally available, call `fntags.hoist()`. If there are existing window properties that share names with html tags, the tag will be hoisted to _fn_+tag (i.e. _fn_div) 
 
-State updates are implemented using [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) thus `fntags.initState({})` **must** be called only with an object. Primitive values are not supported.
+#### State
+You can subscribe to changes in state by using the `fnbind` function. 
 
-The returned value from `fntags.initState({})` is an array of two elements, the proxied state, and a bind function.
+The returned value from `fntags.initState({})` is the proxied state, this return value should be passed to `fnbind` .
 
-You may pass either a function or an element and an update function to the bind function. 
+##### fnbind(states, element [, update])
+ - **states** either a single state or an array of states
+ - **element** an html element or a function that returns one
+ - **update** A function that will be called whenever the state is updated. This allows you to directly control what happens. The function receives two arguments,
+ the element being updated, and the new state `(element, newState) => {element.value = newState.foo}`. You can replace the existing element by returning a new element
+ from the update function.
 
-If you pass a function, when the state is updated, the function will be executed and the existing element will be replaced by whatever is returned by the function.
-This causes issues for inputs and things with focus as the element gets dropped and re-created.
+If you pass a function as the element, when the state is updated, the function will be executed and the existing element will be replaced by the returned element.
 
-If you don't want to re-create elements, like in the case of an input, you may pass the element as the first argument to the bind function, and an update function as the second.
-The update function receives two arguments, the element itself, and the newly updated state. Using this data you can modify the element to your needs on any state change.
-This is useful in situations where you want to update the state within a bound context, because your component won't be re-created automatically and thus you won't lose focus and things like that.
+You will find that if you try to use this method with an input, the input will lose focus. This is because you're actually creating a new element and the element that had focus no longer exists.
+To fix this issue, pass an element directly with an update function, then update the element as needed. Passing a function is intended as aa shortcut for strings and simple templates.
 
-When passing a function as the first argument, you may also pass an update function if you would like to override the default behavior of replacing the element. 
-Note that the function will not be called in this case. The element that you receive in the update function is the element that was created from the initial call of the function.
-
-
-##
-#####Note
-When a dom element that is
+State updates are implemented using [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) thus `fntags.initState({})` **must** be called only with an object.
