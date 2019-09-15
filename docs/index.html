@@ -1,11 +1,10 @@
 <html lang="en">
 <head>
     <title>fntags framework example</title>
-    <script src="../src/index.js"></script>
 </head>
 <body>
 <script type="text/javascript">
-    // window.addEventListener( 'fntagsLoaded', () => {
+    window.addEventListener( 'fntagsLoaded', () => {
         fntags.hoist()
 
         const foo = ( aFoo ) =>
@@ -164,17 +163,17 @@
                  greeting()
             )
         )
-    // } )
+    } )
     setTimeout( () => {
                     console.log( 'hello' )
                     appState.loaded = true
                 },
                 2000 )
-    //hack to load fntags, this should normally be a legit served js file
-    // fetch( 'https://raw.githubusercontent.com/narcolepticsnowman/fntags/master/src/index.js' )
-    //     .then( res => res.text() )
-    //     .then( js => eval( js ) )
-    //     .then( () => window.dispatchEvent( new CustomEvent( 'fntagsLoaded' ) ) )
+    hack to load fntags, this should normally be a legit served js file
+    fetch( 'https://raw.githubusercontent.com/narcolepticsnowman/fntags/master/src/index.js' )
+        .then( res => res.text() )
+        .then( js => eval( js ) )
+        .then( () => window.dispatchEvent( new CustomEvent( 'fntagsLoaded' ) ) )
 
 </script>
 </body>
