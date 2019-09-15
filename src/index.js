@@ -1,12 +1,5 @@
-( () => {
-    const tags = [
-        'a', 'abbr', 'acronym', 'address', 'applet', 'area', 'article', 'aside', 'audio', 'b', 'base', 'basefont', 'bdi', 'bdo', 'big', 'blockquote', 'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'data',
-        'datalist', 'dd', 'del', 'details', 'dfn', 'dialog', 'dir', 'div', 'dl', 'dt', 'em', 'embed', 'fieldset', 'figcaption', 'figure', 'font', 'footer', 'form', 'frame', 'frameset', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hr', 'i',
-        'iframe', 'img', 'input', 'ins', 'kbd', 'label', 'legend', 'li', 'link', 'main', 'map', 'mark', 'meta', 'meter', 'nav', 'noframes', 'noscript', 'object', 'ol', 'optgroup', 'option', 'output', 'p', 'param', 'picture', 'pre', 'progress',
-        'q', 'rp', 'rt', 'ruby', 's', 'samp', 'script', 'section', 'select', 'small', 'source', 'span', 'strike', 'strong', 'style', 'sub', 'summary', 'sup', 'svg', 'table', 'tbody', 'td', 'template', 'textarea', 'tfoot', 'th', 'thead', 'time',
-        'title', 'tr', 'track', 'tt', 'u', 'ul', 'var', 'video', 'wbr'
-    ]
-
+window.fntags = ( () => {
+    let lastId = 0
     const htmlElement = ( tag ) => ( ...children ) => {
         const attrs = typeof children[ 0 ] === 'object' && !isNode( children[ 0 ] ) ? children.shift() : {}
         let element = document.createElement( tag )
@@ -46,43 +39,95 @@
             badElementType( el )
     }
 
-
-    window.initState = ( state ) => {
-        if(typeof state !== 'object') throw "initState must be called with an object. Primitive values are not supported."
-        const observers = []
-        const notify = ( method ) => ( ...args ) => {
-            let result = Reflect[ method ]( ...args )
-            observers.forEach( o => o( args[ 0 ] ) )
-            return result
+    const tagElement = ( el ) => {
+        if( !el.hasOwnProperty( '_fn_element_info' ) ) {
+            Object.defineProperty( el, '_fn_element_info', {
+                value: Object.freeze(
+                    {
+                        id: lastId++
+                    } ),
+                enumerable: false,
+                writable: false
+            } )
         }
-        const p = new Proxy( state, {
-            set: notify( 'set' ),
-            deleteProperty: notify( 'deleteProperty' ),
-            defineProperty: notify( 'defineProperty' )
-        } )
-        p.watchState = ( observer ) => observers.push( observer )
-        return [ p, ( el, update ) => {
-            debugger
-            if( typeof el !== 'function' && !isNode(el)) throw 'You can only bind functions and Elements to state changes.'
-            if( isNode(el) && typeof update !== 'function') throw 'You must supply an update function when binding directly to an element'
-            let element = typeof el === 'function' ? renderElement( el( state ) ) : el
+    }
+    const isTagged = ( el ) => el.hasOwnProperty( '_fn_element_info' )
 
-            const updateElement = update ? update : ( current, newState ) => {
-                const newElement = renderElement( el( newState ) )
-                element.replaceWith( newElement )
-                element = newElement
-            }
-            state.watchState( (state) => updateElement(element, state) )
-            return element
-        } ]
+    const getElId = ( el ) => el._fn_element_info.id
+
+    window.fnbind = ( state, element, update ) => {
+        if( typeof element !== 'function' && !isNode( element ) ) throw 'You can only bind functions and Elements to state changes.'
+        if( isNode( element ) && typeof update !== 'function' ) throw 'You must supply an update function when binding directly to an element'
+
+        return ( Array.isArray( state ) && state || [ state ] )
+            .reduce( ( el, st ) => {
+                         if( !st.hasOwnProperty( '_fn_state_info' ) ) throw `State object: ${st} has not been initialized. Call fntags.initState() with this object and pass the returned value to fnbind.`
+                         st._fn_state_info.addObserver( el, element, update )
+                         return el
+                     },
+                     {current: typeof element === 'function' ? renderElement( element( state ) ) : element}
+            ).current
     }
 
-    tags.forEach( ( key ) => {
-        if( window[ key ] ) {
-            console.log( `window already has property ${key}. Use _${key} to use this tag.` )
-            window[ '_' + key ] = htmlElement( key )
-        } else {
-            window[ key ] = htmlElement( key )
+    const fntags = {
+        hoist() {
+            Object.keys( fntags ).forEach( ( key ) => {
+                if( window[ key ] ) {
+                    console.log( `window already has property ${key}. Use _fn_${key} to use this tag.` )
+                    window[ '_fn_' + key ] = htmlElement( key )
+                } else {
+                    window[ key ] = htmlElement( key )
+                }
+            } )
+        },
+        initState( state ) {
+            if( typeof state !== 'object' ) throw 'initState must be called with an object. Primitive values are not supported.'
+            const observers = {}
+            const notify = ( method ) => ( ...args ) => {
+                let result = Reflect[ method ]( ...args )
+                for( let k in observers ) {
+                    observers[ k ]( args[ 0 ] )
+                }
+                return result
+            }
+            const p = new Proxy( state, {
+                set: notify( 'set' ),
+                deleteProperty: notify( 'deleteProperty' ),
+                defineProperty: notify( 'defineProperty' )
+            } )
+
+            const addObserver = ( el, element, update ) => {
+                tagElement( el.current )
+                observers[ getElId( el.current ) ] = ( state ) => {
+                    const newElement = update ? update( element, state ) : renderElement( element() )
+                    if( newElement && isNode( newElement ) && !isTagged( newElement )) {
+                        tagElement( newElement )
+                        delete observers[ getElId( el.current ) ]
+                        el.current.replaceWith( newElement )
+                        el.current = newElement
+                        addObserver( el, element, update )
+                    }
+                }
+            }
+
+            Object.defineProperty( p, '_fn_state_info', {
+                value: Object.freeze( {addObserver} ),
+                enumerable: false,
+                writable: false
+            } )
+
+            return p
         }
-    } )
+    }
+
+    return Object.freeze( [
+                              'a', 'abbr', 'acronym', 'address', 'applet', 'area', 'article', 'aside', 'audio', 'b', 'base', 'basefont', 'bdi', 'bdo', 'big', 'blockquote', 'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'currentUser',
+                              'datalist', 'dd', 'del', 'details', 'dfn', 'dialog', 'dir', 'div', 'dl', 'dt', 'em', 'embed', 'fieldset', 'figcaption', 'figure', 'font', 'footer', 'form', 'frame', 'frameset', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hr', 'i',
+                              'iframe', 'img', 'input', 'ins', 'kbd', 'label', 'legend', 'li', 'link', 'main', 'map', 'mark', 'meta', 'meter', 'nav', 'noframes', 'noscript', 'object', 'ol', 'optgroup', 'option', 'output', 'p', 'param', 'picture', 'pre', 'progress',
+                              'q', 'rp', 'rt', 'ruby', 's', 'samp', 'script', 'section', 'select', 'small', 'source', 'span', 'strike', 'strong', 'style', 'sub', 'summary', 'sup', 'svg', 'table', 'tbody', 'td', 'template', 'textarea', 'tfoot', 'th', 'thead', 'time',
+                              'title', 'tr', 'track', 'tt', 'u', 'ul', 'var', 'video', 'wbr'
+                          ].reduce( ( ft, tag ) => {
+        ft[ tag ] = htmlElement( tag )
+        return ft
+    }, fntags ) )
 } )()
