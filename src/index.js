@@ -92,14 +92,13 @@ window.fntags = ( () => {
             }
             const p = new Proxy( state, {
                 set: notify( 'set' ),
-                deleteProperty: notify( 'deleteProperty' ),
-                defineProperty: notify( 'defineProperty' )
+                deleteProperty: notify( 'deleteProperty' )
             } )
 
             const addObserver = ( el, element, update ) => {
                 tagElement( el.current )
                 observers[ getElId( el.current ) ] = ( state ) => {
-                    const newElement = update ? update( element, state ) : renderElement( element() )
+                    const newElement = update ? update( element, state ) : renderElement( element(state) )
                     if( newElement && isNode( newElement ) && !isTagged( newElement )) {
                         tagElement( newElement )
                         delete observers[ getElId( el.current ) ]
