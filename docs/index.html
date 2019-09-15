@@ -128,6 +128,7 @@
 
         document.body.append(
             div( { id: 'App' },
+                 greeting(),
                  myForm( {
                              message: 'First form',
                              fontSize: '20px',
@@ -159,8 +160,7 @@
                  button({onclick: ()=>appState.myFoos = appState.myFoos.slice(0, -1)},
                         "Less foos"
                  ),
-                 fnbind(appState, ()=>div(...appState.myFoos.map(foo))),
-                 greeting()
+                 fnbind(appState, ()=>div(...appState.myFoos.map(foo)))
             )
         )
         setTimeout( ((ast)=>() => {
