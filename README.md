@@ -80,10 +80,9 @@ const greeting = () => {
                                    
                                    //updates are only triggered by direct properties of the state
                                    //therefore you need to actually re-assign currentUser to trigger an update
-                                   appState.currentUser = {
-                                       ...appState.currentUser,
+                                   appState.currentUser = Object.assign(appState.currentUser,{
                                        name: e.target.value
-                                   }
+                                   })
                                }
                            } ),
                     ( el, st ) => {el.value = st.currentUser.name}
