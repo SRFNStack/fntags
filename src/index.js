@@ -130,3 +130,5 @@ window.fntags = ( () => {
         return ft
     }, fntags ) )
 } )()
+
+if(module) module.exports = window.fntags
