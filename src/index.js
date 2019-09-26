@@ -130,9 +130,5 @@ const FnTags = () => {
     }, fntags ) )
 }
 
-if(window) {
-    window.fntags = FnTags()
-    window.fnbind = window.fntags.fnbind
-}
-
-if(module) module.exports = window.fntags
+window.fntags = FnTags()
+window.fnbind = window.fntags.fnbind
