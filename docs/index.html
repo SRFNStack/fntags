@@ -1,10 +1,13 @@
 <html lang="en">
 <head>
     <title>fntags framework example</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 </head>
 <body>
 <script type="module">
-    import { fntags, fnbind, div, p, pre, code, br, button } from './fntags.js'
+    import { fnstate, fnbind, div, p, pre, code, br, button } from './fntags.js'
+    import tabs from './tabs.js'
     import greeting from './greeting.js'
     import myForm from './myForm.js'
 
@@ -14,21 +17,31 @@
              aFoo.foo
         )
 
-    let appState = fntags.initState( {
-                                         currentUser: {
-                                             name: 'fntags'
-                                         },
-                                         myFoos: [ { foo: 'Hannibal' }, { foo: 'Face(man)' }, { foo: 'Howling Mad' }, { foo: 'B.A.' } ]
-                                     } )
+    let appState = fnstate( {
+                                currentUser: {
+                                    name: 'fntags'
+                                },
+                                myFoos: [ { foo: 'Hannibal' }, { foo: 'Face(man)' }, { foo: 'Howling Mad' }, { foo: 'B.A.' } ]
+                            } )
     document.body.append(
         div( { id: 'App' },
-             greeting(appState),
+             tabs(
+                 {
+                     containerAttrs: {},
+                     tabs: [
+                         { title: 'Hello', content: 'world' },
+                         { title: 'Goodbye', content: 'earth' },
+                         { title: 'Hasta la vista', content: 'baby' }
+                     ]
+                 }
+             ),
+             greeting( appState ),
              myForm( appState, {
-                         message: 'First form',
-                         fontSize: '20px',
-                         stateColor: 'blue',
-                         inputStateColor: 'lime'
-                     } ),
+                 message: 'First form',
+                 fontSize: '20px',
+                 stateColor: 'blue',
+                 inputStateColor: 'lime'
+             } ),
              p( 'This is an example of some static text',
                 div(
                     div(
@@ -42,11 +55,11 @@
                 pre( code( { class: 'lang-js' }, 'console.log("code tags!")' ) )
              ),
              myForm( appState, {
-                         message: 'Second form',
-                         fontSize: '24px',
-                         stateColor: 'pink',
-                         inputStateColor: 'purple'
-                     } ),
+                 message: 'Second form',
+                 fontSize: '24px',
+                 stateColor: 'pink',
+                 inputStateColor: 'purple'
+             } ),
              br(), br(),
              button( { onclick: () => appState.myFoos = appState.myFoos.concat( { foo: 'foo' } ) },
                      'More foos'

@@ -1,6 +1,6 @@
-import {fntags, fnbind, div, br, input, h4, span, p, form} from "./fntags.js"
+import {fnstate, fnbind, div, br, input, h4, span, p, form} from "./fntags.js"
 export default ( appState, { message, fontSize, stateColor, inputStateColor } ) => {
-    let inputState = fntags.initState( { color: inputStateColor } )
+    let inputState = fnstate( { color: inputStateColor } )
     return form( { style: `font-size: ${fontSize}` },
                  'State Data: ',
                  fnbind( appState,

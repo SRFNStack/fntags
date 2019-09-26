@@ -1,7 +1,7 @@
-import {fntags, fnbind, div, br, input} from "./fntags.js"
+import {fnstate, fnbind, div, br, input} from "./fntags.js"
 export default (appState) => {
     //state that's private to this component
-    const greetingState = fntags.initState( { greeting: 'Hello' } )
+    const greetingState = fnstate( { greeting: 'Hello' } )
 
     //create a variable to store our created div so that it doesn't get re-created on every update
     let greetingDiv
