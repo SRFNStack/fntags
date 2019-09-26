@@ -4,39 +4,40 @@
 </head>
 <body>
 <script type="module">
-    window.addEventListener( 'fntagsLoaded', () => {
-        import {fntags, fnbind} from 'fntags.js'
-        fntags.hoist()
-        const foo = ( aFoo ) =>
-            div( { style: 'background: darkcyan' },
-                "One of my foos: ",
-                aFoo.foo
-            )
+    import { fntags, fnbind } from './fntags.js'
 
-        let appState = fntags.initState( {
-                                                        currentUser: {
-                                                            name: 'fntags'
-                                                        },
-                                                        myFoos: [ { foo: 'Hannibal' }, {foo: 'Face(man)'}, {foo: 'Howling Mad'}, {foo: 'B.A.'} ]
-                                                    } )
+    fntags.hoist()
+    const foo = ( aFoo ) =>
+        div( { style: 'background: darkcyan' },
+             'One of my foos: ',
+             aFoo.foo
+        )
+
+    let appState = fntags.initState( {
+                                         currentUser: {
+                                             name: 'fntags'
+                                         },
+                                         myFoos: [ { foo: 'Hannibal' }, { foo: 'Face(man)' }, { foo: 'Howling Mad' }, { foo: 'B.A.' } ]
+                                     } )
 
 
-        const myForm = ( { message, fontSize, stateColor, inputStateColor } ) => {
-            let inputState = fntags.initState( { color: inputStateColor } )
-            return form( { style: `font-size: ${fontSize}` },
-                         'State Data: ',
-                         fnbind(appState,
+    const myForm = ( { message, fontSize, stateColor, inputStateColor } ) => {
+        let inputState = fntags.initState( { color: inputStateColor } )
+        return form( { style: `font-size: ${fontSize}` },
+                     'State Data: ',
+                     fnbind( appState,
                              input( {
                                         value: appState.currentUser.name,
                                         oninput: ( e ) => {
-                                            appState.currentUser = Object.assign(appState.currentUser, {name: e.target.value})
+                                            appState.currentUser = Object.assign( appState.currentUser,
+                                                                                  { name: e.target.value } )
                                         }
                                     } ),
                              ( el, st ) => el.value = st.currentUser.name
-                         ),
-                         br(), br(),
-                         'InputState Color: ',
-                         fnbind( inputState,
+                     ),
+                     br(), br(),
+                     'InputState Color: ',
+                     fnbind( inputState,
                              input( {
                                         value: inputState.color,
                                         oninput: ( e ) => {
@@ -44,9 +45,9 @@
                                         }
                                     } ),
                              ( el, st ) => el.value = st.color
-                         ),
-                         p(
-                             fnbind(appState,
+                     ),
+                     p(
+                         fnbind( appState,
                                  () =>
                                      div(
                                          h4( message ),
@@ -54,18 +55,18 @@
                                                `appState.currentUser.name: ${appState.currentUser.name}`
                                          ),
                                          br(),
-                                         fnbind(inputState,
-                                             () =>
-                                                 span( { style: `color: ${inputState.color}` },
-                                                       `inputState.color: ${inputState.color}`
-                                                 )
+                                         fnbind( inputState,
+                                                 () =>
+                                                     span( { style: `color: ${inputState.color}` },
+                                                           `inputState.color: ${inputState.color}`
+                                                     )
                                          )
                                      ) ),
-                             br(),
-                             input( { value: 'unbound input' } )
-                         )
-            )
-        }
+                         br(),
+                         input( { value: 'unbound input' } )
+                     )
+        )
+    }
 
     const greeting = () => {
         //state that's private to this component
@@ -74,7 +75,6 @@
         //create a variable to store our created div so that it doesn't get re-created on every update
         let greetingDiv
         const buildGreetingDiv = () => div(
-
             //bind to any number of states by passing an array
             fnbind( [ appState, greetingState ],
                     () => `${greetingState.greeting} ${appState.currentUser.name}!`
@@ -102,9 +102,9 @@
 
                                    //updates are only triggered by direct properties of the state
                                    //therefore you need to actually re-assign currentUser to trigger an update
-                                   appState.currentUser = Object.assign(appState.currentUser,{
+                                   appState.currentUser = Object.assign( appState.currentUser, {
                                        name: e.target.value
-                                   })
+                                   } )
                                }
                            } ),
                     ( el, st ) => {el.value = st.currentUser.name}
@@ -125,49 +125,48 @@
     }
 
 
-        document.body.append(
-            div( { id: 'App' },
-                 greeting(),
-                 myForm( {
-                             message: 'First form',
-                             fontSize: '20px',
-                             stateColor: 'blue',
-                             inputStateColor: 'lime'
-                         } ),
-                 p( 'This is an example of some static text',
+    document.body.append(
+        div( { id: 'App' },
+             greeting(),
+             myForm( {
+                         message: 'First form',
+                         fontSize: '20px',
+                         stateColor: 'blue',
+                         inputStateColor: 'lime'
+                     } ),
+             p( 'This is an example of some static text',
+                div(
                     div(
-                        div(
-                            div( { style: 'color: limegreen' },
-                                 div(
-                                     fnbind(appState, () => `nested divs with bound state ${appState.currentUser.name}` )
-                                 )
-                            )
+                        div( { style: 'color: limegreen' },
+                             div(
+                                 fnbind( appState, () => `nested divs with bound state ${appState.currentUser.name}` )
+                             )
                         )
-                    ),
-                    pre( code( { class: 'lang-js' }, 'console.log("code tags!")' ) )
-                 ),
-                 myForm( {
-                             message: 'Second form',
-                             fontSize: '24px',
-                             stateColor: 'pink',
-                             inputStateColor: 'purple'
-                         } ),
-                 br(),br(),
-                 button({onclick: ()=>appState.myFoos = appState.myFoos.concat({foo: "foo"})},
-                        "More foos"
-                 ),
-                 button({onclick: ()=>appState.myFoos = appState.myFoos.slice(0, -1)},
-                        "Less foos"
-                 ),
-                 fnbind(appState, ()=>div(...appState.myFoos.map(foo)))
-            )
+                    )
+                ),
+                pre( code( { class: 'lang-js' }, 'console.log("code tags!")' ) )
+             ),
+             myForm( {
+                         message: 'Second form',
+                         fontSize: '24px',
+                         stateColor: 'pink',
+                         inputStateColor: 'purple'
+                     } ),
+             br(), br(),
+             button( { onclick: () => appState.myFoos = appState.myFoos.concat( { foo: 'foo' } ) },
+                     'More foos'
+             ),
+             button( { onclick: () => appState.myFoos = appState.myFoos.slice( 0, -1 ) },
+                     'Less foos'
+             ),
+             fnbind( appState, () => div( ...appState.myFoos.map( foo ) ) )
         )
-        setTimeout( ((ast)=>() => {
-                        console.log( 'hello' )
-                        ast.loaded = true
-                    })(appState),
-                    2000 )
-    } )
+    )
+    setTimeout( ( ( ast ) => () => {
+                    console.log( 'hello' )
+                    ast.loaded = true
+                } )( appState ),
+                2000 )
 </script>
 </body>
 </html>
