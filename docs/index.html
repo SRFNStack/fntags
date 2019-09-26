@@ -5,8 +5,8 @@
 <body>
 <script type="text/javascript">
     window.addEventListener( 'fntagsLoaded', () => {
+        import {fntags, fnbind} from 'fntags.js'
         fntags.hoist()
-
         const foo = ( aFoo ) =>
             div( { style: 'background: darkcyan' },
                 "One of my foos: ",
@@ -168,13 +168,6 @@
                     })(appState),
                     2000 )
     } )
-
-    //hack to load fntags, this should normally be a legit served js file
-    fetch( 'https://raw.githubusercontent.com/narcolepticsnowman/fntags/master/src/index.js' )
-        .then( res => res.text() )
-        .then( js => eval( js ) )
-        .then( () => window.dispatchEvent( new CustomEvent( 'fntagsLoaded' ) ) )
-
 </script>
 </body>
 </html>
