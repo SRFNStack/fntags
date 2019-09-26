@@ -1,4 +1,4 @@
-window.fntags = ( () => {
+const FnTags = () => {
     let lastId = 0
     const htmlElement = ( tag ) => ( ...children ) => {
         const attrs = typeof children[ 0 ] === 'object' && !isNode( children[ 0 ] ) ? children.shift() : {}
@@ -55,20 +55,6 @@ window.fntags = ( () => {
 
     const getElId = ( el ) => el._fn_element_info.id
 
-    window.fnbind = ( state, element, update ) => {
-        if( typeof element !== 'function' && !isNode( element ) ) throw 'You can only bind functions and Elements to state changes.'
-        if( isNode( element ) && typeof update !== 'function' ) throw 'You must supply an update function when binding directly to an element'
-
-        return ( Array.isArray( state ) && state || [ state ] )
-            .reduce( ( el, st ) => {
-                         if( !st.hasOwnProperty( '_fn_state_info' ) ) throw `State object: ${st} has not been initialized. Call fntags.initState() with this object and pass the returned value to fnbind.`
-                         st._fn_state_info.addObserver( el, element, update )
-                         return el
-                     },
-                     {current: typeof element === 'function' ? renderElement( element( state ) ) : element}
-            ).current
-    }
-
     const fntags = {
         hoist() {
             Object.keys( fntags ).forEach( ( key ) => {
@@ -116,6 +102,19 @@ window.fntags = ( () => {
             } )
 
             return p
+        },
+        fnbind( state, element, update ) {
+            if( typeof element !== 'function' && !isNode( element ) ) throw 'You can only bind functions and Elements to state changes.'
+            if( isNode( element ) && typeof update !== 'function' ) throw 'You must supply an update function when binding directly to an element'
+
+            return ( Array.isArray( state ) && state || [ state ] )
+                .reduce( ( el, st ) => {
+                             if( !st.hasOwnProperty( '_fn_state_info' ) ) throw `State object: ${st} has not been initialized. Call fntags.initState() with this object and pass the returned value to fnbind.`
+                             st._fn_state_info.addObserver( el, element, update )
+                             return el
+                         },
+                         {current: typeof element === 'function' ? renderElement( element( state ) ) : element}
+                ).current
         }
     }
 
@@ -129,6 +128,11 @@ window.fntags = ( () => {
         ft[ tag ] = htmlElement( tag )
         return ft
     }, fntags ) )
-} )()
+}
+
+if(window) {
+    window.fntags = FnTags()
+    window.fnbind = window.fntags.fnbind
+}
 
 if(module) module.exports = window.fntags
