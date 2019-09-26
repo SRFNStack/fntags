@@ -26,40 +26,44 @@
     document.body.append(
         div( { id: 'App' },
              tabs(
-                 {
-                     containerAttrs: {},
-                     tabs: [
+                 [
                          { title: 'Hello', content: 'world' },
                          { title: 'Goodbye', content: 'earth' },
                          { title: 'Hasta la vista', content: 'baby' }
                      ]
-                 }
              ),
              greeting( appState ),
-             myForm( appState, {
-                 message: 'First form',
-                 fontSize: '20px',
-                 stateColor: 'blue',
-                 inputStateColor: 'lime'
-             } ),
-             p( 'This is an example of some static text',
+             tabs([
+                      {title: 'First Form',
+                         content: myForm( appState, {
+                              message: 'First form',
+                              fontSize: '20px',
+                              stateColor: 'blue',
+                              inputStateColor: 'lime'
+                          } )
+                      },
+                      {
+                          title: "Second Form",
+                          content: myForm( appState, {
+                              message: 'Second form',
+                              fontSize: '24px',
+                              stateColor: 'pink',
+                              inputStateColor: 'purple'
+                          } )
+                      }
+                  ]),
+             p( 'This is static text',
                 div(
                     div(
                         div( { style: 'color: limegreen' },
                              div(
-                                 fnbind( appState, () => `nested divs with bound state ${appState.currentUser.name}` )
+                                 fnbind( appState, () => `These are nested divs with bound state ${appState.currentUser.name}` )
                              )
                         )
                     )
                 ),
-                pre( code( { class: 'lang-js' }, 'console.log("code tags!")' ) )
+                pre( code( { class: 'lang-js' }, 'alert("fntags!")' ) )
              ),
-             myForm( appState, {
-                 message: 'Second form',
-                 fontSize: '24px',
-                 stateColor: 'pink',
-                 inputStateColor: 'purple'
-             } ),
              br(), br(),
              button( { onclick: () => appState.myFoos = appState.myFoos.concat( { foo: 'foo' } ) },
                      'More foos'

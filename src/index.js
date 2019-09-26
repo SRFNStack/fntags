@@ -88,12 +88,15 @@ export const fnstate = ( state ) => {
         tagElement( el.current )
         observers[ getElId( el.current ) ] = ( state ) => {
             const newElement = update ? update( element, state ) : renderElement( element( state ) )
-            if( newElement && isNode( newElement ) && !isTagged( newElement ) ) {
-                tagElement( newElement )
-                delete observers[ getElId( el.current ) ]
-                el.current.replaceWith( newElement )
-                el.current = newElement
-                addObserver( el, element, update )
+            if( newElement && isNode( newElement )) {
+                if(!isTagged( newElement ) )
+                    tagElement( newElement )
+                if(getElId(el.current) !== getElId(newElement)){
+                    delete observers[ getElId( el.current ) ]
+                    el.current.replaceWith( newElement )
+                    el.current = newElement
+                    addObserver( el, element, update )
+                }
             }
         }
     }

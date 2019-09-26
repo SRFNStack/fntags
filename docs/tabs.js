@@ -10,11 +10,14 @@ const tabButton = ( activeTab, thisIndex, { title } ) =>
                          title
                 ) )
     )
-export default ( {containerAttrs, tabs} ) => {
-
-    if(!containerAttrs) containerAttrs = {}
-    if(typeof containerAttrs !== 'object') throw "container attributes must be an object"
-
+export default ( arg ) => {
+    let containerAttrs = {}
+    let tabs = arg
+    if(typeof arg === 'object' && !Array.isArray(arg)) {
+        if(typeof arg.containerAttrs !== 'object') throw "container attributes must be an object"
+        containerAttrs = arg.containerAttrs
+    }
+    if(!Array.isArray(tabs)) throw "tabs must be an array"
     tabs.forEach( t => {
         if( typeof t !== 'object' ) throw 'each tab must be an object. Example {title: \'tab1\', content: div(\'hello\')'
         if( !t.title || typeof t.title !== 'string' ) throw 'you must provide a title'
@@ -28,6 +31,8 @@ export default ( {containerAttrs, tabs} ) => {
     return div( attrs,
                 ul( { class: 'nav nav-tabs' },
                     ...tabs.map( ( t, i ) => tabButton( activeTab, i, t ) ) ),
-                fnbind( activeTab, () => tabs[ activeTab.index ].content )
+                fnbind( activeTab,
+                        () =>
+                            tabs[ activeTab.index ].content )
     )
 }
