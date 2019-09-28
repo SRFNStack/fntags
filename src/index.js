@@ -1,4 +1,18 @@
 /**
+ * A helper function that will append the given children to the given root element
+ * @param root Either an element id string or an element itself
+ * @param children The children to append to the root element
+ */
+export const fnapp = (root, ...children) => {
+    if(typeof root === 'string'){
+        root = document.getElementById(root)
+        if(!root) throw `No such element with id ${root}`
+    }
+    if(!isNode(root)) throw "The first argument to fnapp must be either a string element id or an element"
+    root.append(...children)
+}
+
+/**
  * Create a function that will render an actual DomElement with the given attributes and children.
  * @param tag The html tag to use when created the element
  * @returns {function(...[*]=): any} A function that accepts an attributes object and an array of children.
@@ -11,7 +25,6 @@
  * The rest of the arguments will be considered children of this element and appended to it in the same order as passed.
  *
  */
-
 const htmlElement = ( tag ) => ( ...children ) => {
     const attrs = shiftAttrs( children )
     let element = document.createElement( tag )

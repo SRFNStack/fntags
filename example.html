@@ -1,7 +1,7 @@
 <html>
 <body>
 <script type="module">
-    import {fnstate, fnbind, fnlink, div, br, input, hr, h4, span, p, router, route} from "./src/index.js"
+    import {fnapp, fnstate, fnbind, fnlink, div, br, input, hr, h4, span, p, router, route} from "./src/index.js"
 
     const appState = fnstate( { currentUser: null } )
 
@@ -76,7 +76,8 @@
         fnlink({to: "/hello"}, "hello"),
         fnlink({to: "/goodbye"}, "goodbye"),
     )
-    document.body.append(
+
+    fnapp(document.body,
         router(
             nav,
             route({fnpath: "/", absolute: true},
