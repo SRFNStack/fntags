@@ -1,11 +1,10 @@
 import {fnstate, fnbind, div, br, input} from "./fntags.js"
 export default (appState) => {
-    //state that's private to this component
+    //create a state that's private to this component
     const greetingState = fnstate( { greeting: 'Hello' } )
 
-    //create a variable to store our created div so that it doesn't get re-created on every update
-    let greetingDiv
-    const buildGreetingDiv = () => div(
+    //create a variable to store our created div so that it doesn't get re-created on every update, though that wouldn't totally ruin the day if it did happen
+    const greetingDiv = div(
         //bind to any number of states by passing an array
         fnbind( [ appState, greetingState ],
                 () => `${greetingState.greeting} ${appState.currentUser.name}!`
@@ -42,15 +41,5 @@ export default (appState) => {
         )
     )
 
-    if( appState.loaded ) greetingDiv = buildGreetingDiv()
-
-    return fnbind( appState,
-                   () => greetingDiv || 'Welcome!',
-                   ( el, st ) => {
-                       if( st.loaded ) {
-                           if( !greetingDiv ) greetingDiv = buildGreetingDiv()
-                           return greetingDiv
-                       } else return 'Welcome!'
-                   }
-    )
+    return fnbind( appState,() => appState.loaded ? greetingDiv : 'Welcome!')
 }

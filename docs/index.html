@@ -6,7 +6,7 @@
 </head>
 <body>
 <script type="module">
-    import { fnstate, fnbind, div, p, pre, code, br, button } from './fntags.js'
+    import { fnstate, fnbind, div, p, pre, code, br, button, span } from './fntags.js'
     import tabs from './tabs.js'
     import greeting from './greeting.js'
     import myForm from './myForm.js'
@@ -26,38 +26,34 @@
     document.body.append(
         div( { id: 'App' },
              tabs(
-                 [
-                         { title: 'Hello', content: 'world' },
-                         { title: 'Goodbye', content: 'earth' },
-                         { title: 'Hasta la vista', content: 'baby' }
-                     ]
+                 div({title: "Wello"}, span("Horld")),
+                 div({title: "Goodbye"}, span("Earth")),
+                 div({title: "Hasta la vista"}, span("Baby"))
              ),
              greeting( appState ),
-             tabs([
-                      {title: 'First Form',
-                         content: myForm( appState, {
-                              message: 'First form',
-                              fontSize: '20px',
-                              stateColor: 'blue',
-                              inputStateColor: 'lime'
-                          } )
-                      },
-                      {
-                          title: "Second Form",
-                          content: myForm( appState, {
-                              message: 'Second form',
-                              fontSize: '24px',
-                              stateColor: 'pink',
-                              inputStateColor: 'purple'
-                          } )
-                      }
-                  ]),
+             tabs( myForm( appState, {
+                       message: 'First form',
+                       fontSize: '24px',
+                       stateColor: 'blue',
+                       inputStateColor: 'lime',
+                       title: 'First Form'
+                   } )
+                 ,
+                   myForm( appState, {
+                       message: 'Second form',
+                       fontSize: '16px',
+                       stateColor: 'pink',
+                       inputStateColor: 'purple',
+                       title: 'Second Form'
+                   } )
+             ),
              p( 'This is static text',
                 div(
                     div(
                         div( { style: 'color: limegreen' },
                              div(
-                                 fnbind( appState, () => `These are nested divs with bound state ${appState.currentUser.name}` )
+                                 fnbind( appState,
+                                         () => `These are nested divs with bound state ${appState.currentUser.name}` )
                              )
                         )
                     )

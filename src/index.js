@@ -1,5 +1,5 @@
 const htmlElement = ( tag ) => ( ...children ) => {
-    const attrs = typeof children[ 0 ] === 'object' && !isNode( children[ 0 ] ) ? children.shift() : {}
+    const attrs = shiftAttrs( children )
     let element = document.createElement( tag )
     if( attrs ) {
         Object.keys( attrs ).forEach( a => {
@@ -51,6 +51,9 @@ const tagElement = ( el ) => {
         } )
     }
 }
+
+export const shiftAttrs = ( args) => typeof args[ 0 ] === 'object' && !isNode( args[ 0 ] ) ? args.shift() : {}
+
 const isTagged = ( el ) => el.hasOwnProperty( '_fn_element_info' )
 
 const getElId = ( el ) => el._fn_element_info.id
