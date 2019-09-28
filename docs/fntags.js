@@ -206,7 +206,7 @@ const findFullPath = ( node, parts = [] ) => {
     else return parts.reverse().map( p => p.startsWith( '/' ) ? p : '/' + p ).join( '' )
 }
 
-const pathState = fnstate({current: window.location.pathname})
+const pathState = fnstate({rootPath: window.location.pathname})
 window.addEventListener("popstate", ( ) => pathState.currentPath = window.location.pathname)
 
 /**
@@ -258,14 +258,23 @@ const shouldDisplayRoute = ( parent, attrs ) => {
 
 /**
  * A router element that marks the root of a routed application. All routes must be descendents of a router.
- * @param children
+ * This elements primary purpose is to provide a to to determine the correct path for each route. It accomplishes this by ensuring the children are fully
+ * constructed, and then kicking the pathState to ensure that each route has the correct view into it's current path.
+ *
+ * This element also let's you specify what the root path of your app is. If non is provided, the initial path where this page was loaded is assumed to be the root path.
+ * This is probably wrong in most cases but useful in some simple scenarios.
+ * You SHOULD set an appropriate root path for your application to ensure correct behavior
  * @returns {HTMLDivElement}
  */
 export const router = ( ...children ) => {
+    const attrs = shiftAttrs(children)
 
+    if(attrs.rootPath) pathState.rootPath = attrs.rootPath
 
+    let router = div( attrs, ...children )
+    pathState.currentPath = pathState.rootPath
 
-    return div(...children )
+    return router
 }
 
 /**
