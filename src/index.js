@@ -1,3 +1,15 @@
+/**
+ * Create a function that will render an actual DomElement with the given attributes and children.
+ * @param tag The html tag to use when created the element
+ * @returns {function(...[*]=): any} A function that accepts an attributes object and an array of children.
+ *
+ * If the first argument is an object that is not an html element, then it is considered to be the attributes object.
+ * All standard html attributes can be passed, as well as pretty much any property that isn't already assigned on the element.
+ * Event listeners can either be a string or a function.
+ *
+ * The rest of the arguments will be considered children of this element and appended to it in the same order as passed.
+ *
+ */
 const htmlElement = ( tag ) => ( ...children ) => {
     const attrs = shiftAttrs( children )
     let element = document.createElement( tag )
@@ -14,16 +26,25 @@ const htmlElement = ( tag ) => ( ...children ) => {
     return element
 }
 
-let lastId = 0
-
 const badElementType = ( el ) => {
     throw `Element type ${el.constructor && el.constructor.name || typeof el} ` +
           `is not supported. All elements must be one of or an array of [String, Function, Element, HTMLElement]`
 }
 
-const isNode = ( el ) => el instanceof Node || el instanceof Element ||
-                         el.constructor.toString().search( /object HTML.+Element/ ) > -1
+/**
+ * Check if a value is an dom node
+ * @param el
+ * @returns {boolean}
+ */
+export const isNode = ( el ) => el && (el instanceof Node || el instanceof Element ||
+                         el.constructor.toString().search( /object HTML.+Element/ ) > -1)
 
+/**
+ * render a given value to an element
+ * A string value will become a TextNode
+ * A dom node/element is returned verbatim
+ * functions are executed with no arguments, the value returned must be a dom node/element or string.
+ */
 const renderElement = ( el ) => {
     if( el.constructor.name === 'String' )
         return document.createTextNode( el )
@@ -39,6 +60,7 @@ const renderElement = ( el ) => {
         badElementType( el )
 }
 
+let lastId = 0
 const tagElement = ( el ) => {
     if( !el.hasOwnProperty( '_fn_element_info' ) ) {
         Object.defineProperty( el, '_fn_element_info', {
@@ -51,13 +73,36 @@ const tagElement = ( el ) => {
         } )
     }
 }
-
-export const shiftAttrs = ( args) => typeof args[ 0 ] === 'object' && !isNode( args[ 0 ] ) ? args.shift() : {}
-
 const isTagged = ( el ) => el.hasOwnProperty( '_fn_element_info' )
-
 const getElId = ( el ) => el._fn_element_info.id
 
+/**
+ * Use this method to remove the attributes object from an array of arguments or rest parameters.
+ *
+ * This method shifts the first element from the given array if it is an object and not a dom node/element.
+ * If the first element does not meet these conditions, the array is is unmodified and a new empty object is returned instead.
+ *
+ * @param args The array to remove the attributes from
+ * @returns The attributes object or a new object if none was present
+ */
+export const shiftAttrs = ( args) => typeof args[ 0 ] === 'object' && !isNode( args[ 0 ] ) ? args.shift() : {}
+
+/**
+ * Bind one or more states to the given element.
+ * @param state Either a single state object or an array of state objects to watch
+ * @param element An element that will be updated whenever the state changes.
+ *          If passing a function, the function will be executed on each state change. The state that triggered the update is passed as the only argument to this function.
+ *          Avoid changing the state unconditionally in this function as it can cause an infinite update loop.
+ *
+ *          If passing a dom node/element, then you must also supply an update function to perform the update on the element.
+ *          This is the preferred method for inputs as it ensures the element is not re-created and focus is lost.
+ *
+ *          Other inputs are not allowed
+ *
+ * @param update A function to perform a manual update with.
+ *          This function receives to arguments. The bound element to update and the state object that triggered the update in that order.
+ * @returns The bound element
+ */
 export const fnbind = ( state, element, update ) => {
     if( typeof element !== 'function' && !isNode( element ) ) throw 'You can only bind functions and Elements to state changes.'
     if( isNode( element ) && typeof update !== 'function' ) throw 'You must supply an update function when binding directly to an element'
@@ -72,6 +117,11 @@ export const fnbind = ( state, element, update ) => {
         ).current
 }
 
+/**
+ * Create a state object that can be bound to.
+ * @param state The initial state
+ * @returns A proxy that notifies watchers when properties are set
+ */
 export const fnstate = ( state ) => {
     if( typeof state !== 'object' ) throw 'initState must be called with an object. Primitive values are not supported.'
     const observers = {}
