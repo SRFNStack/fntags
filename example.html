@@ -1,9 +1,9 @@
 <html>
 <body>
 <script type="module">
-    import {fntags, fnbind, div, br, input, hr, h4, span, p} from "./src/index.js"
+    import {fnstate, fnbind, fnlink, div, br, input, hr, h4, span, p, router, route} from "./src/index.js"
 
-    const appState = fntags.initState( { currentUser: null } )
+    const appState = fnstate( { currentUser: null } )
 
     const card = ( { title, content } ) =>
         div( { style: 'display: inline-block; border: 2px solid black; border-radius: 5px; padding: 10px' },
@@ -14,11 +14,10 @@
 
     const greeting = () => {
         //state that's private to this component
-        const greetingState = fntags.initState( { greeting: 'Hello' } )
+        const greetingState = fnstate( { greeting: 'Hello' } )
 
         //create a variable to store our created div so that it doesn't get re-created on every update
-        let greetingDiv
-        const buildGreetingDiv = () => div(
+        const greetingDiv =  div(
 
             //bind to any number of states by passing an array
             fnbind( [ appState, greetingState ],
@@ -55,31 +54,40 @@
                     ( el, st ) => {el.value = st.currentUser.name}
             )
         )
-
-        if( appState.currentUser ) greetingDiv = buildGreetingDiv()
-
-        return fnbind( appState,
-                       () => greetingDiv || 'Welcome!',
-                       ( el, st ) => {
-                           if( st.currentUser ) {
-                               if( !greetingDiv ) greetingDiv = buildGreetingDiv()
-                               return greetingDiv
-                           } else return 'Welcome!'
-                       }
-        )
+        return fnbind( appState, () => st.currentUser ? greetingDiv : 'Welcome!')
     }
 
+    // document.body.append(
+    //     p(
+    //         'fntags ',
+    //         span( { style: 'color: lime' },
+    //               'is javascript'
+    //         )
+    //     ),
+    //     card( { title: 'fntags', content: 'is awesome' } ),
+    //     card( { title: 'fntags', content: 'is simple' } ),
+    //     p( { class: 'header' },
+    //        greeting()
+    //     )
+    // )
+
+    const nav = div(
+        fnlink({to: "/"}, "root"),
+        fnlink({to: "/hello"}, "hello"),
+        fnlink({to: "/goodbye"}, "goodbye"),
+    )
     document.body.append(
-        p(
-            'fntags ',
-            span( { style: 'color: lime' },
-                  'is javascript'
+        router(
+            nav,
+            route({fnpath: "/", absolute: true},
+                  "rooooot"
+            ),
+            route({fnpath:"/hello"},
+                  "hello page"
+            ),
+            route({fnpath:"/goodbye"},
+                  "goodbye page"
             )
-        ),
-        card( { title: 'fntags', content: 'is awesome' } ),
-        card( { title: 'fntags', content: 'is simple' } ),
-        p( { class: 'header' },
-           greeting()
         )
     )
 
