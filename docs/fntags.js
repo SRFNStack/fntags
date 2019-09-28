@@ -104,30 +104,34 @@ export const shiftAttrs = ( args ) => typeof args[ 0 ] === 'object' && !isNode( 
  * Bind one or more states to the given element.
  * @param state Either a single state object or an array of state objects to watch
  * @param element An element that will be updated whenever the state changes.
- *          If passing a function, the function will be executed on each state change. The state that triggered the update is passed as the only argument to this function.
- *          Avoid changing the state unconditionally in this function as it can cause an infinite update loop.
+ *          If passing a function, the function will be executed on each state change and the returned value will be rendered to a component.
+ *          This function receives two arguments, the state that it's bound to, and the parent element at element creation time.
  *
  *          If passing a dom node/element, then you must also supply an update function to perform the update on the element.
  *          This is the preferred method for inputs as it ensures the element is not re-created and focus is lost.
  *
  *          Other inputs are not allowed
  *
+ *          Avoid changing the bound state unconditionally in either update case as it can cause an infinite update loop.
+ *
  * @param update A function to perform a manual update with.
  *          This function receives to arguments. The bound element to update and the state object that triggered the update in that order.
- * @returns The bound element
+ * @returns function(*=): (Text | * | undefined) bound element
  */
 export const fnbind = ( state, element, update ) => {
     if( typeof element !== 'function' && !isNode( element ) ) throw 'You can only bind functions and Elements to state changes.'
     if( isNode( element ) && typeof update !== 'function' ) throw 'You must supply an update function when binding directly to an element'
 
-    return ( Array.isArray( state ) && state || [ state ] )
-        .reduce( ( el, st ) => {
-                     if( !isfnstate( st ) ) throw `State object: ${st} has not been initialized. Call fntags.initState() with this object and pass the returned value to fnbind.`
-                     st._fn_state_info.addObserver( el, element, update )
-                     return el
-                 },
-                 { current: typeof element === 'function' ? renderElement( element( state ) ) : element }
-        ).current
+    return (parent) => {
+        return ( Array.isArray( state ) && state || [ state ] )
+            .reduce( ( el, st ) => {
+                         if( !isfnstate( st ) ) throw `State object: ${st} has not been initialized. Call fntags.initState() with this object and pass the returned value to fnbind.`
+                         st._fn_state_info.addObserver( el, element, update )
+                         return el
+                     },
+                     { current: typeof element === 'function' ? renderElement( element( state, parent ), parent ) : element }
+            ).current
+    }
 }
 
 /**
@@ -153,7 +157,7 @@ export const fnstate = ( state ) => {
     const addObserver = ( el, element, update ) => {
         tagElement( el.current )
         observers[ getElId( el.current ) ] = ( state ) => {
-            const newElement = update ? update( element, state ) : renderElement( element( state ) )
+            const newElement = update ? update( element, state ) : renderElement( element( state, el.current.parentNode ), el.current.parentNode )
             if( newElement && isNode( newElement ) ) {
                 if( !isTagged( newElement ) )
                     tagElement( newElement )
@@ -186,28 +190,35 @@ export const fnlink = ( ...chilrdren ) => {
     const attrs = shiftAttrs( chilrdren )
     if( !attrs.to || typeof attrs.to != 'string' ) throw 'links must have a to attribute and it must be a string'
 
-    return () =>{
+    return () => {
         let oldClick = attrs.onclick
         attrs.onclick = ( e ) => {
             e.preventDefault()
-            let newPath = window.location.origin + attrs.to
+            let newPath = window.location.origin + pathState.rootPath + ensureSlash( attrs.to )
             window.history.pushState( {}, attrs.to, newPath )
             pathState.currentPath = newPath
-            if(oldClick) oldClick( e )
+            if( oldClick ) oldClick( e )
         }
 
-        return a(attrs, ...chilrdren)
+        return a( attrs, ...chilrdren )
     }
 }
+
+const ensureSlash = ( part ) => part.startsWith( '/' ) ? part : '/' + part
 
 const findFullPath = ( node, parts = [] ) => {
     if( node.hasOwnProperty( 'fnpath' ) ) parts.push( parts )
     if( node.parentNode ) findFullPath( node.parentNode, parts )
-    else return parts.reverse().map( p => p.startsWith( '/' ) ? p : '/' + p ).join( '' )
+    return pathState.rootPath + ensureSlash( parts.reverse().map( ensureSlash ).join( '' ) )
 }
 
-const pathState = fnstate({rootPath: window.location.pathname})
-window.addEventListener("popstate", ( ) => pathState.currentPath = window.location.pathname)
+const pathState = fnstate(
+    {
+        rootPath: window.location.pathname,
+        currentPath: "",
+        initialized: false
+    } )
+window.addEventListener( 'popstate', () => pathState.currentPath = window.location.pathname )
 
 /**
  * An element that is displayed only if the the current window location matches this elements full path. The path is derived from this elements path plus any parent paths.
@@ -240,19 +251,20 @@ window.addEventListener("popstate", ( ) => pathState.currentPath = window.locati
 export const route = ( ...children ) => {
     const attrs = shiftAttrs( children )
     if( !attrs.fnpath || typeof attrs.fnpath !== 'string' ) throw 'a route must have an fnpath attribute and it must be a string'
-    return ( parent ) => {
-        const theDataz = div( attrs, ...children )
-        return fnbind( pathState, () => shouldDisplayRoute( parent, attrs ) ? theDataz : '' )
-    }
+    const theDataz = div( attrs, ...children )
+    return fnbind( pathState, (st, parent) => shouldDisplayRoute( parent, attrs ) ? theDataz : '' )
 }
 
 
 const shouldDisplayRoute = ( parent, attrs ) => {
     let fullPath = findFullPath( parent, [ attrs.fnpath ] )
-    if( attrs.hasOwnProperty( 'absolute' ) && window.location.pathname === fullPath ) {
+
+    let fullPathNoSlash = fullPath.endsWith( '/' ) ? fullPath.slice( 0, -1 ) : fullPath
+    const currPath = window.location.pathname
+    if( attrs.hasOwnProperty( 'absolute' ) && ( currPath === fullPath || currPath === fullPathNoSlash ) ) {
         return true
     } else
-        return !!( !attrs.hasOwnProperty( 'absolute' ) && window.location.pathname.match( fullPath ) );
+        return !!( !attrs.hasOwnProperty( 'absolute' ) && window.location.pathname.match( '^' + fullPath ) )
 
 }
 
@@ -267,11 +279,12 @@ const shouldDisplayRoute = ( parent, attrs ) => {
  * @returns {HTMLDivElement}
  */
 export const router = ( ...children ) => {
-    const attrs = shiftAttrs(children)
+    const attrs = shiftAttrs( children )
 
-    if(attrs.rootPath) pathState.rootPath = attrs.rootPath
+    if( attrs.rootPath ) pathState.rootPath = attrs.rootPath
 
     let router = div( attrs, ...children )
+    pathState.initialized = true
     pathState.currentPath = pathState.rootPath
 
     return router
@@ -281,7 +294,7 @@ export const router = ( ...children ) => {
  * An element that only renders the first route that matches and updates when the route is changed
  * @param children
  */
-export const routeSwitch = ( ...children ) => ( parent ) => fnbind(pathState,() => switchy( r => shouldDisplayRoute( parent, r ), ...children ))
+export const routeSwitch = ( ...children ) => ( parent ) => fnbind( pathState, () => switchy( r => shouldDisplayRoute( parent, r ), ...children ) )
 
 /**
  * A switch element that only renders the first that matches the given condition
