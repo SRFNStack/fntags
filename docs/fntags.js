@@ -239,7 +239,7 @@ export const fnlink = ( ...chilrdren ) => {
  * @param path
  */
 export const goTo = ( path ) => {
-    let newPath = window.location.origin + pathState.rootPath + ensureSlash( path )
+    let newPath = window.location.origin + ensureSlash(pathState.rootPath) + ensureSlash( path )
     window.history.pushState( {}, path, newPath )
     pathState.currentPath = newPath
 }
