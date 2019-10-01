@@ -3,6 +3,11 @@
     <title>fntags framework example</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+<!--    font-family: 'Roboto', sans-serif;-->
+    <link href="https://fonts.googleapis.com/css?family=Ubuntu&display=swap" rel="stylesheet">
+    <!--    font-family: 'Ubuntu', sans-serif;-->
+    <link rel="stylesheet" href="fncss.css">
 </head>
 <body>
 <script type="module">
@@ -23,12 +28,13 @@
     fnapp( document.body, router(
         header(),
         routeSwitch(
+            { class: 'container' },
             route( { fnpath: '/', absolute: true }, home() ),
             route( { fnpath: '/gettingStarted' }, gettingStarted ),
             route( { fnpath: '/creatingComponents' }, creatingComponents() ),
             route( { fnpath: '/componentState' }, componentState() ),
             route( { fnpath: '/routing' }, routing() ),
-            route( {fnpath: '.*'}, fourOhFore)
+            route( { fnpath: '.*' }, fourOhFore )
         )
     ) )
 </script>

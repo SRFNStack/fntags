@@ -250,7 +250,7 @@ export const goTo = ( path ) => {
  * @param children
  */
 export const routeSwitch = ( ...children ) =>
-    fnbind( pathState, div(),
+    fnbind( pathState, div(shiftAttrs(children)),
             ( el ) => {
                 while( el.firstChild ) {
                     el.removeChild( el.firstChild )

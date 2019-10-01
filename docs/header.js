@@ -3,23 +3,25 @@
 import { div, fnlink, li, span, ul } from './fntags.js'
 
 export default () =>
-    div( { class: 'container' },
-         div(span({style:"font-size: 25px"}, "fntags - "), span({style:"font-size: 15px"}, "functions as tags.")),
-         ul( { class: 'nav-item fn-nav' },
+    div( { class: 'container text-center' },
+         div( { class: 'display-font flex-center' },
+              span( { style: 'font-size: 24px' }, 'fntags - ' ), span( { style: 'font-size: 18px; margin-left: 5px' }, 'functions as tags.' )
+         ),
+         ul( { class: 'nav fn-nav noselect flex-center' },
              li( { class: 'nav-item' },
-                 fnlink( { class: 'nav-link', to: '/' }, "Home" )
+                 fnlink( { class: 'nav-link', to: '/' }, 'Home' )
              ),
              li( { class: 'nav-item' },
-                 fnlink( { class: 'nav-link', to: '/gettingStarted' }, "Getting Started" )
+                 fnlink( { class: 'nav-link', to: '/gettingStarted' }, 'Getting Started' )
              ),
              li( { class: 'nav-item' },
-                 fnlink( { class: 'nav-link', to: '/creatingComponents' }, "Creating Components" )
+                 fnlink( { class: 'nav-link', to: '/creatingComponents' }, 'Creating Components' )
              ),
              li( { class: 'nav-item' },
-                 fnlink( { class: 'nav-link', to: '/componentState' }, "Component State" )
+                 fnlink( { class: 'nav-link', to: '/componentState' }, 'Component State' )
              ),
              li( { class: 'nav-item' },
-                 fnlink( { class: 'nav-link', to: '/routing' }, "Routing" )
+                 fnlink( { class: 'nav-link', to: '/routing' }, 'Routing' )
              )
          )
     )

@@ -13,9 +13,9 @@
         form,
         h3,
         img,
-        routeSwitch
-    } from './src/index.js'
-    import { button } from './docs/fntags.js'
+        routeSwitch,
+        button
+    } from '../src/index.js'
 
     const appState = fnstate( { currentUser: null } )
 
@@ -27,13 +27,13 @@
 
     let navInput = input( { placeholder: 'navigate to' } )
     fnapp( document.body,
+           nav,
            router(
-               nav,
                form( {
                          style: 'display: inline-block',
-                         onsubmit: (e) => {
+                         onsubmit: ( e ) => {
                              e.preventDefault()
-                             goTo(navInput.value.startsWith( '/' ) ? navInput.value : '/' + navInput.value)
+                             goTo( navInput.value.startsWith( '/' ) ? navInput.value : '/' + navInput.value )
                          }
                      },
                      navInput,
@@ -49,9 +49,9 @@
                    route( { fnpath: '/goodbye' },
                           'goodbye page'
                    ),
-                   route({fnpath: '/.*'},
-                         h3("404 Page not found"),
-                         div(img({src:'http://placekitten.com/500/500'}))
+                   route( { fnpath: '/.*' },
+                          h3( '404 Page not found' ),
+                          div( img( { src: 'http://placekitten.com/500/500' } ) )
                    )
                )
            )
