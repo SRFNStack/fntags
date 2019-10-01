@@ -1,42 +1,15 @@
 /**
- * Create a function that will render an actual DomElement with the given attributes and children.
- * @param tag The html tag to use when created the element
- * @returns {function(...[*]=): any} A function that accepts an attributes object and an array of children.
- *
- * If the first argument is an object that is not an html element, then it is considered to be the attributes object.
- * All standard html attributes can be passed, as well as pretty much any property that isn't already assigned on the element.
- * Any attributes that are not strings are added as non-enumerable properties of the element
- * Event listeners can either be a string or a function.
- *
- * The rest of the arguments will be considered children of this element and appended to it in the same order as passed.
- *
+ * A helper function that will append the given children to the given root element
+ * @param root Either an element id string or an element itself
+ * @param children The children to append to the root element
  */
-
-const htmlElement = ( tag ) => ( ...children ) => {
-    const attrs = shiftAttrs( children )
-    let element = document.createElement( tag )
-    if( attrs ) {
-        Object.keys( attrs ).forEach( a => {
-            let attr = attrs[ a ]
-            if( a.startsWith( 'on' ) && typeof attr === 'function' ) {
-                element.addEventListener( a.substring( 2 ), attr )
-            } else if( typeof attr === 'string' ) {
-                element.setAttribute( a, attr )
-            } else {
-                Object.defineProperty( element, a, {
-                    value: attr,
-                    enumerable: false
-                } )
-            }
-        } )
+export const fnapp = ( root, ...children ) => {
+    if( typeof root === 'string' ) {
+        root = document.getElementById( root )
+        if( !root ) throw `No such element with id ${root}`
     }
-    if( children ) element.append( ...children.map( ( c ) => renderElement( c, element ) ) )
-    return element
-}
-
-const badElementType = ( el ) => {
-    throw `Element type ${el.constructor && el.constructor.name || typeof el} ` +
-          `is not supported. All elements must be one of or an array of [String, Function, Element, HTMLElement]`
+    if( !isNode( root ) ) throw 'The first argument to fnapp must be either a string element id or an element'
+    root.append( ...children )
 }
 
 /**
@@ -44,61 +17,9 @@ const badElementType = ( el ) => {
  * @param el
  * @returns {boolean}
  */
-export const isNode = ( el ) => el && ( el instanceof Node || el instanceof Element ||
-                                        el.constructor.toString().search( /object HTML.+Element/ ) > -1 )
-
-/**
- * render a given value to an element
- * A string value will become a TextNode
- * A dom node/element is returned verbatim
- * functions are executed with the parent element as the argument. This allows deferring element creation until the parent exists.
- * The value returned must be a dom node/element or string.
- */
-const renderElement = ( el, parent ) => {
-    if( el.constructor.name === 'String' )
-        return document.createTextNode( el )
-    else if( el.constructor.name === 'Function' ) {
-        const element = el( parent )
-        if( typeof element === 'string' )
-            return document.createTextNode( element )
-        else if( !isNode( element ) ) badElementType( el )
-        return element
-    } else if( isNode( el ) )
-        return el
-    else
-        badElementType( el )
-}
-
-let lastId = 0
-const fntag = '_fn_element_info'
-
-const tagElement = ( el ) => {
-    if( !el.hasOwnProperty( fntag ) ) {
-        Object.defineProperty( el, fntag, {
-            value: Object.freeze(
-                {
-                    id: lastId++
-                } ),
-            enumerable: false,
-            writable: false
-        } )
-    }
-}
-
-const getTag = ( el ) => el[ fntag ]
-const isTagged = ( el ) => el && el.hasOwnProperty( fntag )
-const getElId = ( el ) => isTagged( el ) && getTag( el ).id
-
-/**
- * Use this method to remove the attributes object from an array of arguments or rest parameters.
- *
- * This method shifts the first element from the given array if it is an object and not a dom node/element.
- * If the first element does not meet these conditions, the array is is unmodified and a new empty object is returned instead.
- *
- * @param args The array to remove the attributes from
- * @returns The attributes object or a new object if none was present
- */
-export const shiftAttrs = ( args ) => typeof args[ 0 ] === 'object' && !isNode( args[ 0 ] ) ? args.shift() : {}
+export const isNode = ( el ) =>
+    el &&
+    ( el instanceof Node || el instanceof Element || el.constructor.toString().search( /object HTML.+Element/ ) > -1 )
 
 /**
  * Bind one or more states to the given element.
@@ -122,7 +43,7 @@ export const fnbind = ( state, element, update ) => {
     if( typeof element !== 'function' && !isNode( element ) ) throw 'You can only bind functions and Elements to state changes.'
     if( isNode( element ) && typeof update !== 'function' ) throw 'You must supply an update function when binding directly to an element'
 
-    return (parent) => {
+    return ( parent ) => {
         return ( Array.isArray( state ) && state || [ state ] )
             .reduce( ( el, st ) => {
                          if( !isfnstate( st ) ) throw `State object: ${st} has not been initialized. Call fntags.initState() with this object and pass the returned value to fnbind.`
@@ -180,45 +101,76 @@ export const fnstate = ( state ) => {
     return p
 }
 
+/**
+ * render a given value to an element
+ * A string value will become a TextNode
+ * A dom node/element is returned verbatim
+ * functions are executed with the parent element as the argument. This allows deferring element creation until the parent exists.
+ * The value returned must be a dom node/element or string.
+ */
+const renderElement = ( el, parent ) => {
+    if( el.constructor.name === 'String' )
+        return document.createTextNode( el )
+    else if( el.constructor.name === 'Function' ) {
+        const element = el( parent )
+        if( typeof element === 'string' )
+            return document.createTextNode( element )
+        else if( !isNode( element ) ) badElementType( el )
+        return element
+    } else if( isNode( el ) )
+        return el
+    else
+        badElementType( el )
+}
+
+const badElementType = ( el ) => {
+    throw `Element type ${el.constructor && el.constructor.name || typeof el} ` +
+          `is not supported. All elements must be one of or an array of [String, Function, Element, HTMLElement]`
+}
+
 const isfnstate = ( state ) => state.hasOwnProperty( '_fn_state_info' )
 
-/**
- * A link component that is a link to another route in this single page app
- * @param children The attributes of the anchor element and any children
- */
-export const fnlink = ( ...chilrdren ) => {
-    const attrs = shiftAttrs( chilrdren )
-    if( !attrs.to || typeof attrs.to != 'string' ) throw 'links must have a to attribute and it must be a string'
+let lastId = 0
+const fntag = '_fn_element_info'
 
-    return () => {
-        let oldClick = attrs.onclick
-        attrs.onclick = ( e ) => {
-            e.preventDefault()
-            let newPath = window.location.origin + pathState.rootPath + ensureSlash( attrs.to )
-            window.history.pushState( {}, attrs.to, newPath )
-            pathState.currentPath = newPath
-            if( oldClick ) oldClick( e )
-        }
-
-        return a( attrs, ...chilrdren )
+const tagElement = ( el ) => {
+    if( !el.hasOwnProperty( fntag ) ) {
+        Object.defineProperty( el, fntag, {
+            value: Object.freeze(
+                {
+                    id: lastId++
+                } ),
+            enumerable: false,
+            writable: false
+        } )
     }
 }
 
-const ensureSlash = ( part ) => part.startsWith( '/' ) ? part : '/' + part
+const getTag = ( el ) => el[ fntag ]
+const isTagged = ( el ) => el && el.hasOwnProperty( fntag )
+const getElId = ( el ) => isTagged( el ) && getTag( el ).id
 
-const findFullPath = ( node, parts = [] ) => {
-    if( node.hasOwnProperty( 'fnpath' ) ) parts.push( parts )
-    if( node.parentNode ) findFullPath( node.parentNode, parts )
-    return pathState.rootPath + ensureSlash( parts.reverse().map( ensureSlash ).join( '' ) )
+
+/**
+ * A router element that marks the root of a routed application. All routes must be descendents of a router.
+ * This elements primary purpose is to provide a to to determine the correct path for each route. It accomplishes this by ensuring the children are fully
+ * constructed, and then kicking the pathState to ensure that each route has the correct view into it's current path.
+ *
+ * This element also let's you specify what the root path of your app is. If non is provided, the initial path where this page was loaded is assumed to be the root path.
+ * This is probably wrong in most cases but useful in some simple scenarios.
+ * You SHOULD set an appropriate root path for your application to ensure correct behavior
+ * @returns {HTMLDivElement}
+ */
+export const router = ( ...children ) => {
+    const attrs = shiftAttrs( children )
+
+    if( attrs.rootPath ) pathState.rootPath = attrs.rootPath
+
+    let router = div( attrs, ...children )
+    pathState.currentPath = pathState.rootPath
+
+    return router
 }
-
-const pathState = fnstate(
-    {
-        rootPath: window.location.pathname,
-        currentPath: "",
-        initialized: false
-    } )
-window.addEventListener( 'popstate', () => pathState.currentPath = window.location.pathname )
 
 /**
  * An element that is displayed only if the the current window location matches this elements full path. The path is derived from this elements path plus any parent paths.
@@ -252,12 +204,78 @@ export const route = ( ...children ) => {
     const attrs = shiftAttrs( children )
     if( !attrs.fnpath || typeof attrs.fnpath !== 'string' ) throw 'a route must have an fnpath attribute and it must be a string'
     const theDataz = div( attrs, ...children )
-    return fnbind( pathState, (st, parent) => shouldDisplayRoute( parent, attrs ) ? theDataz : '' )
+    return fnbind( pathState, ( st, parent ) => shouldDisplayRoute( parent, attrs ) ? theDataz : '' )
 }
 
+/**
+ * A link component that is a link to another route in this single page app
+ * @param children The attributes of the anchor element and any children
+ */
+export const fnlink = ( ...chilrdren ) => {
+    const attrs = shiftAttrs( chilrdren )
+    if( !attrs.to || typeof attrs.to != 'string' ) throw 'links must have a to attribute and it must be a string'
+
+    return () => {
+        let oldClick = attrs.onclick
+        attrs.onclick = ( e ) => {
+            e.preventDefault()
+            goTo(attrs.to)
+            if( oldClick ) oldClick( e )
+        }
+
+        return a( attrs, ...chilrdren )
+    }
+}
+
+/**
+ * A function to navigate to the specified path
+ * @param path
+ */
+export const goTo = (path) => {
+    let newPath = window.location.origin + pathState.rootPath + ensureSlash( path )
+    window.history.pushState( {}, path, newPath )
+    pathState.currentPath = newPath
+}
+
+/**
+ * An element that only renders the first route that matches and updates when the route is changed
+ * @param children
+ */
+export const routeSwitch = ( ...children ) => fnbind( pathState, (st, parent) => switchy( r => shouldDisplayRoute( parent, r ), ...children ) )
+
+/**
+ * A switch element that only renders the first that matches the given condition function
+ * @param condition A function to test if the element can be displayed
+ * @param children The children to test
+ * @returns {*}
+ */
+export const switchy = ( condition, ...children ) => {
+    if( typeof condition !== 'function' ) throw 'The first argument to switchy must be a function that tests the condition to switch on'
+    return (parent) => {
+        for( let i = 0; i < children.length; i++ ) {
+            let el = renderElement( children[ i ], parent)
+            if( condition( el ) ) return el
+        }
+    }
+}
+
+const ensureSlash = ( part ) => part.startsWith( '/' ) ? part : '/' + part
+
+const findFullPath = ( node, parts = [] ) => {
+    if( node.hasOwnProperty( 'fnpath' ) ) parts.push( parts )
+    if( node.parentNode ) findFullPath( node.parentNode, parts )
+    return pathState.rootPath + ensureSlash( parts.reverse().map( ensureSlash ).join( '' ) )
+}
+
+const pathState = fnstate(
+    {
+        rootPath: window.location.pathname,
+        currentPath: ''
+    } )
+window.addEventListener( 'popstate', () => pathState.currentPath = window.location.pathname )
 
 const shouldDisplayRoute = ( parent, attrs ) => {
-    let fullPath = findFullPath( parent, [ attrs.fnpath ] )
+    let fullPath = findFullPath( parent, [ isNode(attrs) ? attrs.getAttribute('fnpath') : attrs.fnpath ] )
 
     let fullPathNoSlash = fullPath.endsWith( '/' ) ? fullPath.slice( 0, -1 ) : fullPath
     const currPath = window.location.pathname
@@ -269,46 +287,50 @@ const shouldDisplayRoute = ( parent, attrs ) => {
 }
 
 /**
- * A router element that marks the root of a routed application. All routes must be descendents of a router.
- * This elements primary purpose is to provide a to to determine the correct path for each route. It accomplishes this by ensuring the children are fully
- * constructed, and then kicking the pathState to ensure that each route has the correct view into it's current path.
+ * Create a function that will render an actual DomElement with the given attributes and children.
+ * @param tag The html tag to use when created the element
+ * @returns {function(...[*]=): HTMLElement} A function that accepts an attributes object and an array of children.
  *
- * This element also let's you specify what the root path of your app is. If non is provided, the initial path where this page was loaded is assumed to be the root path.
- * This is probably wrong in most cases but useful in some simple scenarios.
- * You SHOULD set an appropriate root path for your application to ensure correct behavior
- * @returns {HTMLDivElement}
+ * If the first argument is an object that is not an html element, then it is considered to be the attributes object.
+ * All standard html attributes can be passed, as well as any other property.
+ * Any attributes that are not strings are added as non-enumerable properties of the element.
+ * Event listeners can either be a string or a function.
+ *
+ * The rest of the arguments will be considered children of this element and appended to it in the same order as passed.
+ *
  */
-export const router = ( ...children ) => {
+const htmlElement = ( tag ) => ( ...children ) => {
     const attrs = shiftAttrs( children )
-
-    if( attrs.rootPath ) pathState.rootPath = attrs.rootPath
-
-    let router = div( attrs, ...children )
-    pathState.initialized = true
-    pathState.currentPath = pathState.rootPath
-
-    return router
-}
-
-/**
- * An element that only renders the first route that matches and updates when the route is changed
- * @param children
- */
-export const routeSwitch = ( ...children ) => ( parent ) => fnbind( pathState, () => switchy( r => shouldDisplayRoute( parent, r ), ...children ) )
-
-/**
- * A switch element that only renders the first that matches the given condition
- * @param children A function to test if
- * @returns {*}
- */
-export const switchy = ( ...children ) => {
-    let condition = children.shift()
-    if( typeof condition === 'function' ) throw 'The first argument to switchy must be a function that tests the condition to switch on'
-    for( let i = 0; i < children.length; i++ ) {
-        if( condition( children[ i ] ) ) return children[ i ]
+    let element = document.createElement( tag )
+    if( attrs ) {
+        Object.keys( attrs ).forEach( a => {
+            let attr = attrs[ a ]
+            if( a.startsWith( 'on' ) && typeof attr === 'function' ) {
+                element.addEventListener( a.substring( 2 ), attr )
+            } else if( typeof attr === 'string' ) {
+                element.setAttribute( a, attr )
+            } else {
+                Object.defineProperty( element, a, {
+                    value: attr,
+                    enumerable: false
+                } )
+            }
+        } )
     }
+    if( children ) element.append( ...children.map( ( c ) => renderElement( c, element ) ) )
+    return element
 }
 
+/**
+ * Use this method to remove the attributes object from an array of arguments or rest parameters.
+ *
+ * This method shifts the first element from the given array if it is an object and not a dom node/element.
+ * If the first element does not meet these conditions, the array is is unmodified and a new empty object is returned instead.
+ *
+ * @param args The array to remove the attributes from
+ * @returns The attributes object or a new object if none was present
+ */
+export const shiftAttrs = ( args ) => typeof args[ 0 ] === 'object' && !isNode( args[ 0 ] ) ? args.shift() : {}
 
 /**
  * @type {function(...[*]=): HTMLAnchorElement}

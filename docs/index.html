@@ -6,75 +6,31 @@
 </head>
 <body>
 <script type="module">
-    import { fnstate, fnbind, div, p, pre, code, br, button, span } from './fntags.js'
-    import tabs from './tabs.js'
-    import greeting from './greeting.js'
-    import myForm from './myForm.js'
+    //hack to make github pages route this app
+    if( sessionStorage.redirect ) {
+        history.replaceState( null, null, sessionStorage.redirect )
+        delete sessionStorage.redirect
+    }
+    import { fnapp, route, router, routeSwitch } from './fntags.js'
+    import gettingStarted from './gettingStarted.js'
+    import home from './home.js'
+    import creatingComponents from './creatingComponents.js'
+    import componentState from './componentState.js'
+    import fourOhFore from './404.js'
+    import header from './header.js'
+    import routing from './routing.js'
 
-    const foo = ( aFoo ) =>
-        div( { style: 'background: darkcyan' },
-             'One of my foos: ',
-             aFoo.foo
+    fnapp( document.body, router(
+        header(),
+        routeSwitch(
+            route( { fnpath: '/', absolute: true }, home() ),
+            route( { fnpath: '/gettingStarted' }, gettingStarted() ),
+            route( { fnpath: '/creatingComponents' }, creatingComponents() ),
+            route( { fnpath: '/componentState' }, componentState() ),
+            route( { fnpath: '/routing' }, routing() ),
+            route( {fnpath: '.*'}, fourOhFore)
         )
-
-    let appState = fnstate( {
-                                currentUser: {
-                                    name: 'fntags'
-                                },
-                                myFoos: [ { foo: 'Hannibal' }, { foo: 'Face(man)' }, { foo: 'Howling Mad' }, { foo: 'B.A.' } ]
-                            } )
-    document.body.append(
-        div( { id: 'App' },
-             tabs(
-                 div({title: "Wello"}, span("Horld")),
-                 div({title: "Goodbye"}, span("Earth")),
-                 div({title: "Hasta la vista"}, span("Baby"))
-             ),
-             greeting( appState ),
-             tabs( myForm( appState, {
-                       message: 'First form',
-                       fontSize: '24px',
-                       stateColor: 'blue',
-                       inputStateColor: 'lime',
-                       title: 'First Form'
-                   } )
-                 ,
-                   myForm( appState, {
-                       message: 'Second form',
-                       fontSize: '16px',
-                       stateColor: 'pink',
-                       inputStateColor: 'purple',
-                       title: 'Second Form'
-                   } )
-             ),
-             p( 'This is static text',
-                div(
-                    div(
-                        div( { style: 'color: limegreen' },
-                             div(
-                                 fnbind( appState,
-                                         () => `These are nested divs with bound state ${appState.currentUser.name}` )
-                             )
-                        )
-                    )
-                ),
-                pre( code( { class: 'lang-js' }, 'alert("fntags!")' ) )
-             ),
-             br(), br(),
-             button( { onclick: () => appState.myFoos = appState.myFoos.concat( { foo: 'foo' } ) },
-                     'More foos'
-             ),
-             button( { onclick: () => appState.myFoos = appState.myFoos.slice( 0, -1 ) },
-                     'Less foos'
-             ),
-             fnbind( appState, () => div( ...appState.myFoos.map( foo ) ) )
-        )
-    )
-    setTimeout( ( ( ast ) => () => {
-                    console.log( 'hello' )
-                    ast.loaded = true
-                } )( appState ),
-                2000 )
+    ) )
 </script>
 </body>
 </html>

@@ -1,7 +1,8 @@
 <html>
 <body>
 <script type="module">
-    import {fnapp, fnstate, fnbind, fnlink, div, br, input, hr, h4, span, p, router, route} from "./src/index.js"
+    import {fnapp, fnstate, fnbind, fnlink, div, br, input, hr, h4, span, p, router, route, goTo} from "./src/index.js"
+    import { button } from './docs/fntags.js'
 
     const appState = fnstate( { currentUser: null } )
 
@@ -80,6 +81,7 @@
     fnapp(document.body,
         router(
             nav,
+            div({style: 'display: inline-block'}, input({placeholder: 'navigate to'}, button({onclick: ()=> goTo("/goodbye")}, "goodbye"),
             route({fnpath: "/", absolute: true},
                   "rooooot"
             ),
