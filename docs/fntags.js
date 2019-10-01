@@ -169,7 +169,7 @@ const getElId = ( el ) => isTagged( el ) && getTag( el ).id
 export const router = ( ...children ) => {
     const attrs = shiftAttrs( children )
 
-    if( attrs.rootPath ) pathState.rootPath = attrs.rootPath
+    if( attrs.rootPath ) pathState.rootPath = ensureSlash(attrs.rootPath)
 
     let router = div( attrs, ...children )
     pathState.currentPath = pathState.rootPath
@@ -266,7 +266,10 @@ export const routeSwitch = ( ...children ) =>
             }
     )
 
-const ensureSlash = ( part ) => part.startsWith( '/' ) ? part : '/' + part
+const ensureSlash = ( part ) => {
+    part = part.startsWith( '/' ) ? part : '/' + part
+    return part.endsWith('/') ? part.slice(0,-1) : part
+}
 
 const findFullPath = ( node, parts = [] ) => {
     if( node.hasOwnProperty( 'fnpath' ) ) parts.push( parts )
