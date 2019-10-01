@@ -37,19 +37,18 @@ export const isNode = ( el ) =>
  *
  * @param update A function to perform a manual update with.
  *          This function receives three arguments. The element, the new state, and the parent element.
- * @returns function(*): (Text | HtmlElement) element
  */
 export const fnbind = ( state, element, update ) => {
     if( typeof element !== 'function' && !isNode( element ) ) throw 'You can only bind functions and Elements to state changes.'
     if( isNode( element ) && typeof update !== 'function' ) throw 'You must supply an update function when binding directly to an element'
-    const states =  Array.isArray( state ) && state || [ state ]
+    const states = Array.isArray( state ) && state || [ state ]
     const el = states.reduce( ( el, st ) => {
-                     if( !isfnstate( st ) ) throw `State object: ${st} has not been initialized. Call fntags.initState() with this object and pass the returned value to fnbind.`
-                     st._fn_state_info.addObserver( el, marker(), element, update )
-                     return el
-                 },
-                 { current: marker}
-        ).current
+                                  if( !isfnstate( st ) ) throw `State object: ${st} has not been initialized. Call fntags.initState() with this object and pass the returned value to fnbind.`
+                                  st._fn_state_info.addObserver( el, marker(), element, update )
+                                  return el
+                              },
+                              { current: marker() }
+    )
     return ( parent ) => {
         el.parent = parent
         el.current = typeof element === 'function' ? renderElement( element( state, parent ), parent ) : element
@@ -64,11 +63,11 @@ export const fnbind = ( state, element, update ) => {
  */
 export const fnstate = ( state ) => {
     if( typeof state !== 'object' ) throw 'initState must be called with an object. Primitive values are not supported.'
-    const observers = {}
+    const observers = []
     const notify = ( method ) => ( ...args ) => {
         let result = Reflect[ method ]( ...args )
-        for( let k in observers ) {
-            observers[ k ]( args[ 0 ] )
+        for( let observer of observers ) {
+            observer( args[ 0 ] )
         }
         return result
     }
@@ -79,7 +78,7 @@ export const fnstate = ( state ) => {
 
     const addObserver = ( el, parent, element, update ) => {
         tagElement( el )
-        observers[ getElId( el ) ] = ( state ) => {
+        observers.push( ( state ) => {
             const newElement = update ? update( el.current, state, parent ) : renderElement( element( parent, state ), parent )
             if( newElement && isNode( newElement ) ) {
                 if( !isTagged( newElement ) )
@@ -88,10 +87,9 @@ export const fnstate = ( state ) => {
                     delete observers[ getElId( el.current ) ]
                     el.current.replaceWith( newElement )
                     el.current = newElement
-                    addObserver( el, parent, element, update )
                 }
             }
-        }
+        } )
     }
 
     Object.defineProperty( p, '_fn_state_info', {
@@ -210,7 +208,6 @@ export const router = ( ...children ) => {
 export const route = ( ...children ) => {
     const attrs = shiftAttrs( children )
     if( !attrs.fnpath || typeof attrs.fnpath !== 'string' ) {
-        debugger
         throw 'a route must have an fnpath attribute and it must be a string'
     }
     const theDataz = div( attrs, ...children )
@@ -252,21 +249,22 @@ export const goTo = ( path ) => {
  * The primary purpose of this element is to provide catchall routes for not found pages and path variables
  * @param children
  */
-export const routeSwitch = ( ...children ) => fnbind( pathState, ( parent ) => {
-    console.log("updates!")
-    return children.find( route => renderElement( route, parent ) )
-} )
-
-/**
- * A switch element that only renders the first that matches the given condition function
- * @param condition A function to test if the element can be displayed
- * @param children The children to test
- * @returns {*}
- */
-export const switchy = ( condition, ...children ) => {
-    if( typeof condition !== 'function' ) throw 'The first argument to switchy must be a function that tests the condition to switch on'
-    return children.find( condition )
-}
+export const routeSwitch = ( ...children ) =>
+    fnbind( pathState, div(),
+            ( el ) => {
+                console.log( 'mupdates' )
+                while( el.firstChild ) {
+                    el.removeChild( el.firstChild )
+                }
+                for( let child of children ) {
+                    const rendered = renderElement( child, el )
+                    if( shouldDisplayRoute( el, rendered ) ) {
+                        el.append( rendered )
+                        return
+                    }
+                }
+            }
+    )
 
 const ensureSlash = ( part ) => part.startsWith( '/' ) ? part : '/' + part
 
