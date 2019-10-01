@@ -26,7 +26,7 @@ export const isNode = ( el ) =>
  * @param state Either a single state object or an array of state objects to watch
  * @param element An element that will be updated whenever the state changes.
  *          If passing a function, the function will be executed on each state change and the returned value will be rendered to a component.
- *          This function receives two arguments, the state that it's bound to, and the parent element at element creation time.
+ *          This function receives two arguments, the parent element and the new state.
  *
  *          If passing a dom node/element, then you must also supply an update function to perform the update on the element.
  *          This is the preferred method for inputs as it ensures the element is not re-created and focus is lost.
@@ -36,22 +36,23 @@ export const isNode = ( el ) =>
  *          Avoid changing the bound state unconditionally in either update case as it can cause an infinite update loop.
  *
  * @param update A function to perform a manual update with.
- *          This function receives to arguments. The bound element to update and the state object that triggered the update in that order.
- * @returns function(*=): (Text | * | undefined) bound element
+ *          This function receives three arguments. The element, the new state, and the parent element.
  */
 export const fnbind = ( state, element, update ) => {
     if( typeof element !== 'function' && !isNode( element ) ) throw 'You can only bind functions and Elements to state changes.'
     if( isNode( element ) && typeof update !== 'function' ) throw 'You must supply an update function when binding directly to an element'
-
+    const states = Array.isArray( state ) && state || [ state ]
+    const el = states.reduce( ( el, st ) => {
+                                  if( !isfnstate( st ) ) throw `State object: ${st} has not been initialized. Call fntags.initState() with this object and pass the returned value to fnbind.`
+                                  st._fn_state_info.addObserver( el, marker(), element, update )
+                                  return el
+                              },
+                              { current: marker() }
+    )
     return ( parent ) => {
-        return ( Array.isArray( state ) && state || [ state ] )
-            .reduce( ( el, st ) => {
-                         if( !isfnstate( st ) ) throw `State object: ${st} has not been initialized. Call fntags.initState() with this object and pass the returned value to fnbind.`
-                         st._fn_state_info.addObserver( el, element, update )
-                         return el
-                     },
-                     { current: typeof element === 'function' ? renderElement( element( state, parent ), parent ) : element }
-            ).current
+        el.parent = parent
+        el.current = typeof element === 'function' ? renderElement( element( state, parent ), parent ) : element
+        return el.current
     }
 }
 
@@ -62,11 +63,11 @@ export const fnbind = ( state, element, update ) => {
  */
 export const fnstate = ( state ) => {
     if( typeof state !== 'object' ) throw 'initState must be called with an object. Primitive values are not supported.'
-    const observers = {}
+    const observers = []
     const notify = ( method ) => ( ...args ) => {
         let result = Reflect[ method ]( ...args )
-        for( let k in observers ) {
-            observers[ k ]( args[ 0 ] )
+        for( let observer of observers ) {
+            observer( args[ 0 ] )
         }
         return result
     }
@@ -75,10 +76,10 @@ export const fnstate = ( state ) => {
         deleteProperty: notify( 'deleteProperty' )
     } )
 
-    const addObserver = ( el, element, update ) => {
-        tagElement( el.current )
-        observers[ getElId( el.current ) ] = ( state ) => {
-            const newElement = update ? update( element, state ) : renderElement( element( state, el.current.parentNode ), el.current.parentNode )
+    const addObserver = ( el, parent, element, update ) => {
+        tagElement( el )
+        observers.push( ( state ) => {
+            const newElement = update ? update( el.current, state, parent ) : renderElement( element( parent, state ), parent )
             if( newElement && isNode( newElement ) ) {
                 if( !isTagged( newElement ) )
                     tagElement( newElement )
@@ -86,10 +87,9 @@ export const fnstate = ( state ) => {
                     delete observers[ getElId( el.current ) ]
                     el.current.replaceWith( newElement )
                     el.current = newElement
-                    addObserver( el, element, update )
                 }
             }
-        }
+        } )
     }
 
     Object.defineProperty( p, '_fn_state_info', {
@@ -107,11 +107,16 @@ export const fnstate = ( state ) => {
  * A dom node/element is returned verbatim
  * functions are executed with the parent element as the argument. This allows deferring element creation until the parent exists.
  * The value returned must be a dom node/element or string.
+ * @param el The element to render
+ * @param parent The parent element this element will be attached to. This is passed as the only argument to a function element
  */
-const renderElement = ( el, parent ) => {
-    if( el.constructor.name === 'String' )
+export const renderElement = ( el, parent ) => {
+    if( typeof el != 'string' && !el ) {
+        throw `Child Element is undefined for parent ${parent ? parent.outerHTML : 'root'}`
+    }
+    if( typeof el === 'string' )
         return document.createTextNode( el )
-    else if( el.constructor.name === 'Function' ) {
+    else if( typeof el === 'function' ) {
         const element = el( parent )
         if( typeof element === 'string' )
             return document.createTextNode( element )
@@ -198,13 +203,15 @@ export const router = ( ...children ) => {
  *      )
  *
  * @param children The attributes and children of this element.
- * @returns {function(*=): The}
+ * @returns {function(*=)}
  */
 export const route = ( ...children ) => {
     const attrs = shiftAttrs( children )
-    if( !attrs.fnpath || typeof attrs.fnpath !== 'string' ) throw 'a route must have an fnpath attribute and it must be a string'
+    if( !attrs.fnpath || typeof attrs.fnpath !== 'string' ) {
+        throw 'a route must have an fnpath attribute and it must be a string'
+    }
     const theDataz = div( attrs, ...children )
-    return fnbind( pathState, ( st, parent ) => shouldDisplayRoute( parent, attrs ) ? theDataz : '' )
+    return fnbind( pathState, ( st, parent ) => shouldDisplayRoute( parent, attrs ) ? theDataz : marker( attrs ) )
 }
 
 /**
@@ -219,7 +226,7 @@ export const fnlink = ( ...chilrdren ) => {
         let oldClick = attrs.onclick
         attrs.onclick = ( e ) => {
             e.preventDefault()
-            goTo(attrs.to)
+            goTo( attrs.to )
             if( oldClick ) oldClick( e )
         }
 
@@ -231,7 +238,7 @@ export const fnlink = ( ...chilrdren ) => {
  * A function to navigate to the specified path
  * @param path
  */
-export const goTo = (path) => {
+export const goTo = ( path ) => {
     let newPath = window.location.origin + pathState.rootPath + ensureSlash( path )
     window.history.pushState( {}, path, newPath )
     pathState.currentPath = newPath
@@ -239,9 +246,23 @@ export const goTo = (path) => {
 
 /**
  * An element that only renders the first route that matches and updates when the route is changed
+ * The primary purpose of this element is to provide catchall routes for not found pages and path variables
  * @param children
  */
-export const routeSwitch = ( ...children ) => fnbind( pathState, (st, parent) => switchy( r => shouldDisplayRoute( parent, r ), ...children ) )
+export const routeSwitch = ( ...children ) =>
+    fnbind( pathState, div(),
+            ( el ) => {
+                console.log( 'mupdates' )
+                while(el.firstChild) el.removeChild(el.firstChild)
+                for( let child of children ) {
+                    const rendered = renderElement( child, el )
+                    if( shouldDisplayRoute( el, rendered ) ) {
+                        el.append( rendered )
+                        return
+                    }
+                }
+            }
+    )
 
 /**
  * A switch element that only renders the first that matches the given condition function
@@ -251,12 +272,7 @@ export const routeSwitch = ( ...children ) => fnbind( pathState, (st, parent) =>
  */
 export const switchy = ( condition, ...children ) => {
     if( typeof condition !== 'function' ) throw 'The first argument to switchy must be a function that tests the condition to switch on'
-    return (parent) => {
-        for( let i = 0; i < children.length; i++ ) {
-            let el = renderElement( children[ i ], parent)
-            if( condition( el ) ) return el
-        }
-    }
+    return children.find( condition )
 }
 
 const ensureSlash = ( part ) => part.startsWith( '/' ) ? part : '/' + part
@@ -275,14 +291,16 @@ const pathState = fnstate(
 window.addEventListener( 'popstate', () => pathState.currentPath = window.location.pathname )
 
 const shouldDisplayRoute = ( parent, attrs ) => {
-    let fullPath = findFullPath( parent, [ isNode(attrs) ? attrs.getAttribute('fnpath') : attrs.fnpath ] )
+    let fullPath = findFullPath( parent, [ isNode( attrs ) ? attrs.getAttribute( 'fnpath' ) : attrs.fnpath ] )
 
     let fullPathNoSlash = fullPath.endsWith( '/' ) ? fullPath.slice( 0, -1 ) : fullPath
     const currPath = window.location.pathname
     if( attrs.hasOwnProperty( 'absolute' ) && ( currPath === fullPath || currPath === fullPathNoSlash ) ) {
         return true
-    } else
-        return !!( !attrs.hasOwnProperty( 'absolute' ) && window.location.pathname.match( '^' + fullPath ) )
+    } else {
+        const pattern = fullPath.replace( /^(.*)\/([^\/]*)$/, '$1/?$2' )
+        return !!( !attrs.hasOwnProperty( 'absolute' ) && currPath.match( pattern ) )
+    }
 
 }
 
@@ -331,6 +349,12 @@ const htmlElement = ( tag ) => ( ...children ) => {
  * @returns The attributes object or a new object if none was present
  */
 export const shiftAttrs = ( args ) => typeof args[ 0 ] === 'object' && !isNode( args[ 0 ] ) ? args.shift() : {}
+
+/**
+ * A marker node to mark your place in the dom
+ * @returns {HTMLSpanElement}
+ */
+export const marker = ( attrs ) => div( Object.assign( attrs || {}, { style: 'display:none' } ) )
 
 /**
  * @type {function(...[*]=): HTMLAnchorElement}
