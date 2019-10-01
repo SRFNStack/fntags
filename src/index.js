@@ -266,7 +266,10 @@ export const routeSwitch = ( ...children ) =>
             }
     )
 
-const ensureSlash = ( part ) => part.startsWith( '/' ) ? part : '/' + part
+const ensureSlash = ( part ) => {
+    part = part.startsWith( '/' ) ? part : '/' + part
+    return part.endsWith('/') ? part.slice(0,-1) : part
+}
 
 const findFullPath = ( node, parts = [] ) => {
     if( node.hasOwnProperty( 'fnpath' ) ) parts.push( parts )
