@@ -252,7 +252,6 @@ export const goTo = ( path ) => {
 export const routeSwitch = ( ...children ) =>
     fnbind( pathState, div(),
             ( el ) => {
-                console.log( 'mupdates' )
                 while( el.firstChild ) {
                     el.removeChild( el.firstChild )
                 }
