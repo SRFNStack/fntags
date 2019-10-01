@@ -273,7 +273,7 @@ const ensureSlash = ( part ) => {
 const findFullPath = ( node, parts = [] ) => {
     if( node.hasOwnProperty( 'fnpath' ) ) parts.push( parts )
     if( node.parentNode ) findFullPath( node.parentNode, parts )
-    return pathState.rootPath + ensureSlash( parts.reverse().map( ensureSlash ).join( '' ) )
+    return ensureSlash(pathState.rootPath + ensureSlash( parts.reverse().map( ensureSlash ).join( '' ) ))
 }
 
 const pathState = fnstate(
@@ -285,10 +285,8 @@ window.addEventListener( 'popstate', () => pathState.currentPath = window.locati
 
 const shouldDisplayRoute = ( parent, attrs ) => {
     let fullPath = findFullPath( parent, [ isNode( attrs ) ? attrs.getAttribute( 'fnpath' ) : attrs.fnpath ] )
-
-    let fullPathNoSlash = fullPath.endsWith( '/' ) ? fullPath.slice( 0, -1 ) : fullPath
     const currPath = window.location.pathname
-    if( attrs.hasOwnProperty( 'absolute' ) && ( currPath === fullPath || currPath === fullPathNoSlash ) ) {
+    if( attrs.hasOwnProperty( 'absolute' ) && ( currPath === fullPath || currPath === fullPath + '/' ) ) {
         return true
     } else {
         const pattern = fullPath.replace( /^(.*)\/([^\/]*)$/, '$1/?$2' )
