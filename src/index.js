@@ -253,7 +253,9 @@ export const routeSwitch = ( ...children ) =>
     fnbind( pathState, div(),
             ( el ) => {
                 console.log( 'mupdates' )
-                while(el.firstChild) el.removeChild(el.firstChild)
+                while( el.firstChild ) {
+                    el.removeChild( el.firstChild )
+                }
                 for( let child of children ) {
                     const rendered = renderElement( child, el )
                     if( shouldDisplayRoute( el, rendered ) ) {
@@ -263,17 +265,6 @@ export const routeSwitch = ( ...children ) =>
                 }
             }
     )
-
-/**
- * A switch element that only renders the first that matches the given condition function
- * @param condition A function to test if the element can be displayed
- * @param children The children to test
- * @returns {*}
- */
-export const switchy = ( condition, ...children ) => {
-    if( typeof condition !== 'function' ) throw 'The first argument to switchy must be a function that tests the condition to switch on'
-    return children.find( condition )
-}
 
 const ensureSlash = ( part ) => part.startsWith( '/' ) ? part : '/' + part
 
