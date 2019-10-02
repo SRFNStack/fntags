@@ -1,6 +1,6 @@
 //30px header, 25px text fntags - (15px text, vertical center aligned) functions as tags. Write javascript instead of html
 //50px header with just text to
-import { div, fnlink, span, ul } from './fntags.js'
+import { div, fnlink, hr, span, ul } from './fntags.js'
 import { asNavItem } from './routes.js'
 
 export default () =>
@@ -10,5 +10,6 @@ export default () =>
                       span( { style: 'font-size: 24px' }, 'fntags - ' ),
                       span( { style: 'font-size: 18px; margin-left: 5px' }, 'functions as tags.' ) )
          ),
-         ul( { class: 'nav fn-nav noselect flex-center' }, ...asNavItem() )
+         ul( { class: 'nav fn-nav noselect flex-center' }, ...asNavItem() ),
+         hr()
     )
