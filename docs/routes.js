@@ -17,4 +17,7 @@ const routes = [
 ]
 
 export const asRoutes = ()=>routes.map((r)=> route( { fnpath: r.url, absolute: !!r.absolute }, r.component))
-export const asNavItem = ()=>routes.filter(r=>r.linkText).map((r)=> li( { class: 'nav-item' },fnlink( { class: 'nav-link', to: r.url }, r.linkText )))
+export const asNavItem = ()=>routes.filter(r=>r.linkText).map((r)=> li(
+    { class: 'nav-item', style: 'cursor: pointer;' },
+    fnlink( { class: 'nav-link', style: 'padding: 10px;', to: r.url }, r.linkText )
+))
