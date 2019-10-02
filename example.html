@@ -4,6 +4,7 @@
     import {
         fnapp,
         fnstate,
+        fnbind,
         fnlink,
         div,
         input,
@@ -24,10 +25,13 @@
         fnlink( { to: '/hello' }, 'hello' ),
         fnlink( { to: '/goodbye' }, 'goodbye' )
     )
+    const state = fnstate({count: 0})
 
     let navInput = input( { placeholder: 'navigate to' } )
     fnapp( document.body,
            nav,
+           fnbind(state, ()=> `Current count: ${state.count}`),
+           button({onclick: ()=> state.count = state.count + 1}, "+1"),
            router(
                form( {
                          style: 'display: inline-block',
