@@ -32,7 +32,7 @@ export default div(
     import {fnapp, fnstate, fnbind, button} from './fntags.js'
     const state = fnstate({count: 0})
     fnapp(document.body,
-        fnbind(state, ()=> \`Current count: ${state.count}\`),
+        fnbind(state, ()=> \`Current count: \${state.count}\`),
         button({onclick: ()=> state.count = state.count + 1}, "+1")
     ) 
 </script>
