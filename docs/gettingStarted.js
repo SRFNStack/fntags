@@ -1,10 +1,11 @@
-import { code, div, p, pre } from './fntags.js'
+import { code, div, h2, hr, p, pre } from './fntags.js'
 
 export default div(
+    h2( 'Turning it on' ),
     p( 'Acquire fntags/src/index.js (this file will be referred to as fntags.js from now on) from npm or github and include it with your content.' ),
-    p('Import fnapp and some of the tag functions from fntags.js and initialize the app by calling fnapp with the root of the app and the contents of the app.'),
-    pre(code({class:"lang-js"},
-`<script type="module">
+    p( 'Import fnapp and some of the tag functions from fntags.js and initialize the app by calling fnapp with the root of the app and the contents of the app.' ),
+    pre( code( { class: 'lang-js' },
+               `<script type="module">
     import {fnapp, div, p, h1} from './fntags.js'
     fnapp(document.body,
         div(
@@ -14,5 +15,13 @@ export default div(
     ) 
 </script>
 `
-    ))
+    ) ),
+    p( 'All html tags are available to import from fntags.' ),
+    hr(),
+    h2( 'Binding State' ),
+    p( 'Now that we have content, let\'s bind some data.' ),
+    p( 'The first step is to create a variable to hold our state object.' ),
+    pre( code( { class: 'lang-js' }, 'const state = fnstate({count: 0})' ) ),
+    p( 'Now we can use fnbind to listen to state changes and update our elements.' ),
+    pre( code( { class: 'lang-js' }, 'const state = fnstate({count: 0})' ) )
 )

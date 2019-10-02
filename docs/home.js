@@ -1,3 +1,5 @@
-import { div } from './fntags.js'
+import { div, h3, p } from './fntags.js'
 
-export default ()=>div("fntags: functions as tags. Write javascript instead of html")
+export default ()=>div(
+    p("With fntags")
+)
