@@ -25,3 +25,7 @@ body {
     justify-content: center;
     align-items: center
 }
+
+html {
+    overflow-y: scroll;
+}

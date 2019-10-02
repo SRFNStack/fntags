@@ -1,10 +1,13 @@
 <html lang="en">
 <head>
     <title>fntags framework example</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
-<!--    font-family: 'Roboto', sans-serif;-->
+    <!--    font-family: 'Roboto', sans-serif;-->
     <link href="https://fonts.googleapis.com/css?family=Ubuntu&display=swap" rel="stylesheet">
     <!--    font-family: 'Ubuntu', sans-serif;-->
     <link rel="stylesheet" href="fncss.css">
@@ -16,27 +19,16 @@
         history.replaceState( null, null, sessionStorage.redirect )
         delete sessionStorage.redirect
     }
-    import { fnapp, route, router, routeSwitch } from './fntags.js'
-    import gettingStarted from './gettingStarted.js'
-    import home from './home.js'
-    import creatingComponents from './creatingComponents.js'
-    import componentState from './componentState.js'
-    import fourOhFore from './404.js'
+    import { fnapp, router, routeSwitch } from './fntags.js'
+    import { asRoutes } from './routes.js'
     import header from './header.js'
-    import routing from './routing.js'
 
-    fnapp( document.body, router(
-        header(),
-        routeSwitch(
-            { class: 'container' },
-            route( { fnpath: '/', absolute: true }, home() ),
-            route( { fnpath: '/gettingStarted' }, gettingStarted ),
-            route( { fnpath: '/creatingComponents' }, creatingComponents() ),
-            route( { fnpath: '/componentState' }, componentState() ),
-            route( { fnpath: '/routing' }, routing() ),
-            route( { fnpath: '.*' }, fourOhFore )
-        )
-    ) )
+    fnapp( document.body,
+           router(
+               header(),
+               routeSwitch( { class: 'container main-content' }, ...asRoutes() )
+           )
+    )
 </script>
 </body>
 </html>

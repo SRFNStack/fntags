@@ -342,8 +342,8 @@ const htmlElement = ( tag ) => ( ...children ) => {
 export const shiftAttrs = ( args ) => typeof args[ 0 ] === 'object' && !isNode( args[ 0 ] ) ? args.shift() : {}
 
 /**
- * A marker node to mark your place in the dom
- * @returns {HTMLSpanElement}
+ * A hidden div node to mark your place in the dom
+ * @returns {HTMLDivElement}
  */
 export const marker = ( attrs ) => div( Object.assign( attrs || {}, { style: 'display:none' } ) )
 

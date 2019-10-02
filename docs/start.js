@@ -25,7 +25,6 @@ export default div(
     p( 'Now we can use fnbind to listen to state changes and update our elements.' ),
     pre( code( { class: 'lang-js' }, 'fnbind(state, ()=>`Current count: ${state.count}`)' ) ),
     p('When the state changes, the function passed to fnbind is executed again, and replaces the current element with the updated element.'),
-    p('The state object is an es6 Proxy. Setting or deleting a property on the object triggers a bound component to re-render itself.'),
     p('Let\'s add a button to increment the state'),
     pre( code( { class: 'lang-js' },
 `<script type="module">

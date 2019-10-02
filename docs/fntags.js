@@ -9,7 +9,7 @@ export const fnapp = ( root, ...children ) => {
         if( !root ) throw `No such element with id ${root}`
     }
     if( !isNode( root ) ) throw 'The first argument to fnapp must be either a string element id or an element'
-    root.append( ...children )
+    root.append( ...children.map(c=>renderElement(c, root)) )
 }
 
 /**
@@ -342,8 +342,8 @@ const htmlElement = ( tag ) => ( ...children ) => {
 export const shiftAttrs = ( args ) => typeof args[ 0 ] === 'object' && !isNode( args[ 0 ] ) ? args.shift() : {}
 
 /**
- * A marker node to mark your place in the dom
- * @returns {HTMLSpanElement}
+ * A hidden div node to mark your place in the dom
+ * @returns {HTMLDivElement}
  */
 export const marker = ( attrs ) => div( Object.assign( attrs || {}, { style: 'display:none' } ) )
 
