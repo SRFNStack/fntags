@@ -123,7 +123,9 @@ fnapp( document.body,
 ```
 
 #### Tags
-All html are provided as functions that can be imported from the fntags library.
+All html tags are provided as functions that can be imported from the fntags library.
+
+The children passed to fnapp or an html tag can be a string, a Node, or a function. If a child is a function, it receives it's parent as the only argument.
 
 #### State
 You can subscribe to changes in state by using the `fnbind` function. 
@@ -132,14 +134,12 @@ The returned value from `fnstate({})` is the proxied state, this return value sh
 
 ##### fnbind(states, element [, update])
  - **states** either a single state or an array of states
- - **element** an html element or a function that returns one
+ - **element** an html element or a function that returns one. A function receives two arguments, the updated state, and the parent element
  - **update** A function that will be called whenever the state is updated. This allows you to directly control what happens. The function receives two arguments,
  the element being updated, and the new state `(element, newState) => {element.value = newState.foo}`. You can replace the existing element by returning a new element
  from the update function.
 
 If you pass a function as the element, when the state is updated, the function will be executed and the existing element will be replaced by the returned element.
-
-The function is passed the updated state, and the elements parent.
 
 You will find that if you try to use this method with an input, the input will lose focus. This is because you're actually creating a new element and the element that had focus no longer exists.
 To fix this issue, pass an element directly with an update function, then update the element as needed. Passing a function is intended as aa shortcut for strings and simple templates.

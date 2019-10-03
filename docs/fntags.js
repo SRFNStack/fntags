@@ -9,7 +9,7 @@ export const fnapp = ( root, ...children ) => {
         if( !root ) throw `No such element with id ${root}`
     }
     if( !isNode( root ) ) throw 'The first argument to fnapp must be either a string element id or an element'
-    root.append( ...children.map(c=>renderElement(c, root)) )
+    root.append( ...children.map( c => renderElement( c, root ) ) )
 }
 
 /**
@@ -169,7 +169,7 @@ const getElId = ( el ) => isTagged( el ) && getTag( el ).id
 export const router = ( ...children ) => {
     const attrs = shiftAttrs( children )
 
-    if( attrs.rootPath ) pathState.rootPath = ensureSlash(attrs.rootPath)
+    if( attrs.rootPath ) pathState.rootPath = ensureSlash( attrs.rootPath )
 
     let router = div( attrs, ...children )
     pathState.currentPath = pathState.rootPath
@@ -250,7 +250,7 @@ export const goTo = ( path ) => {
  * @param children
  */
 export const routeSwitch = ( ...children ) =>
-    fnbind( pathState, div(shiftAttrs(children)),
+    fnbind( pathState, div( shiftAttrs( children ) ),
             ( el ) => {
                 while( el.firstChild ) {
                     el.removeChild( el.firstChild )
@@ -267,30 +267,31 @@ export const routeSwitch = ( ...children ) =>
 
 const ensureSlash = ( part ) => {
     part = part.startsWith( '/' ) ? part : '/' + part
-    return part.endsWith('/') ? part.slice(0,-1) : part
+    return part.endsWith( '/' ) ? part.slice( 0, -1 ) : part
 }
 
 const findFullPath = ( node, parts = [] ) => {
     if( node.hasOwnProperty( 'fnpath' ) ) parts.push( parts )
     if( node.parentNode ) findFullPath( node.parentNode, parts )
-    return ensureSlash(pathState.rootPath + ensureSlash( parts.reverse().map( ensureSlash ).join( '' ) ))
+    return ensureSlash( pathState.rootPath + ensureSlash( parts.reverse().map( ensureSlash ).join( '' ) ) )
 }
 
 const pathState = fnstate(
     {
-        rootPath: ensureSlash(window.location.pathname),
+        rootPath: ensureSlash( window.location.pathname ),
         currentPath: ''
     } )
 window.addEventListener( 'popstate', () => pathState.currentPath = window.location.pathname )
 
 const shouldDisplayRoute = ( parent, attrs ) => {
     let fullPath = findFullPath( parent, [ isNode( attrs ) ? attrs.getAttribute( 'fnpath' ) : attrs.fnpath ] )
+    const isAbsolute = !!( attrs.absolute )
     const currPath = window.location.pathname
-    if( attrs.hasOwnProperty( 'absolute' ) && ( currPath === fullPath || currPath === fullPath + '/' ) ) {
-        return true
+    if( isAbsolute ) {
+        return currPath === fullPath || currPath === (fullPath + '/')
     } else {
         const pattern = fullPath.replace( /^(.*)\/([^\/]*)$/, '$1/?$2' )
-        return !!( !attrs.hasOwnProperty( 'absolute' ) && currPath.match( pattern ) )
+        return !!currPath.match( pattern )
     }
 
 }
