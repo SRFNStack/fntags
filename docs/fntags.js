@@ -112,7 +112,7 @@ export const fnstate = ( state ) => {
  */
 export const renderElement = ( el, parent ) => {
     if( typeof el != 'string' && !el ) {
-        throw `Child Element is undefined for parent ${parent ? parent.outerHTML : 'root'}`
+        throw `The element,  ${parent ? parent.outerHTML : 'root'}, has a child that is undefined. Be sure to add return statements, this isn't scala...`
     }
     if( typeof el === 'string' )
         return document.createTextNode( el )
@@ -155,7 +155,6 @@ const getTag = ( el ) => el[ fntag ]
 const isTagged = ( el ) => el && el.hasOwnProperty( fntag )
 const getElId = ( el ) => isTagged( el ) && getTag( el ).id
 
-
 /**
  * A router element that marks the root of a routed application. All routes must be descendents of a router.
  * This elements primary purpose is to provide a to to determine the correct path for each route. It accomplishes this by ensuring the children are fully
@@ -168,12 +167,13 @@ const getElId = ( el ) => isTagged( el ) && getTag( el ).id
  */
 export const router = ( ...children ) => {
     const attrs = shiftAttrs( children )
-
-    if( attrs.rootPath ) pathState.rootPath = ensureSlash( attrs.rootPath )
+    const info = pathState.info
+    if( attrs.rootPath ) info.rootPath = ensureSlash( attrs.rootPath )
 
     let router = div( attrs, ...children )
-    pathState.currentPath = pathState.rootPath
-
+    info.currentFullPath = window.location.pathname.replace( info.rootPath, '' ) || ''
+    info.currentRoute = '/'
+    pathState.info = info
     return router
 }
 
@@ -235,13 +235,13 @@ export const fnlink = ( ...chilrdren ) => {
 }
 
 /**
- * A function to navigate to the specified path
- * @param path
+ * A function to navigate to the specified route
+ * @param route
  */
-export const goTo = ( path ) => {
-    let newPath = window.location.origin + pathState.rootPath + ensureSlash( path )
-    window.history.pushState( {}, path, newPath )
-    pathState.currentPath = newPath
+export const goTo = ( route ) => {
+    let newPath = window.location.origin + pathState.info.rootPath + ensureSlash( route )
+    window.history.pushState( {}, route, newPath )
+    pathState.info = Object.assign( pathState.info, { currentFullPath: pathState.info.rootPath + route, currentRoute: route } )
 }
 
 /**
@@ -273,22 +273,33 @@ const ensureSlash = ( part ) => {
 const findFullPath = ( node, parts = [] ) => {
     if( node.hasOwnProperty( 'fnpath' ) ) parts.push( parts )
     if( node.parentNode ) findFullPath( node.parentNode, parts )
-    return ensureSlash( pathState.rootPath + ensureSlash( parts.reverse().map( ensureSlash ).join( '' ) ) )
+    return ensureSlash( pathState.info.rootPath + ensureSlash( parts.reverse().map( ensureSlash ).join( '' ) ) )
 }
 
-const pathState = fnstate(
+export const pathState = fnstate(
     {
-        rootPath: ensureSlash( window.location.pathname ),
-        currentPath: ''
+        info: {
+            rootPath: ensureSlash( window.location.pathname ),
+            currentFullPath: '',
+            currentRoute: ''
+        }
     } )
-window.addEventListener( 'popstate', () => pathState.currentPath = window.location.pathname )
+
+window.addEventListener( 'popstate', () =>
+    pathState.info = Object.assign(
+        pathState.info, {
+            currentFullPath: window.location.pathname,
+            currentRoute: window.location.pathname.replace( pathState.info.rootPath, '' ) || '/'
+        }
+    )
+)
 
 const shouldDisplayRoute = ( parent, attrs ) => {
     let fullPath = findFullPath( parent, [ isNode( attrs ) ? attrs.getAttribute( 'fnpath' ) : attrs.fnpath ] )
     const isAbsolute = !!( attrs.absolute )
     const currPath = window.location.pathname
     if( isAbsolute ) {
-        return currPath === fullPath || currPath === (fullPath + '/')
+        return currPath === fullPath || currPath === ( fullPath + '/' )
     } else {
         const pattern = fullPath.replace( /^(.*)\/([^\/]*)$/, '$1/?$2' )
         return !!currPath.match( pattern )
@@ -353,306 +364,230 @@ export const marker = ( attrs ) => div( Object.assign( attrs || {}, { style: 'di
  */
 export const a = htmlElement( 'a' )
 
-
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const abbr = htmlElement( 'abbr' )
-
 
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const acronym = htmlElement( 'acronym' )
 
-
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const address = htmlElement( 'address' )
-
-
-/**
- * @type {function(...[*]=): HTMLAppletElement}
- */
-export const applet = htmlElement( 'applet' )
-
 
 /**
  * @type {function(...[*]=): HTMLAreaElement}
  */
 export const area = htmlElement( 'area' )
 
-
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const article = htmlElement( 'article' )
-
 
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const aside = htmlElement( 'aside' )
 
-
 /**
  * @type {function(...[*]=): HTMLAudioElement}
  */
 export const audio = htmlElement( 'audio' )
-
 
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const b = htmlElement( 'b' )
 
-
 /**
  * @type {function(...[*]=): HTMLBaseElement}
  */
 export const base = htmlElement( 'base' )
-
-
-/**
- * @type {function(...[*]=): HTMLBaseFontElement}
- */
-export const basefont = htmlElement( 'basefont' )
-
 
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const bdi = htmlElement( 'bdi' )
 
-
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const bdo = htmlElement( 'bdo' )
-
 
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const big = htmlElement( 'big' )
 
-
 /**
  * @type {function(...[*]=): HTMLQuoteElement}
  */
 export const blockquote = htmlElement( 'blockquote' )
-
 
 /**
  * @type {function(...[*]=): HTMLBRElement}
  */
 export const br = htmlElement( 'br' )
 
-
 /**
  * @type {function(...[*]=): HTMLButtonElement}
  */
 export const button = htmlElement( 'button' )
-
 
 /**
  * @type {function(...[*]=): HTMLCanvasElement}
  */
 export const canvas = htmlElement( 'canvas' )
 
-
 /**
  * @type {function(...[*]=): HTMLTableCaptionElement}
  */
 export const caption = htmlElement( 'caption' )
-
-
-/**
- * @type {function(...[*]=): HTMLElement}
- */
-export const center = htmlElement( 'center' )
-
 
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const cite = htmlElement( 'cite' )
 
-
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const code = htmlElement( 'code' )
-
 
 /**
  * @type {function(...[*]=): HTMLTableColElement}
  */
 export const col = htmlElement( 'col' )
 
-
 /**
  * @type {function(...[*]=): HTMLTableColElement}
  */
 export const colgroup = htmlElement( 'colgroup' )
-
 
 /**
  * @type {function(...[*]=): HTMLDataElement}
  */
 export const data = htmlElement( 'data' )
 
-
 /**
  * @type {function(...[*]=): HTMLDataListElement}
  */
 export const datalist = htmlElement( 'datalist' )
-
 
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const dd = htmlElement( 'dd' )
 
-
 /**
  * @type {function(...[*]=): HTMLModElement}
  */
 export const del = htmlElement( 'del' )
-
 
 /**
  * @type {function(...[*]=): HTMLDetailsElement}
  */
 export const details = htmlElement( 'details' )
 
-
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const dfn = htmlElement( 'dfn' )
-
 
 /**
  * @type {function(...[*]=): HTMLDialogElement}
  */
 export const dialog = htmlElement( 'dialog' )
 
-
-/**
- * @type {function(...[*]=): HTMLDirectoryElement}
- */
-export const dir = htmlElement( 'dir' )
-
-
 /**
  * @type {function(...[*]=): HTMLDivElement}
  */
 export const div = htmlElement( 'div' )
-
 
 /**
  * @type {function(...[*]=): HTMLDListElement}
  */
 export const dl = htmlElement( 'dl' )
 
-
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const dt = htmlElement( 'dt' )
-
 
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const em = htmlElement( 'em' )
 
-
 /**
  * @type {function(...[*]=): HTMLEmbedElement}
  */
 export const embed = htmlElement( 'embed' )
-
 
 /**
  * @type {function(...[*]=): HTMLFieldSetElement}
  */
 export const fieldset = htmlElement( 'fieldset' )
 
-
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const figcaption = htmlElement( 'figcaption' )
-
 
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const figure = htmlElement( 'figure' )
 
-
-/**
- * @type {function(...[*]=): HTMLFontElement}
- */
-export const font = htmlElement( 'font' )
-
-
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const footer = htmlElement( 'footer' )
-
 
 /**
  * @type {function(...[*]=): HTMLFormElement}
  */
 export const form = htmlElement( 'form' )
 
-
 /**
  * @type {function(...[*]=): HTMLFrameElement}
  */
 export const frame = htmlElement( 'frame' )
-
 
 /**
  * @type {function(...[*]=): HTMLFrameSetElement}
  */
 export const frameset = htmlElement( 'frameset' )
 
-
 /**
  * @type {function(...[*]=): HTMLHeadingElement}
  */
 export const h1 = htmlElement( 'h1' )
-
 
 /**
  * @type {function(...[*]=): HTMLHeadingElement}
  */
 export const h2 = htmlElement( 'h2' )
 
-
 /**
  * @type {function(...[*]=): HTMLHeadingElement}
  */
 export const h3 = htmlElement( 'h3' )
-
 
 /**
  * @type {function(...[*]=): HTMLHeadingElement}
  */
 export const h4 = htmlElement( 'h4' )
 
-
 /**
  * @type {function(...[*]=): HTMLHeadingElement}
  */
 export const h5 = htmlElement( 'h5' )
-
 
 /**
  * @type {function(...[*]=): HTMLHeadingElement}
@@ -664,94 +599,75 @@ export const h6 = htmlElement( 'h6' )
  */
 export const header = htmlElement( 'header' )
 
-
 /**
  * @type {function(...[*]=): HTMLHRElement}
  */
 export const hr = htmlElement( 'hr' )
-
 
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const i = htmlElement( 'i' )
 
-
 /**
  * @type {function(...[*]=): HTMLIFrameElement}
  */
 export const iframe = htmlElement( 'iframe' )
-
 
 /**
  * @type {function(...[*]=): HTMLImageElement}
  */
 export const img = htmlElement( 'img' )
 
-
 /**
  * @type {function(...[*]=): HTMLInputElement}
  */
 export const input = htmlElement( 'input' )
-
 
 /**
  * @type {function(...[*]=): HTMLModElement}
  */
 export const ins = htmlElement( 'ins' )
 
-
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const kbd = htmlElement( 'kbd' )
-
 
 /**
  * @type {function(...[*]=): HTMLLabelElement}
  */
 export const label = htmlElement( 'label' )
 
-
 /**
  * @type {function(...[*]=): HTMLLegendElement}
  */
 export const legend = htmlElement( 'legend' )
-
 
 /**
  * @type {function(...[*]=): HTMLLIElement}
  */
 export const li = htmlElement( 'li' )
 
-
 /**
  * @type {function(...[*]=): HTMLLinkElement}
  */
 export const link = htmlElement( 'link' )
-
 
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const main = htmlElement( 'main' )
 
-
 /**
  * @type {function(...[*]=): HTMLMapElement}
  */
 export const map = htmlElement( 'map' )
 
-
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const mark = htmlElement( 'mark' )
-
-/**
- * @type {function(...[*]=): HTMLMarqueeElement}
- */
-export const marquee = htmlElement( 'marquee' )
 
 /**
  * @type {function(...[*]=): HTMLMenuElement}
@@ -773,294 +689,230 @@ export const meter = htmlElement( 'meter' )
  */
 export const nav = htmlElement( 'nav' )
 
-
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const noframes = htmlElement( 'noframes' )
-
 
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const noscript = htmlElement( 'noscript' )
 
-
 /**
  * @type {function(...[*]=): HTMLObjectElement}
  */
 export const object = htmlElement( 'object' )
-
 
 /**
  * @type {function(...[*]=): HTMLOListElement}
  */
 export const ol = htmlElement( 'ol' )
 
-
 /**
  * @type {function(...[*]=): HTMLOptGroupElement}
  */
 export const optgroup = htmlElement( 'optgroup' )
-
 
 /**
  * @type {function(...[*]=): HTMLOptionElement}
  */
 export const option = htmlElement( 'option' )
 
-
 /**
  * @type {function(...[*]=): HTMLOutputElement}
  */
 export const output = htmlElement( 'output' )
-
 
 /**
  * @type {function(...[*]=): HTMLParagraphElement}
  */
 export const p = htmlElement( 'p' )
 
-
 /**
  * @type {function(...[*]=): HTMLParamElement}
  */
 export const param = htmlElement( 'param' )
-
 
 /**
  * @type {function(...[*]=): HTMLPictureElement}
  */
 export const picture = htmlElement( 'picture' )
 
-
 /**
  * @type {function(...[*]=): HTMLPreElement}
  */
 export const pre = htmlElement( 'pre' )
-
 
 /**
  * @type {function(...[*]=): HTMLProgressElement}
  */
 export const progress = htmlElement( 'progress' )
 
-
 /**
  * @type {function(...[*]=): HTMLQuoteElement}
  */
 export const q = htmlElement( 'q' )
-
 
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const rp = htmlElement( 'rp' )
 
-
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const rt = htmlElement( 'rt' )
-
 
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const ruby = htmlElement( 'ruby' )
 
-
-/**
- * @type {function(...[*]=): HTMLElement}
- */
-export const s = htmlElement( 's' )
-
-
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const samp = htmlElement( 'samp' )
-
 
 /**
  * @type {function(...[*]=): HTMLScriptElement}
  */
 export const script = htmlElement( 'script' )
 
-
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const section = htmlElement( 'section' )
-
 
 /**
  * @type {function(...[*]=): HTMLSelectElement}
  */
 export const select = htmlElement( 'select' )
 
-
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const small = htmlElement( 'small' )
-
 
 /**
  * @type {function(...[*]=): HTMLSourceElement}
  */
 export const source = htmlElement( 'source' )
 
-
 /**
  * @type {function(...[*]=): HTMLSpanElement}
  */
 export const span = htmlElement( 'span' )
-
-
-/**
- * @type {function(...[*]=): HTMLElement}
- */
-export const strike = htmlElement( 'strike' )
-
 
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const strong = htmlElement( 'strong' )
 
-
 /**
  * @type {function(...[*]=): HTMLStyleElement}
  */
 export const style = htmlElement( 'style' )
-
 
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const sub = htmlElement( 'sub' )
 
-
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const summary = htmlElement( 'summary' )
-
 
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const sup = htmlElement( 'sup' )
 
-
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const svg = htmlElement( 'svg' )
-
 
 /**
  * @type {function(...[*]=): HTMLTableElement}
  */
 export const table = htmlElement( 'table' )
 
-
 /**
  * @type {function(...[*]=): HTMLTableSectionElement}
  */
 export const tbody = htmlElement( 'tbody' )
-
 
 /**
  * @type {function(...[*]=): HTMLTableDataCellElement}
  */
 export const td = htmlElement( 'td' )
 
-
 /**
  * @type {function(...[*]=): HTMLTemplateElement}
  */
 export const template = htmlElement( 'template' )
-
 
 /**
  * @type {function(...[*]=): HTMLTextAreaElement}
  */
 export const textarea = htmlElement( 'textarea' )
 
-
 /**
  * @type {function(...[*]=): HTMLTableSectionElement}
  */
 export const tfoot = htmlElement( 'tfoot' )
-
 
 /**
  * @type {function(...[*]=): HTMLTableHeaderCellElement}
  */
 export const th = htmlElement( 'th' )
 
-
 /**
  * @type {function(...[*]=): HTMLTableSectionElement}
  */
 export const thead = htmlElement( 'thead' )
-
 
 /**
  * @type {function(...[*]=): HTMLTimeElement}
  */
 export const time = htmlElement( 'time' )
 
-
 /**
  * @type {function(...[*]=): HTMLTitleElement}
  */
 export const title = htmlElement( 'title' )
-
 
 /**
  * @type {function(...[*]=): HTMLTableRowElement}
  */
 export const tr = htmlElement( 'tr' )
 
-
 /**
  * @type {function(...[*]=): HTMLTrackElement}
  */
 export const track = htmlElement( 'track' )
-
 
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const tt = htmlElement( 'tt' )
 
-
-/**
- * @type {function(...[*]=): HTMLElement}
- */
-export const u = htmlElement( 'u' )
-
-
 /**
  * @type {function(...[*]=): HTMLUListElement}
  */
 export const ul = htmlElement( 'ul' )
-
 
 /**
  * @type {function(...[*]=): HTMLElement}
  */
 export const _var = htmlElement( 'var' )
 
-
 /**
  * @type {function(...[*]=): HTMLVideoElement}
  */
 export const video = htmlElement( 'video' )
-
 
 /**
  * @type {function(...[*]=): HTMLElement}
