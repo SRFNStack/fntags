@@ -8,7 +8,7 @@ export const fnapp = ( root, ...children ) => {
         root = document.getElementById( root )
         if( !root ) throw `No such element with id ${root}`
     }
-    if( !isNode( root ) ) throw 'The first argument to fnapp must be either a string element id or an element'
+    if( !isNode( root ) ) throw 'Invalid root element'
     root.append( ...children.map( c => renderElement( c, root ) ) )
 }
 
@@ -26,7 +26,7 @@ export const isNode = ( el ) =>
  * @param state Either a single state object or an array of state objects to watch
  * @param element An element that will be updated whenever the state changes.
  *          If passing a function, the function will be executed on each state change and the returned value will be rendered to a component.
- *          This function receives two arguments, the parent element and the new state.
+ *          This function receives the new state as it's only argument.
  *
  *          If passing a dom node/element, then you must also supply an update function to perform the update on the element.
  *          This is the preferred method for inputs as it ensures the element is not re-created and focus is lost.
@@ -36,22 +36,21 @@ export const isNode = ( el ) =>
  *          Avoid changing the bound state unconditionally in either update case as it can cause an infinite update loop.
  *
  * @param update A function to perform a manual update with.
- *          This function receives three arguments. The element, the new state, and the parent element.
+ *          This function receives two arguments. The element and the new state
  */
 export const fnbind = ( state, element, update ) => {
-    if( typeof element !== 'function' && !isNode( element ) ) throw 'You can only bind functions and Elements to state changes.'
-    if( isNode( element ) && typeof update !== 'function' ) throw 'You must supply an update function when binding directly to an element'
+    if( typeof element !== 'function' && !isNode( element ) ) throw 'You can only bind functions and Elements'
+    if( isNode( element ) && typeof update !== 'function' ) throw 'You must supply an update function when binding an element'
     const states = Array.isArray( state ) && state || [ state ]
     const el = states.reduce( ( el, st ) => {
-                                  if( !isfnstate( st ) ) throw `State object: ${st} has not been initialized. Call fntags.initState() with this object and pass the returned value to fnbind.`
-                                  st._fn_state_info.addObserver( el, marker(), element, update )
+                                  if( !isfnstate( st ) ) throw `State: ${st} is not initialized. Use fnstate() to initialize.`
+                                  st._fn_state_info.addObserver( el, element, update )
                                   return el
                               },
                               { current: marker() }
     )
-    return ( parent ) => {
-        el.parent = parent
-        el.current = typeof element === 'function' ? renderElement( element( state, parent ), parent ) : element
+    return () => {
+        el.current = typeof element === 'function' ? renderElement( element( state ) ) : element
         return el.current
     }
 }
@@ -62,7 +61,7 @@ export const fnbind = ( state, element, update ) => {
  * @returns A proxy that notifies watchers when properties are set
  */
 export const fnstate = ( state ) => {
-    if( typeof state !== 'object' ) throw 'initState must be called with an object. Primitive values are not supported.'
+    if( typeof state !== 'object' ) throw 'initial state must be an object'
     const observers = []
     const notify = ( method ) => ( ...args ) => {
         let result = Reflect[ method ]( ...args )
@@ -76,10 +75,10 @@ export const fnstate = ( state ) => {
         deleteProperty: notify( 'deleteProperty' )
     } )
 
-    const addObserver = ( el, parent, element, update ) => {
+    const addObserver = ( el, element, update ) => {
         tagElement( el )
         observers.push( ( state ) => {
-            const newElement = update ? update( el.current, state, parent ) : renderElement( element( parent, state ), parent )
+            const newElement = update ? update( el.current, state ) : renderElement( element( state ) )
             if( newElement && isNode( newElement ) ) {
                 if( !isTagged( newElement ) )
                     tagElement( newElement )
@@ -105,19 +104,17 @@ export const fnstate = ( state ) => {
  * render a given value to an element
  * A string value will become a TextNode
  * A dom node/element is returned verbatim
- * functions are executed with the parent element as the argument. This allows deferring element creation until the parent exists.
  * The value returned must be a dom node/element or string.
  * @param el The element to render
- * @param parent The parent element this element will be attached to. This is passed as the only argument to a function element
  */
-export const renderElement = ( el, parent ) => {
+export const renderElement = ( el ) => {
     if( typeof el != 'string' && !el ) {
-        throw `The element,  ${parent ? parent.outerHTML : 'root'}, has a child that is undefined. Be sure to add return statements, this isn't scala...`
+        throw `children can't be undefined`
     }
     if( typeof el === 'string' )
         return document.createTextNode( el )
     else if( typeof el === 'function' ) {
-        const element = el( parent )
+        const element = el()
         if( typeof element === 'string' )
             return document.createTextNode( element )
         else if( !isNode( element ) ) badElementType( el )
@@ -130,7 +127,7 @@ export const renderElement = ( el, parent ) => {
 
 const badElementType = ( el ) => {
     throw `Element type ${el.constructor && el.constructor.name || typeof el} ` +
-          `is not supported. All elements must be one of or an array of [String, Function, Element, HTMLElement]`
+          `is not supported. Elements must be one of [String, Function, Element, HTMLElement]`
 }
 
 const isfnstate = ( state ) => state.hasOwnProperty( '_fn_state_info' )
@@ -156,30 +153,7 @@ const isTagged = ( el ) => el && el.hasOwnProperty( fntag )
 const getElId = ( el ) => isTagged( el ) && getTag( el ).id
 
 /**
- * A router element that marks the root of a routed application. All routes must be descendents of a router.
- * This elements primary purpose is to provide a to to determine the correct path for each route. It accomplishes this by ensuring the children are fully
- * constructed, and then kicking the pathState to ensure that each route has the correct view into it's current path.
- *
- * This element also let's you specify what the root path of your app is. If non is provided, the initial path where this page was loaded is assumed to be the root path.
- * This is probably wrong in most cases but useful in some simple scenarios.
- * You SHOULD set an appropriate root path for your application to ensure correct behavior
- * @returns {HTMLDivElement}
- */
-export const router = ( ...children ) => {
-    const attrs = shiftAttrs( children )
-    const info = pathState.info
-    if( attrs.rootPath ) info.rootPath = ensureSlash( attrs.rootPath )
-
-    let router = div( attrs, ...children )
-    info.currentFullPath = window.location.pathname.replace( info.rootPath, '' ) || ''
-    info.currentRoute = '/'
-    pathState.info = info
-    return router
-}
-
-/**
- * An element that is displayed only if the the current window location matches this elements full path. The path is derived from this elements path plus any parent paths.
- * All routes must be descendents of a router element.
+ * An element that is displayed only if the the current route starts with elements fnpath attribute.
  *
  * For example,
  *  route({fnpath: "/proc"},
@@ -208,10 +182,10 @@ export const router = ( ...children ) => {
 export const route = ( ...children ) => {
     const attrs = shiftAttrs( children )
     if( !attrs.fnpath || typeof attrs.fnpath !== 'string' ) {
-        throw 'a route must have an fnpath attribute and it must be a string'
+        throw 'route must have a string fnpath attribute'
     }
     const theDataz = div( attrs, ...children )
-    return fnbind( pathState, ( st, parent ) => shouldDisplayRoute( parent, attrs ) ? theDataz : marker( attrs ) )
+    return fnbind( pathState, () => shouldDisplayRoute( attrs ) ? theDataz : marker( attrs ) )
 }
 
 /**
@@ -220,7 +194,7 @@ export const route = ( ...children ) => {
  */
 export const fnlink = ( ...chilrdren ) => {
     const attrs = shiftAttrs( chilrdren )
-    if( !attrs.to || typeof attrs.to != 'string' ) throw 'links must have a to attribute and it must be a string'
+    if( !attrs.to || typeof attrs.to != 'string' ) throw 'fnlink must to string attribute'
 
     return () => {
         let oldClick = attrs.onclick
@@ -240,8 +214,12 @@ export const fnlink = ( ...chilrdren ) => {
  */
 export const goTo = ( route ) => {
     let newPath = window.location.origin + pathState.info.rootPath + ensureSlash( route )
-    window.history.pushState( {}, route, newPath )
+    history.pushState( {}, route, newPath )
     pathState.info = Object.assign( pathState.info, { currentFullPath: pathState.info.rootPath + route, currentRoute: route } )
+    if( newPath.indexOf( '#' ) > -1 ) {
+        const el = document.getElementById( decodeURIComponent( newPath.split( '#' )[ 1 ] ) )
+        el && el.scrollIntoView()
+    }
 }
 
 /**
@@ -249,39 +227,34 @@ export const goTo = ( route ) => {
  * The primary purpose of this element is to provide catchall routes for not found pages and path variables
  * @param children
  */
-export const routeSwitch = ( ...children ) =>
-    fnbind( pathState, div( shiftAttrs( children ) ),
-            ( el ) => {
-                while( el.firstChild ) {
-                    el.removeChild( el.firstChild )
-                }
-                for( let child of children ) {
-                    const rendered = renderElement( child, el )
-                    if( shouldDisplayRoute( el, rendered ) ) {
-                        el.append( rendered )
-                        return
-                    }
-                }
-            }
+export const routeSwitch = ( ...children ) => {
+    const sw = div( shiftAttrs( children ) )
+    return fnbind( pathState, () => {
+                       while( sw.firstChild ) {
+                           sw.removeChild( sw.firstChild )
+                       }
+                       for( let child of children ) {
+                           const rendered = renderElement( child )
+                           if( shouldDisplayRoute( rendered ) ) {
+                               sw.append( rendered )
+                               return sw
+                           }
+                       }
+                   }
     )
+}
 
 const ensureSlash = ( part ) => {
     part = part.startsWith( '/' ) ? part : '/' + part
     return part.endsWith( '/' ) ? part.slice( 0, -1 ) : part
 }
 
-const findFullPath = ( node, parts = [] ) => {
-    if( node.hasOwnProperty( 'fnpath' ) ) parts.push( parts )
-    if( node.parentNode ) findFullPath( node.parentNode, parts )
-    return ensureSlash( pathState.info.rootPath + ensureSlash( parts.reverse().map( ensureSlash ).join( '' ) ) )
-}
-
 export const pathState = fnstate(
     {
         info: {
             rootPath: ensureSlash( window.location.pathname ),
-            currentFullPath: '',
-            currentRoute: ''
+            currentFullPath: window.location.pathname.replace( ensureSlash( window.location.pathname ), '' ) || '',
+            currentRoute: '/'
         }
     } )
 
@@ -294,14 +267,14 @@ window.addEventListener( 'popstate', () =>
     )
 )
 
-const shouldDisplayRoute = ( parent, attrs ) => {
-    let fullPath = findFullPath( parent, [ isNode( attrs ) ? attrs.getAttribute( 'fnpath' ) : attrs.fnpath ] )
+const shouldDisplayRoute = ( attrs ) => {
+    let path = pathState.info.rootPath + ensureSlash( isNode( attrs ) ? attrs.getAttribute( 'fnpath' ) : attrs.fnpath )
     const isAbsolute = !!( attrs.absolute )
     const currPath = window.location.pathname
     if( isAbsolute ) {
-        return currPath === fullPath || currPath === ( fullPath + '/' )
+        return currPath === path || currPath === ( path + '/' )
     } else {
-        const pattern = fullPath.replace( /^(.*)\/([^\/]*)$/, '$1/?$2' )
+        const pattern = path.replace( /^(.*)\/([^\/]*)$/, '$1/?$2([/?#]|$)' )
         return !!currPath.match( pattern )
     }
 

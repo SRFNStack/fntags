@@ -1,11 +1,18 @@
-import { div, p, strong } from './fntags.js'
+import { button, div, goTo, hr, p } from './fntags.js'
 
-export default div(
-    p(strong( 'A framework for building web pages and single page apps' )),
-    p( 'fntags uses js instead of html or templating.' ),
-    p( strong('There\'s no set up, and no build process.') ),
-    p( 'Functions are used to compose templates and re-usable components.' ),
-    p( strong('Bind state to any element at any scope.') ),
-    p( 'Elements can be bound to more than one state' ),
-    p( strong('Routing is a feature of the framework.') )
+const odd = ( text ) => p( text )
+const even = ( text ) => p( { style: 'font-weight: 400' }, text )
+export default div( { class: 'flex-center', style: 'flex-direction: column; font-size: 16px ' },
+                    div(
+                        ...[
+                            'Javascript instead of html.',
+                            'No set up and no build process.',
+                            'Create re-usable elements.',
+                            'Bind any state to any element.',
+                            'Bind to more than one state.',
+                            'Routing with nested routes.'
+                        ].map( ( txt, i ) => i % 2 === 0 ? even( txt ) : odd( txt ) )
+                    ),
+                    hr(),
+                    button( { style: 'width: 220px', onclick: ( e ) => goTo( '/build/#Getting%20Started' ) }, 'Get Started' )
 )
