@@ -21,7 +21,7 @@
     import { secondaryColor } from './constants.js'
 
     if( sessionStorage.redirect ) {
-        goTo(sessionStorage.redirect)
+        goTo(sessionStorage.redirect(location.pathname, ''))
         delete sessionStorage.redirect
     }
     import { div, fnapp, footer, goTo, routeSwitch, style } from './fntags.js'
