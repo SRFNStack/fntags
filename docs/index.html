@@ -21,10 +21,10 @@
     import { secondaryColor } from './constants.js'
 
     if( sessionStorage.redirect ) {
-        history.replaceState( null, null, sessionStorage.redirect )
+        goTo(sessionStorage.redirect)
         delete sessionStorage.redirect
     }
-    import { div, fnapp, footer, pathState, routeSwitch, setRootPath, span, style } from './fntags.js'
+    import { div, fnapp, footer, goTo, routeSwitch, style } from './fntags.js'
     import { routeElements } from './routes.js'
     import header from './header.js'
 
