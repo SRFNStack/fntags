@@ -3,7 +3,6 @@ import { button, code, div, fnbind, fnstate, pre } from './fntags.js'
 export default ( sourceCode, demo, language = 'js' ) => {
     const state = fnstate( { isDemo: false } )
     const src = pre( { class: 'language-' + language }, code( sourceCode.trim() ) )
-    Prism.highlightElement( src )
     let swapped = false
     const obs = new IntersectionObserver(
         ( entries ) => {
@@ -11,6 +10,8 @@ export default ( sourceCode, demo, language = 'js' ) => {
                 .filter( el => el.isIntersecting )
                 .forEach( () => {
                     if( !swapped ) {
+                        const clone = src.cloneNode(true)
+                        Prism.highlightElement(clone)
                         src.replaceWith(
                             div( { style: `width: ${src.scrollWidth}; height: ${src.scrollHeight}; position: relative` },
                                  demo && button( {
@@ -20,7 +21,9 @@ export default ( sourceCode, demo, language = 'js' ) => {
                                                  fnbind(state, (st)=>st.isDemo ? 'Code' : 'Demo')
                                       )
                                  || '',
-                                 fnbind( state, ( st ) => st.isDemo ? demo : src.cloneNode(true) )
+                                 fnbind( state, ( st ) => {
+                                     return st.isDemo ? demo : clone
+                                 } )
                             ) )
                         swapped = true
                         state.isDemo = false

@@ -19,9 +19,7 @@ export default div(
         ' The set will be intercepted by the Proxy, and will trigger elements to be updated.',
         prismCode(
             `
-import {fnstate, fnbind, button} from './fntags.js'
-
-export const myFnEl = = ()=> {
+const myElement = = ()=> {
     const state = fnstate({count: 0})
     return div(
         fnbind(state, ()=> \`Current count: \${state.count}\`),
