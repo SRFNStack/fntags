@@ -80,8 +80,10 @@
            )
     )
     if( sessionStorage.redirect ) {
-        setTimeout(()=>goTo(sessionStorage.redirect.replace(location.pathname, '')), 1)
-        delete sessionStorage.redirect
+        setTimeout(()=>{
+            goTo(sessionStorage.redirect.replace(location.pathname, ''))
+            delete sessionStorage.redirect
+        }, 1)
     }
 </script>
 </body>
