@@ -1,16 +1,7 @@
-import { div } from './fntags.js'
+import { button, div, fnbind, fnstate } from './fntags.js'
 import prismCode from './prismCode.js'
 import contentSection from './contentSection.js'
 
-import {fnstate, fnbind, button} from './fntags.js'
-
-export const myFnEl = ()=> {
-    const state = fnstate({count: 0})
-    return div(
-        fnbind(state, ()=> `Current count: ${state.count}`),
-        button({onclick: ()=> state.count = state.count + 1}, "+1")
-    )
-}
 export default div(
     contentSection(
         'Binding State',
@@ -37,21 +28,39 @@ export const myFnEl = = ()=> {
         button({onclick: ()=> state.count = state.count + 1}, "+1")
     )
 }
-` )
+`,(()=> {
+                const state = fnstate({count: 0})
+                return div(
+                    fnbind(state, ()=> `Current count: ${state.count}`),
+                    button({onclick: ()=> state.count = state.count + 1}, "+1")
+                )
+            })() )
     ),
     contentSection(
         'Binding Multiple States',
         'Any element can be bound to any number of states by passing an array of state objects as the first parameter of fnbind.',
         prismCode(`
-import {fnapp, fnstate, fnbind, button} from './fntags.js'
-const state = fnstate({count: 0})
-fnapp(document.body,
-    fnbind(state, ()=> \`Current count: \${state.count}\`),
-    button({onclick: ()=> state.count = state.count + 1}, "+1")
-)
-`
+const myElement =
+ ()=> {
+     const a = fnstate({count: 0})
+     const b = fnstate({count:0})
+     return div(
+         fnbind([a, b], ()=> \`a: \${a.count} b: \${b.count}\`),
+         button({onclick: ()=> a.count = a.count + 1}, "a+1"),
+         button({onclick: ()=> b.count = b.count + 1}, "b+1")
+     )
+ }
+`, (()=> {
+            const a = fnstate({count: 0})
+            const b = fnstate({count:0})
+            return div(
+                 fnbind([a, b], ()=> `a: ${a.count} b: ${b.count}`),
+                 button({onclick: ()=> a.count = a.count + 1}, "a+1"),
+                 button({onclick: ()=> b.count = b.count + 1}, "b+1")
+            )
+                  })()
         ),
-        myFnEl()
+
     ),
 
     contentSection(
