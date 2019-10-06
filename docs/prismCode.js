@@ -1,35 +1,38 @@
 import { button, code, div, fnbind, fnstate, pre } from './fntags.js'
 
-export default ( sourceCode, demo, language = 'js' ) => {
+export default ( sourceCode, demo, maxWidth = '450px' ) => {
     const state = fnstate( { isDemo: false } )
-    const src = pre( { class: 'language-' + language }, code( sourceCode.trim() ) )
-    let swapped = false
+
+    const src = pre( { class: 'language-js', style: `font-size: 14px; width: 100%; box-sizing: border-box; box-shadow: 0px 0px 3px 0px rgba(0,0,0,0.75);` }, code( sourceCode.trim() ) )
+    const demoDiv = div({style: 'border-radius: 3px; width: 100%; box-sizing: border-box; box-shadow: 0px 0px 3px 0px rgba(0,0,0,0.75);'},demo || '')
+
+    let highlighted = false
     const obs = new IntersectionObserver(
         ( entries ) => {
             entries
                 .filter( el => el.isIntersecting )
                 .forEach( () => {
-                    if( !swapped ) {
-                        const clone = src.cloneNode(true)
-                        Prism.highlightElement(clone)
-                        src.replaceWith(
-                            div( { style: `width: ${src.scrollWidth}; height: ${src.scrollHeight}; position: relative` },
-                                 demo && button( {
-                                                     style: 'position: absolute; top: 10px; right: 10px;',
-                                                     onclick: () => state.isDemo = !state.isDemo
-                                                 },
-                                                 fnbind(state, (st)=>st.isDemo ? 'Code' : 'Demo')
-                                      )
-                                 || '',
-                                 fnbind( state, ( st ) => {
-                                     return st.isDemo ? demo : clone
-                                 } )
-                            ) )
-                        swapped = true
+                    if( !highlighted ) {
+                        Prism.highlightElement( src )
+
+                        const style = window.getComputedStyle(src)
+                        demoDiv.style.height = style.getPropertyValue('height')
+                        demoDiv.style.margin = style.getPropertyValue('margin')
+                        demoDiv.style.padding = style.getPropertyValue('padding')
+                        highlighted = true
                         state.isDemo = false
                     }
                 } )
         } )
     obs.observe( src )
-    return src
+    return div( { style: `margin: auto; display: flex; flex-direction: column; align-items: flex-end; padding-bottom: 15px;width: 100%; max-width: ${maxWidth};` },
+                demo &&
+                button( {onclick: () => state.isDemo = !state.isDemo, style: 'width: 65px; padding: 3px 0;' },
+                        fnbind( state, ( st ) => st.isDemo ? 'Code' : 'Demo' )
+                )
+                || '',
+
+                     fnbind( state, ( st ) => st.isDemo ? demoDiv : src)
+    )
+
 }

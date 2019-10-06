@@ -44,16 +44,16 @@
                      button( { type: 'submit' }, 'go' )
                ),
                routeSwitch(
-                   route( { fnpath: '/', absolute: true },
+                   route( { path: '/', absolute: true },
                           'rooooot'
                    ),
-                   route( { fnpath: '/hello' },
+                   route( { path: '/hello' },
                           'hello page'
                    ),
-                   route( { fnpath: '/goodbye' },
+                   route( { path: '/goodbye' },
                           'goodbye page'
                    ),
-                   route( { fnpath: '/.*' },
+                   route( { path: '/.*' },
                           h3( '404 Page not found' ),
                           div( img( { src: 'http://placekitten.com/500/500' } ) )
                    )

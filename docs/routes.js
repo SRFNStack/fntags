@@ -17,7 +17,7 @@ const routes = [
     {url: ".*", component: fourOhFore}
 ]
 
-export const routeElements = ()=>routes.map( ( r)=> route( { fnpath: r.url, absolute: !!r.absolute }, r.component))
+export const routeElements = ()=>routes.map( ( r)=> route( { path: r.url, absolute: !!r.absolute }, r.component))
 export const routeNavItems = ()=>routes.filter( r=>r.linkText).map( ( r)=> fnbind( pathState, ()=>
         fnlink( {
                     to: r.url,

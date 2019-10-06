@@ -5,12 +5,13 @@ import prismCode from './prismCode.js'
 export default div(
     contentSection(
         'Getting Started',
-        'Acquire fntags/src/index.js (this file will be referred to as fntags.js from now on) from npm or github and include it with your content.',
-        'Import fnapp and some of the tag functions from fntags.js and initialize the app by calling fnapp with the root of the app and the contents of the app.',
-        'Dom elements are created using functions. These functions take an optional attributes object, and the children of the element. ',
-        'You can defer creating a child until the parent is created by passing in a function that takes the parent as it\'s only argument.',
+        'Acquire fntags/src/index.js (fntags.js for short) from npm or github and include it with your content.',
+        'Import fnapp and tags from fntags.js. All non-deprecated html tags are available to import.',
+        'Create new dom elements by calling the tags.',
+        'Call fnapp with the root element and the elements to append.',
         prismCode( `<script type="module">
-    import {fnapp, div, p, h1} from './fntags.js'
+    import {fnapp, div, p, h1}
+    from './fntags.js'
     fnapp(document.body,
         div(
             h1("Welcome"),
@@ -23,72 +24,88 @@ export default div(
                        h1( 'Welcome' ),
                        p( 'to fntags' )
                    )
-        ),
-        'All html tags are available to import from fntags.'
+        )
     ),
     contentSection(
         'Creating Elements',
-        'Every element in fntags is a function. The function takes a var args of children. A child can be a string, a dom node, or a function that returns either of those.',
-        'Passing a function is useful when element creation needs to be deferred or delegated.',
-        'A basic element is composed of fntags html element function calls.',
+        'Every tag is a function that takes an optional attributes object and the children of the element. A child can be a string, a dom node, or a function that returns either of those.',
+        'Passing a function is useful when element creation needs to be deferred, delegated, or to create context variables like state objects.',
+        'Elements are composed of tag function calls.',
         prismCode(
-            'const myElement =\n' +
-            '    div({style:\'font-size: 20px;\'},\n' +
-            '        \'hello!\', span( { style: \'color: green\' }, \' world!\' ) \n)',
+            'div({style:\'font-size: 20px;\'},\n' +
+            '    \'hello!\',\n' +
+            '    span( { style: \'color: green\' },\n' +
+            '    \' world!\')\n' +
+            ')',
             div( { style: 'font-size: 20px;' }, 'hello!', span( { style: 'color: green' }, ' world!' ) )
         ),
-        'To set attributes and event handlers on your element, pass an object as the first parameter to an html element function.',
-        'Properties of the object become the attributes of the element. If a property is not a string or function, it will get assigned to the element as a non-enumerable property.',
-        'If a property is a function, addEventListener is called on the element using the property name less the \'on\' prefix, and the function.',
+        'To set attributes and event handlers, pass an object as the first parameter to a tag.',
+        'String properties of the object become the attributes of the element.',
+        'Functions get added as event listeners for the property name less the \'on\' prefix.',
+        'Other types get assigned to the element as a non-enumerable property.',
         prismCode(
-            `const myElement = div({style: "color: limegreen"}, "hello!", div("world!"))`,
-            div( { style: 'color: limegreen' }, 'hello!', div( 'world!' ) )
+            'div({style: "color: limegreen"},\n' +
+            '    "こんにちは ", div("world!")\n' +
+            ')',
+            div( { style: 'color: limegreen' }, 'こんにちは ', div( 'world!' ) )
         ),
 
-        'To parameterize your element, add parameters to the function',
+        'To parameterize your element, declare your element as a function with parameters',
 
         prismCode(
-            'const myElement = (name)=> div("hello!", div(\`\${name}!\`))\n',
-            ( ( name ) => div( 'hello!', div( `${name}!` ) ) )( 'Jerry' ) ),
+            '(name) => div("Aloha ", span(\`\${name}!\`))\n',
+            ( ( name ) => div( 'Aloha, ', span( `${name}!` ) ) )( 'Jerry' ) ),
 
-        'To add children to your element, a rest parameter is recommended.',
+        'A rest parameter is recommended for including children in the parameters.',
 
-        prismCode( 'const myElement = (name, ...children)=> div(\`Hello \${name}!\`, ...children)',
-                   ( ( name, ...children ) => div( `Hello ${name}!`, ...children ) )( 'Jerry', span( ' of' ), b( ' the' ), strong( ' day' ) )
+        prismCode( '(name, ...children) =>\n' +
+                   '    div(\n' +
+                   '        \`Watch \${name} \`,\n' +
+                   '        ...children\n' +
+                   ')',
+                   ( ( name, ...children ) => div( `Watch ${name} `, ...children ) )( 'Jerry', span( 'of' ), b( ' the' ), strong( ' day' ) )
         ),
 
         'fntags provides a utility for shifting an attributes object from a rest parameter or array called shiftAttrs.',
-        'This does modify the passed arguments. You can avoid this by using getAttrs instead.',
+        'This modifies the passed array. You can avoid this by using getAttrs instead.',
 
-        prismCode( 'const myElement = (...children)=> {\n' +
+        prismCode( '(...children) => {\n' +
                    '    const attrs = shiftAttrs(children)\n' +
-                   '    div(\`Hello \${attrs.name}!\`, ...children)\n' +
+                   '    return div(\`Watch \${attrs.name} \`, ...children)\n' +
                    '}',
                    ( ( ...children ) => {
                        const attrs = shiftAttrs( children )
-                       return div( `Hello ${attrs.name}!`, ...children )
+                       return div( `Watch ${attrs.name} `, ...children )
                    } )( { name: 'Jerry' }, span( 'of' ), p( 'the' ), strong( 'day' ) )
         ),
 
 
-        'To render the children yourself, use the renderElement function to convert string and functions to dom elements.',
-        prismCode( 'const myElement = ( ...children ) => {\n' +
-                   '                           const attrs = shiftAttrs( children )\n' +
-                   '                           const myChildren =\n' +
-                   '                               children\n' +
-                   '                               .map( renderElement )\n' +
-                   '                               .map( el => el.style = \'color: purple\' && el )\n' +
-                   '                           return div( `Hello ${attrs.name}!`, ...myChildren )\n' +
-                   '                       }',
+        'Children can be altered in any way before being passed to a tag.',
+        prismCode( '( ...children ) => {\n' +
+                   '    const attrs = shiftAttrs( children )\n' +
+                   '    return div( \n' +
+                   '        `Watch ${attrs.name} `,\n' +
+                   '        ...children\n' +
+                   '        .map(el =>\n' +
+                   '            div({style:\'color:purple\'}, \n' +
+                   '                el\n' +
+                   '            ) \n' +
+                   '         ) \n' +
+                   '    )\n' +
+                   '}',
                    ( ( ...children ) => {
                            const attrs = shiftAttrs( children )
-                           const myChildren =
-                               children
-                                   .map( renderElement )
-                                   .map( el => el.style = 'color: purple' && el )
-                           return div( `Hello ${attrs.name}!`, ...myChildren )
+                           return div(
+                               `Watch ${attrs.name}`,
+                               ...children
+                               .map(el =>
+                                         div({style:'color:purple'},
+                                             el
+                                         )
+                               )
+                           )
                        }
-                   )( { name: 'Jerry' }, span( ' of' ), p( 'the' ), strong( 'day' ) )
+                   )( { name: 'Jerry' }, ' of', p( 'the' ), () => strong( 'day' ) )
         )
     )
 )

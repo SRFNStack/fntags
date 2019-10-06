@@ -5,7 +5,7 @@ import prismCode from './prismCode.js'
 
 export default div(
     contentSection( 'Route Elements',
-                    'Routes are created by using the fntags route element. They have a single required attribute, fnpath.',
+                    'Routes are created by using the fntags route element. They have a single required attribute, path.',
                     'By default, fntags will route from the html file that first loads it, typically index.html.',
                     'To make deep linking work, call setRootPath from fntags.js with the path you want to serve the app from, typically \'/\''
     ),
@@ -19,9 +19,9 @@ const nav = div(
 
 fnapp( document.body,
            routeSwitch(
-               route( { fnpath: '/', absolute: true }, 'rooooot' ),
-               route( { fnpath: '/hello' }, 'world' ),
-               route( { fnpath: '/.*' },
+               route( { path: '/', absolute: true }, 'rooooot' ),
+               route( { path: '/hello' }, 'world' ),
+               route( { path: '/.*' },
                       h3( '404 Page not found' ),
                       div( img( { src: 'http://placekitten.com/500/500' } ) )
                )

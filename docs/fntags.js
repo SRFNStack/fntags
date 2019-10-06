@@ -6,9 +6,9 @@
 export const fnapp = ( root, ...children ) => {
     if( typeof root === 'string' ) {
         root = document.getElementById( root )
-        if( !root ) throw `No such element with id ${root}`
+        if( !root ) throw new Error(`No such element with id ${root}`).stack
     }
-    if( !isNode( root ) ) throw 'Invalid root element'
+    if( !isNode( root ) ) throw new Error('Invalid root element').stack
     root.append( ...children.map( c => renderElement( c, root ) ) )
 }
 
@@ -39,11 +39,11 @@ export const isNode = ( el ) =>
  *          This function receives two arguments. The element and the new state
  */
 export const fnbind = ( state, element, update ) => {
-    if( typeof element !== 'function' && !isNode( element ) ) throw 'You can only bind functions and Elements'
-    if( isNode( element ) && typeof update !== 'function' ) throw 'You must supply an update function when binding an element'
+    if( typeof element !== 'function' && !isNode( element ) ) throw new Error('You can only bind functions and Elements').stack
+    if( isNode( element ) && typeof update !== 'function' ) throw new Error('You must supply an update function when binding an element').stack
     const states = Array.isArray( state ) && state || [ state ]
     const el = states.reduce( ( el, st ) => {
-                                  if( !isfnstate( st ) ) throw `State: ${st} is not initialized. Use fnstate() to initialize.`
+                                  if( !isfnstate( st ) ) throw new Error(`State: ${st} is not initialized. Use fnstate() to initialize.`).stack
                                   st._fn_state_info.addObserver( el, element, update )
                                   return el
                               },
@@ -61,7 +61,7 @@ export const fnbind = ( state, element, update ) => {
  * @returns A proxy that notifies watchers when properties are set
  */
 export const fnstate = ( state ) => {
-    if( typeof state !== 'object' ) throw 'initial state must be an object'
+    if( typeof state !== 'object' ) throw new Error('initial state must be an object').stack
     const observers = []
     const notify = ( method ) => ( ...args ) => {
         let result = Reflect[ method ]( ...args )
@@ -110,7 +110,7 @@ export const fnstate = ( state ) => {
  */
 export const renderElement = ( el ) => {
     if( typeof el != 'string' && !el ) {
-        throw `children can't be undefined`
+        throw new Error(`children can't be undefined`).stack
     }
     if( typeof el === 'string' )
         return document.createTextNode( el )
@@ -127,8 +127,9 @@ export const renderElement = ( el ) => {
 }
 
 const badElementType = ( el ) => {
-    throw `Element type ${el.constructor && el.constructor.name || typeof el} ` +
-          `is not supported. Elements must be one of [String, Function, Element, HTMLElement]`
+    throw new Error(`Element type ${el.constructor && el.constructor.name || typeof el} ` +
+          `is not supported. Elements must be one of [String, Function, Element, HTMLElement]`)
+        .stack
 }
 
 const isfnstate = ( state ) => state.hasOwnProperty( '_fn_state_info' )
@@ -154,13 +155,13 @@ const isTagged = ( el ) => el && el.hasOwnProperty( fntag )
 const getElId = ( el ) => isTagged( el ) && getTag( el ).id
 
 /**
- * An element that is displayed only if the the current route starts with elements fnpath attribute.
+ * An element that is displayed only if the the current route starts with elements path attribute.
  *
  * For example,
- *  route({fnpath: "/proc"},
+ *  route({path: "/proc"},
  *      div(
  *          "proc",
- *          div({fnpath: "/cpuinfo"},
+ *          div({path: "/cpuinfo"},
  *              "cpuinfo"
  *              )
  *          )
@@ -168,10 +169,10 @@ const getElId = ( el ) => isTagged( el ) && getTag( el ).id
  *
  *  You can override this behavior by setting the attribute, absolute to any value
  *
- *  route({fnpath: "/usr"},
+ *  route({path: "/usr"},
  *      div(
  *          "proc",
- *          div({fnpath: "/cpuinfo", absolute: true},
+ *          div({path: "/cpuinfo", absolute: true},
  *              "cpuinfo"
  *              )
  *          )
@@ -182,8 +183,8 @@ const getElId = ( el ) => isTagged( el ) && getTag( el ).id
  */
 export const route = ( ...children ) => {
     const attrs = shiftAttrs( children )
-    if( !attrs.fnpath || typeof attrs.fnpath !== 'string' ) {
-        throw 'route must have a string fnpath attribute'
+    if( !attrs.path || typeof attrs.path !== 'string' ) {
+        throw new Error('route must have a string path attribute').stack
     }
     const theDataz = div( attrs, ...children )
     return fnbind( pathState, () => shouldDisplayRoute( attrs ) ? theDataz : marker( attrs ) )
@@ -195,7 +196,7 @@ export const route = ( ...children ) => {
  */
 export const fnlink = ( ...chilrdren ) => {
     const attrs = shiftAttrs( chilrdren )
-    if( !attrs.to || typeof attrs.to != 'string' ) throw 'fnlink must have a "to" string attribute'
+    if( !attrs.to || typeof attrs.to != 'string' ) throw new Error('fnlink must have a "to" string attribute').stack
 
     return () => {
         let oldClick = attrs.onclick
@@ -272,7 +273,7 @@ window.addEventListener( 'popstate', () =>
 )
 
 const shouldDisplayRoute = ( attrs ) => {
-    let path = pathState.info.rootPath + ensureSlash( isNode( attrs ) ? attrs.getAttribute( 'fnpath' ) : attrs.fnpath )
+    let path = pathState.info.rootPath + ensureSlash( isNode( attrs ) ? attrs.getAttribute( 'path' ) : attrs.path )
     const isAbsolute = !!( attrs.absolute )
     const currPath = window.location.pathname
     if( isAbsolute ) {
