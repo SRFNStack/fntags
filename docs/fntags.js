@@ -104,7 +104,8 @@ export const fnstate = ( state ) => {
  * render a given value to an element
  * A string value will become a TextNode
  * A dom node/element is returned verbatim
- * The value returned must be a dom node/element or string.
+ * A function is executed and the value returned must be a dom node/element or string.
+ * This is useful for state binding because there we need to define elements as a function that takes a state so that the state doesn't need to be in scope of the function at run time.
  * @param el The element to render
  */
 export const renderElement = ( el ) => {
@@ -194,7 +195,7 @@ export const route = ( ...children ) => {
  */
 export const fnlink = ( ...chilrdren ) => {
     const attrs = shiftAttrs( chilrdren )
-    if( !attrs.to || typeof attrs.to != 'string' ) throw 'fnlink must to string attribute'
+    if( !attrs.to || typeof attrs.to != 'string' ) throw 'fnlink must have a "to" string attribute'
 
     return () => {
         let oldClick = attrs.onclick
@@ -215,7 +216,7 @@ export const fnlink = ( ...chilrdren ) => {
 export const goTo = ( route ) => {
     let newPath = window.location.origin + pathState.info.rootPath + ensureSlash( route )
     history.pushState( {}, route, newPath )
-    pathState.info = Object.assign( pathState.info, { currentFullPath: pathState.info.rootPath + route, currentRoute: route } )
+    pathState.info = Object.assign( pathState.info, { currentRoute: route } )
     if( newPath.indexOf( '#' ) > -1 ) {
         const el = document.getElementById( decodeURIComponent( newPath.split( '#' )[ 1 ] ) )
         el && el.scrollIntoView()
@@ -253,15 +254,18 @@ export const pathState = fnstate(
     {
         info: {
             rootPath: ensureSlash( window.location.pathname ),
-            currentFullPath: window.location.pathname.replace( ensureSlash( window.location.pathname ), '' ) || '',
             currentRoute: '/'
         }
     } )
 
+/**
+ * Set the root path of the app
+ */
+export const setRootPath = (rootPath) => pathState.info = Object.assign(pathState.info, {rootPath: ensureSlash(rootPath), currentRoute: window.location.pathname})
+
 window.addEventListener( 'popstate', () =>
     pathState.info = Object.assign(
         pathState.info, {
-            currentFullPath: window.location.pathname,
             currentRoute: window.location.pathname.replace( pathState.info.rootPath, '' ) || '/'
         }
     )
@@ -324,7 +328,13 @@ const htmlElement = ( tag ) => ( ...children ) => {
  * @param args The array to remove the attributes from
  * @returns The attributes object or a new object if none was present
  */
-export const shiftAttrs = ( args ) => typeof args[ 0 ] === 'object' && !isNode( args[ 0 ] ) ? args.shift() : {}
+export const shiftAttrs = ( args ) => typeof args[ 0 ] === 'object' && !isNode( args[ 0 ] ) ? args.splice(0,1)[0] : {}
+/**
+ * Similar to shift attrs, but does not modify the array
+ * @param args
+ * @returns {{}}
+ */
+export const getAttrs = ( args ) => typeof args[ 0 ] === 'object' && !isNode( args[ 0 ] ) ? args[0] : {}
 
 /**
  * A hidden div node to mark your place in the dom

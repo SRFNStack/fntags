@@ -1,28 +1,57 @@
-import { div, p } from './fntags.js'
+import { div } from './fntags.js'
 import prismCode from './prismCode.js'
 import contentSection from './contentSection.js'
 
+import {fnstate, fnbind, button} from './fntags.js'
+
+export const myFnEl = ()=> {
+    const state = fnstate({count: 0})
+    return div(
+        fnbind(state, ()=> `Current count: ${state.count}`),
+        button({onclick: ()=> state.count = state.count + 1}, "+1")
+    )
+}
 export default div(
     contentSection(
         'Binding State',
-        p( 'Now that we have content, let\'s bind some data.' ),
-        p( 'The first step is to create a variable to hold our state object.' ),
+        'First create a variable to hold the state object.',
         prismCode( 'const state = fnstate({count: 0})' ),
-        p( 'Now we can use fnbind to listen to state changes and update our elements.' ),
-        prismCode( 'fnbind(state, ()=>`Current count: ${state.count}`)' ),
-        p( 'When the state changes, the function passed to fnbind is executed again, and replaces the current element with the updated element.' ),
-        p( 'State is implemented using an es6 Proxy. Thus, nested property changes do not trigger state updates. You must set top level properties to trigger state updates.' ),
-        p( 'Let\'s add a button to increment the state' ),
+        'Then use fnbind to listen to state changes and update the element.',
+        prismCode( 'fnbind(state, (st)=>`Current count: ${st.count}`)' ),
+        'When the state changes, the function passed to fnbind is executed again, and the current element is replaced with the returned element.',
+        'This allows the element to be updated to reflect any changes .',
+        'State is implemented using an es6 Proxy. Thus, nested property changes do not trigger state updates. You must set top level properties to trigger state updates.'
+    ),
+    contentSection(
+        'Modifying State',
+        'To modify the state, set one first level properties on the state object.',
+        ' The set will be intercepted by the Proxy, and will trigger elements to be updated.',
         prismCode(
-            `<script type="module">
-    import {fnapp, fnstate, fnbind, button} from './fntags.js'
+            `
+import {fnstate, fnbind, button} from './fntags.js'
+
+export const myFnEl = = ()=> {
     const state = fnstate({count: 0})
-    fnapp(document.body,
+    return div(
         fnbind(state, ()=> \`Current count: \${state.count}\`),
         button({onclick: ()=> state.count = state.count + 1}, "+1")
-    ) 
-</script>
+    )
+}
 ` )
+    ),
+    contentSection(
+        'Binding Multiple States',
+        'Any element can be bound to any number of states by passing an array of state objects as the first parameter of fnbind.',
+        prismCode(`
+import {fnapp, fnstate, fnbind, button} from './fntags.js'
+const state = fnstate({count: 0})
+fnapp(document.body,
+    fnbind(state, ()=> \`Current count: \${state.count}\`),
+    button({onclick: ()=> state.count = state.count + 1}, "+1")
+)
+`
+        ),
+        myFnEl()
     ),
 
     contentSection(

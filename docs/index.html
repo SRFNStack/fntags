@@ -4,11 +4,14 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.17.1/components/prism-core.js" integrity="sha256-vQ+J5XjegC3urCfaXZtySDzqJOqNxxIA3q1NZbFoOj0=" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.17.1/plugins/autoloader/prism-autoloader.min.js" integrity="sha256-ht8ay6ZTPZfuixYB99I5oRpCLsCq7Do2LjEYLwbe+X8=" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.17.1/themes/prism-okaidia.min.css" integrity="sha256-Ykz0nNWK7w4QWJUYR7OraN4773aMB/11aMt1nZyrhuQ=" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.17.1/components/prism-core.js"
+            integrity="sha256-vQ+J5XjegC3urCfaXZtySDzqJOqNxxIA3q1NZbFoOj0=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.17.1/plugins/autoloader/prism-autoloader.min.js"
+            integrity="sha256-ht8ay6ZTPZfuixYB99I5oRpCLsCq7Do2LjEYLwbe+X8=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.17.1/themes/prism-okaidia.min.css"
+          integrity="sha256-Ykz0nNWK7w4QWJUYR7OraN4773aMB/11aMt1nZyrhuQ=" crossorigin="anonymous"/>
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400&display=swap" rel="stylesheet">
-    <!--    font-family: 'Roboto', sans-serif;-->
+    <!--    &lt;!&ndash;    font-family: 'Roboto', sans-serif;&ndash;&gt;-->
     <link href="https://fonts.googleapis.com/css?family=Ubuntu:400,500&display=swap" rel="stylesheet">
     <!--    font-family: 'Ubuntu', sans-serif;-->
 </head>
@@ -21,11 +24,12 @@
         history.replaceState( null, null, sessionStorage.redirect )
         delete sessionStorage.redirect
     }
-    import { div, fnapp, routeSwitch, style } from './fntags.js'
-    import { asRoutes } from './routes.js'
+    import { div, fnapp, footer, pathState, routeSwitch, setRootPath, span, style } from './fntags.js'
+    import { routeElements } from './routes.js'
     import header from './header.js'
-    document.head.append(style(
-`
+
+    document.head.append( style(
+        `
 .noselect {
             user-select: none;
         }
@@ -69,12 +73,15 @@
             cursor: pointer;
         }
 `
-    ))
-
+    ) )
+    // setRootPath("/")
     fnapp( document.body,
-           div({ style: "margin: 0 auto; width: 100%; padding: 10px" },
-               header(),
-               routeSwitch(  ...asRoutes() )
+           div( { style: 'margin: 0 auto; width: 100%; padding: 10px' },
+                header(),
+                routeSwitch( ...routeElements() ),
+                footer(
+                    div({style: 'margin-top: 100px; text-align: center; width: 100%;'}, 'Copyright © 2019 Robert Kempton' )
+                ),
            )
     )
 </script>

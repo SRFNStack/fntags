@@ -17,12 +17,12 @@ const routes = [
     {url: ".*", component: fourOhFore}
 ]
 
-export const asRoutes = ()=>routes.map((r)=> route( { fnpath: r.url, absolute: !!r.absolute }, r.component))
-export const asNavItem = ()=>routes.filter(r=>r.linkText).map((r)=> fnbind(pathState, ()=>
+export const routeElements = ()=>routes.map( ( r)=> route( { fnpath: r.url, absolute: !!r.absolute }, r.component))
+export const routeNavItems = ()=>routes.filter( r=>r.linkText).map( ( r)=> fnbind( pathState, ()=>
         fnlink( {
                     to: r.url,
                     style: 'cursor: pointer; padding: 12px; font-weight: 400; font-size: 18px; '
-                           + ( pathState.info.currentFullPath.endsWith( r.url) ? 'color: ' + secondaryColor : '')
+                           + ( pathState.info.currentRoute.startsWith( r.url) ? 'color: ' + secondaryColor : '')
                 }, r.linkText )
     )
 )
