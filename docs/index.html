@@ -19,11 +19,6 @@
 <script type="module">
     //hack to make github pages route this app
     import { secondaryColor } from './constants.js'
-
-    if( sessionStorage.redirect ) {
-        goTo(sessionStorage.redirect.replace(location.pathname, ''))
-        delete sessionStorage.redirect
-    }
     import { div, fnapp, footer, goTo, routeSwitch, style } from './fntags.js'
     import { routeElements } from './routes.js'
     import header from './header.js'
@@ -84,6 +79,10 @@
                 ),
            )
     )
+    if( sessionStorage.redirect ) {
+        goTo(sessionStorage.redirect.replace(location.pathname, ''))
+        delete sessionStorage.redirect
+    }
 </script>
 </body>
 </html>
