@@ -24,7 +24,7 @@ export default div(
         'State is implemented using an es6 Proxy. Thus, nested property changes do not trigger state updates. You must set top level properties to trigger state updates.'
     ),
     contentSection(
-        'Modifying Instead of Replacing Elements',
+        'Updating Instead of Replacing',
         'If you don\'t want to replace the element, to maintain focus for instance, pass the element and a function to update it with.',
         prismCode( 'fnbind(state,\n' +
                    '   input(\n' +
@@ -70,7 +70,9 @@ const myElement = = ()=> {
             ()=> \`Current count: \${state.count}\`
         ),
         button(
-            {onclick: ()=> state.count = state.count + 1},
+            {onclick: 
+                ()=> state.count = state.count + 1
+            },
             "+1"
         )
     )
