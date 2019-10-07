@@ -200,6 +200,7 @@ export const fnlink = ( ...chilrdren ) => {
 
     return () => {
         let oldClick = attrs.onclick
+        attrs.href = pathState.info.rootPath + ensureSlash(attrs.to)
         attrs.onclick = ( e ) => {
             e.preventDefault()
             goTo( attrs.to )

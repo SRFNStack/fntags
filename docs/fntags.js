@@ -128,7 +128,7 @@ export const renderElement = ( el ) => {
 
 const badElementType = ( el ) => {
     throw new Error(`Element type ${el.constructor && el.constructor.name || typeof el} ` +
-          `is not supported. Elements must be one of [String, Function, Element, HTMLElement]`)
+                    `is not supported. Elements must be one of [String, Function, Element, HTMLElement]`)
         .stack
 }
 
@@ -200,6 +200,7 @@ export const fnlink = ( ...chilrdren ) => {
 
     return () => {
         let oldClick = attrs.onclick
+        attrs.href = pathState.info.rootPath + ensureSlash(attrs.to)
         attrs.onclick = ( e ) => {
             e.preventDefault()
             goTo( attrs.to )
