@@ -1,6 +1,5 @@
 import build from './build.js'
 import home from './home.js'
-import reference from './reference.js'
 import state from './state.js'
 import fourOhFore from './404.js'
 import routing from './routing.js'
@@ -13,7 +12,7 @@ const routes = [
     {url: "/build", linkText: 'Build', component: build},
     {url: "/state", linkText: 'State', component: state},
     {url: "/routing", linkText: 'Routing', component: routing},
-    {url: "/reference", linkText: 'Reference', component: reference},
+    // {url: "/reference", linkText: 'Reference', component: reference},
     {url: ".*", component: fourOhFore}
 ]
 

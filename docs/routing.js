@@ -1,31 +1,53 @@
-import { div, p } from './fntags.js'
+import { code, div, p } from './fntags.js'
 
 import contentSection from './contentSection.js'
 import prismCode from './prismCode.js'
 
 export default div(
-    contentSection( 'Route Elements',
-                    'Routes are created by using the fntags route element. They have a single required attribute, path.',
-                    'By default, fntags will route from the html file that first loads it, typically index.html.',
-                    'To make deep linking work, call setRootPath from fntags.js with the path you want to serve the app from, typically \'/\''
+    contentSection(
+        'Route Elements',
+        'Routes are created by using the fntags route element. They have a single required attribute, path. path can be a regular expression.',
+        'If the currentRoute starts with the path followed by any of: ?, /, #, or the end of the string, the route is displayed.',
+        prismCode( 'route( { path: \'/home\' })' ),
+        'To require that the currentRoute matches the path exactly, set absolute: true on the attributes object',
+        prismCode( 'route( { path: \'/\', absolute: true })' )
     ),
-    prismCode( `
-import { fnapp, fnlink, div, router, route, h3, img, routeSwitch } from './fntags.js'
-
-const nav = div(
-    fnlink( { to: '/' }, 'root' ),
-    fnlink( { to: '/hello' }, 'hello' )
+    contentSection(
+        'Navigating',
+        'To navigate within the app, either create an fnlink element or import and call the goTo function.',
+        'fnlink has a single required attribute, \'to\' that is the route to navigate to.',
+        prismCode( 'fnlink({to: \'/home\'}, \'Home\')' ),
+        'goTo takes the route to navigate to as the only parameter.',
+        prismCode( 'goTo(\'/home\')' )
+    ),
+    contentSection(
+        'Path State',
+        'pathState can be imported and bound to in order to listen to path changes.',
+        prismCode( 'import { pathState } from \'./fntags.js\'' ),
+        'pathState has a single property, info.',
+        prismCode(
+            'pathState.info = {\n' +
+            '    rootPath: \'\'\n' +
+            '    currentRoute: \'/\'\n' +
+            '}'
+        ),
+        'rootPath is the path the app is served from. The default is the current window path when fntags.js is loaded.',
+        'currentRoute is the route the user is currently at. More precisely, it\'s the remainder of the current path after removing the root path prefix.',
+        'Deep linking will not work correctly in all cases with this configuration.',
+        p( 'For instance, when using ', code( 'try_files $uri index.html' ), ' in nginx.' ),
+        'To fix deep linking, import and call setRootPath with the appropriate root path.',
+        prismCode( 'import { setRootPath ] from \'./fntags.js\'\nsetRootPath(\'/\')' )
+    ),
+    contentSection(
+        'Route Switch Element',
+        'To only display the first route of a set that is displayable for the currentRoute, use a routeSwitch element.',
+        prismCode(
+            'routeSwitch(\n' +
+            '    route( { path: \'/\', absolute: true }, \'roooot\' ),\n' +
+            '    route( { path: \'/hello\' }, \'world\' ),\n' +
+            '    route( { path: \'/.*\' },\n' +
+            '        h3( \'404 Page not found\' )\n' +
+            '    )\n' +
+            ')' )
+    )
 )
-
-fnapp( document.body,
-           routeSwitch(
-               route( { path: '/', absolute: true }, 'rooooot' ),
-               route( { path: '/hello' }, 'world' ),
-               route( { path: '/.*' },
-                      h3( '404 Page not found' ),
-                      div( img( { src: 'http://placekitten.com/500/500' } ) )
-               )
-           )
-       )
-)
-` , null, '100%') )
