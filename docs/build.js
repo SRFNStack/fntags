@@ -10,8 +10,7 @@ export default div(
         'Create new dom elements by calling the tags.',
         'Call fnapp with the root element and the elements to append.',
         prismCode( `<script type="module">
-    import {fnapp, div, p, h1}
-    from './fntags.js'
+    import {fnapp, div, p, h1} from './fntags.js'
     fnapp(document.body,
         div(
             h1("Welcome"),
