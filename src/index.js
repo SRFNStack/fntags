@@ -6,9 +6,9 @@
 export const fnapp = ( root, ...children ) => {
     if( typeof root === 'string' ) {
         root = document.getElementById( root )
-        if( !root ) throw new Error(`No such element with id ${root}`).stack
+        if( !root ) throw new Error( `No such element with id ${root}` ).stack
     }
-    if( !isNode( root ) ) throw new Error('Invalid root element').stack
+    if( !isNode( root ) ) throw new Error( 'Invalid root element' ).stack
     root.append( ...children.map( c => renderElement( c, root ) ) )
 }
 
@@ -39,11 +39,11 @@ export const isNode = ( el ) =>
  *          This function receives two arguments. The element and the new state
  */
 export const fnbind = ( state, element, update ) => {
-    if( typeof element !== 'function' && !isNode( element ) ) throw new Error('You can only bind functions and Elements').stack
-    if( isNode( element ) && typeof update !== 'function' ) throw new Error('You must supply an update function when binding an element').stack
+    if( typeof element !== 'function' && !isNode( element ) ) throw new Error( 'You can only bind functions and Elements' ).stack
+    if( isNode( element ) && typeof update !== 'function' ) throw new Error( 'You must supply an update function when binding an element' ).stack
     const states = Array.isArray( state ) && state || [ state ]
     const el = states.reduce( ( el, st ) => {
-                                  if( !isfnstate( st ) ) throw new Error(`State: ${st} is not initialized. Use fnstate() to initialize.`).stack
+                                  if( !isfnstate( st ) ) throw new Error( `State: ${st} is not initialized. Use fnstate() to initialize.` ).stack
                                   st._fn_state_info.addObserver( el, element, update )
                                   return el
                               },
@@ -57,12 +57,12 @@ export const fnbind = ( state, element, update ) => {
 
 /**
  * Create a state object that can be bound to.
- * @param state The initial state
+ * @param initialState The initial state
  * @returns A proxy that notifies watchers when properties are set
  */
-export const fnstate = ( state ) => {
-    if( typeof state !== 'object' ) throw new Error('initial state must be an object').stack
-    const observers = []
+export const fnstate = ( initialState ) => {
+    if( typeof initialState !== 'object' ) throw new Error( 'initial state must be an object' ).stack
+    let observers = []
     const notify = ( method ) => ( ...args ) => {
         let result = Reflect[ method ]( ...args )
         for( let observer of observers ) {
@@ -70,7 +70,7 @@ export const fnstate = ( state ) => {
         }
         return result
     }
-    const p = new Proxy( state, {
+    const p = new Proxy( initialState, {
         set: notify( 'set' ),
         deleteProperty: notify( 'deleteProperty' )
     } )
@@ -92,7 +92,13 @@ export const fnstate = ( state ) => {
     }
 
     Object.defineProperty( p, '_fn_state_info', {
-        value: Object.freeze( { addObserver } ),
+        value: Object.freeze( {
+                                  addObserver,
+                                  reset: ( reInit ) => {
+                                      observers = []
+                                      if( reInit ) Object.assign( p, initialState )
+                                  }
+                              } ),
         enumerable: false,
         writable: false
     } )
@@ -100,6 +106,13 @@ export const fnstate = ( state ) => {
     return p
 }
 
+/**
+ * Clear the observers and optionally set the state back to the initial state. This will remove all bindings to this state, meaning elements will no longer be updated.
+ * @param state The state to reset
+ * @param reinit Whether to change the values of the state back to the initial state after removing the observers
+ * @returns {*|void}
+ */
+export const resetState = ( state, reinit = false ) => state[ '_fn_state_info' ] && state[ '_fn_state_info' ].reset( reinit )
 /**
  * render a given value to an element
  * A string value will become a TextNode
@@ -110,7 +123,7 @@ export const fnstate = ( state ) => {
  */
 export const renderElement = ( el ) => {
     if( typeof el != 'string' && !el ) {
-        throw new Error(`children can't be undefined`).stack
+        throw new Error( `children can't be undefined` ).stack
     }
     if( typeof el === 'string' )
         return document.createTextNode( el )
@@ -127,8 +140,8 @@ export const renderElement = ( el ) => {
 }
 
 const badElementType = ( el ) => {
-    throw new Error(`Element type ${el.constructor && el.constructor.name || typeof el} ` +
-                    `is not supported. Elements must be one of [String, Function, Element, HTMLElement]`)
+    throw new Error( `Element type ${el.constructor && el.constructor.name || typeof el} ` +
+                     `is not supported. Elements must be one of [String, Function, Element, HTMLElement]` )
         .stack
 }
 
@@ -184,7 +197,7 @@ const getElId = ( el ) => isTagged( el ) && getTag( el ).id
 export const route = ( ...children ) => {
     const attrs = shiftAttrs( children )
     if( !attrs.path || typeof attrs.path !== 'string' ) {
-        throw new Error('route must have a string path attribute').stack
+        throw new Error( 'route must have a string path attribute' ).stack
     }
     const theDataz = div( attrs, ...children )
     return fnbind( pathState, () => shouldDisplayRoute( attrs ) ? theDataz : marker( attrs ) )
@@ -196,11 +209,11 @@ export const route = ( ...children ) => {
  */
 export const fnlink = ( ...chilrdren ) => {
     const attrs = shiftAttrs( chilrdren )
-    if( !attrs.to || typeof attrs.to != 'string' ) throw new Error('fnlink must have a "to" string attribute').stack
+    if( !attrs.to || typeof attrs.to != 'string' ) throw new Error( 'fnlink must have a "to" string attribute' ).stack
 
     return () => {
         let oldClick = attrs.onclick
-        attrs.href = pathState.info.rootPath + ensureSlash(attrs.to)
+        attrs.href = pathState.info.rootPath + ensureSlash( attrs.to )
         attrs.onclick = ( e ) => {
             e.preventDefault()
             goTo( attrs.to )
@@ -263,7 +276,7 @@ export const pathState = fnstate(
 /**
  * Set the root path of the app
  */
-export const setRootPath = (rootPath) => pathState.info = Object.assign(pathState.info, {rootPath: ensureSlash(rootPath), currentRoute: window.location.pathname})
+export const setRootPath = ( rootPath ) => pathState.info = Object.assign( pathState.info, { rootPath: ensureSlash( rootPath ), currentRoute: window.location.pathname } )
 
 window.addEventListener( 'popstate', () =>
     pathState.info = Object.assign(
@@ -330,13 +343,13 @@ const htmlElement = ( tag ) => ( ...children ) => {
  * @param args The array to remove the attributes from
  * @returns The attributes object or a new object if none was present
  */
-export const shiftAttrs = ( args ) => typeof args[ 0 ] === 'object' && !isNode( args[ 0 ] ) ? args.splice(0,1)[0] : {}
+export const shiftAttrs = ( args ) => typeof args[ 0 ] === 'object' && !isNode( args[ 0 ] ) ? args.splice( 0, 1 )[ 0 ] : {}
 /**
  * Similar to shift attrs, but does not modify the array
  * @param args
  * @returns {{}}
  */
-export const getAttrs = ( args ) => typeof args[ 0 ] === 'object' && !isNode( args[ 0 ] ) ? args[0] : {}
+export const getAttrs = ( args ) => typeof args[ 0 ] === 'object' && !isNode( args[ 0 ] ) ? args[ 0 ] : {}
 
 /**
  * A hidden div node to mark your place in the dom
