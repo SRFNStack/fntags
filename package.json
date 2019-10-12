@@ -10,7 +10,7 @@
     "LICENSE.txt",
     "README.md"
   ],
-  "main": "src/index.js",
+  "main": "src/fntags.js",
   "repository": {
     "type": "git",
     "url": "git@github.com:narcolepticsnowman/fntags.git"

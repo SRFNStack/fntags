@@ -19,7 +19,8 @@
 <script type="module">
     //hack to make github pages route this app
     import { secondaryColor } from './constants.js'
-    import { a, div, fnapp, footer, goTo, img, routeSwitch, style } from './fntags.js'
+    import { fnapp, goTo, routeSwitch } from './fntags.js'
+    import { a, div, footer, img, style } from './fnelements.js'
     import { routeElements } from './routes.js'
     import header from './header.js'
 
@@ -56,8 +57,7 @@
             max-width: 992px;
         }
         a {
-            color: inherit;
-            text-decoration: none;
+            color: ${secondaryColor};
          }
         button:focus {
             outline: none;
@@ -80,20 +80,20 @@
            div( { style: 'margin: 0 auto; width: 100%; padding: 10px' },
                 header(),
                 routeSwitch( ...routeElements() ),
-                footer({style: 'margin-top: 100px; text-align: center; width: 100%;'},
-                    a({href: 'https://github.com/narcolepticsnowman/fntags'},
-                      img({src: './GitHub_Logo.png'}),
-                      img({src: './GitHub-Mark-64px.png'})
-                    ),
-                    div('Copyright © 2019 Robert Kempton' )
-                ),
+                footer( { style: 'margin-top: 100px; text-align: center; width: 100%;' },
+                        a( { href: 'https://github.com/narcolepticsnowman/fntags' },
+                           img( { src: './GitHub_Logo.png' } ),
+                           img( { src: './GitHub-Mark-64px.png' } )
+                        ),
+                        div( 'Copyright © 2019 Robert Kempton' )
+                )
            )
     )
     if( sessionStorage.redirect ) {
-        setTimeout(()=>{
-            goTo(sessionStorage.redirect.replace(location.pathname, ''))
+        setTimeout( () => {
+            goTo( sessionStorage.redirect.replace( location.pathname, '' ) )
             delete sessionStorage.redirect
-        }, 1)
+        }, 1 )
     }
 </script>
 </body>

@@ -1,4 +1,4 @@
-import { div, h3, img } from './fntags.js'
+import { div, h3, img } from './fnelements.js'
 
 export default div(
     h3("404 Page not found"),

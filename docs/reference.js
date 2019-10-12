@@ -1,3 +1,3 @@
-import {div} from './fntags.js'
+import { div } from './fnelements.js'
 
 export default div()

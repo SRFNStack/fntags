@@ -1,11 +1,12 @@
-import { div, h3, hr, p, section, span, textarea } from './fntags.js'
+import { div, h3, hr, p, section, span, textarea } from './fnelements.js'
 
 export default ( title, ...content ) => section(
     h3( { id: title }, title,
         span( {
             style: 'cursor: pointer',
-            title: 'Copy to Clipboard',
+            title: title,
                   onclick: (e) => {
+
                       const node = textarea( {
                                                  readonly: '',
                                                  style: 'position: absolute; left: -9999px'

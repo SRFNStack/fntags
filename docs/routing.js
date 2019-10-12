@@ -1,5 +1,4 @@
-import { code, div, p } from './fntags.js'
-
+import { code, div, p } from './fnelements.js'
 import contentSection from './contentSection.js'
 import prismCode from './prismCode.js'
 
@@ -33,9 +32,9 @@ export default div(
         ),
         'rootPath is the path the app is served from. The default is the current window path when fntags.js is loaded.',
         'currentRoute is the route the user is currently at. More precisely, it\'s the remainder of the current path after removing the root path prefix.',
-        'Deep linking will not work correctly in all cases with this configuration.',
+        'Deep linking will not work correctly in cases where the same html file is served from every path.',
         p( 'For instance, when using ', code( 'try_files $uri index.html' ), ' in nginx.' ),
-        'To fix deep linking, import and call setRootPath with the appropriate root path.',
+        'To fix this, import and call setRootPath with the appropriate root path.',
         prismCode( 'import { setRootPath ] from \'./fntags.js\'\nsetRootPath(\'/\')' )
     ),
     contentSection(

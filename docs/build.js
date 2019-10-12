@@ -1,54 +1,55 @@
-import { b, div, h1, p, renderElement, shiftAttrs, span, strong } from './fntags.js'
+import { h } from './fntags.js'
+import { a, b, div, h1, h4, p, span, strong } from './fnelements.js'
 import contentSection from './contentSection.js'
 import prismCode from './prismCode.js'
+import { secondaryColor } from './constants.js'
 
 export default div(
     contentSection(
         'Getting Started',
-        'Acquire fntags/src/index.js (fntags.js for short) from npm or github and include it with your content.',
-        'Import fnapp and tags from fntags.js. All non-deprecated html tags are available to import.',
-        'Create new dom elements by calling the tags.',
-        'Call fnapp with the root element and the elements to append.',
-        prismCode( `<script type="module">
-    import {fnapp, div, p, h1} from './fntags.js'
+        prismCode( 'npm install fntags' ),
+        'Use h or tag functions to create new elements.',
+        'Call fnapp with an element or an id to append elements to it.',
+        prismCode(
+            `<script type="module">
+    import {fnapp, h} from './fntags.js'
+    import {p, h1} from './fnelements.js'
     fnapp(document.body,
-        div(
+        h('div',
             h1("Welcome"),
             p("to fntags")
         )
     ) 
 </script>
 `,
-                   div(
-                       h1( 'Welcome' ),
-                       p( 'to fntags' )
-                   )
+            h( 'div',
+               h1( 'Welcome' ),
+               p( 'to fntags' )
+            )
         )
     ),
     contentSection(
-        'Creating Elements',
-        'Every tag is a function that takes an optional attributes object and the children of the element. A child can be a string, a dom node, or a function that returns either of those.',
+        'Creating Templates Using h',
+        p( 'fntags provides a ',
+           a( { style: { color: secondaryColor, 'text-decoration': 'underline' }, href: 'https://github.com/hyperhype/hyperscript' }, 'hyperscript' ),
+           ' style function called h.' ),
+        prismCode( 'h(\'div\', \'hello world\')' ),
+        'h takes a rest parameter of child elements. Children can be a string, a dom node, or a function that returns either. If a child is an array, each element will be appended, or specifically, the children are flatmapped.',
+        prismCode( 'h(\'div\', h(\'span\', {class: \'hello\'}, \'hello world\'))' ),
         'Passing a function is useful when element creation needs to be deferred, delegated, or to create context variables like state objects.',
-        'Elements are composed of tag function calls.',
         prismCode(
-            'div({style:\'font-size: 20px;\'},\n' +
-            '    \'hello!\',\n' +
-            '    span( { style: \'color: green\' },\n' +
-            '    \' world!\')\n' +
-            ')',
-            div( { style: 'font-size: 20px;' }, 'hello!', span( { style: 'color: green' }, ' world!' ) )
-        ),
-        'To set attributes and event handlers, pass an object as the first parameter to a tag.',
-        'String properties of the object become the attributes of the element.',
-        'Functions get added as event listeners for the property name less the \'on\' prefix.',
-        'Other types get assigned to the element as a non-enumerable property.',
-        prismCode(
-            'div({style: "color: limegreen"},\n' +
-            '    "こんにちは ", div("world!")\n' +
-            ')',
-            div( { style: 'color: limegreen' }, 'こんにちは ', div( 'world!' ) )
-        ),
-
+            `h(\'div\',
+    ()=>{
+        const msg = \'hello world\'
+        return msg
+    }
+)`,
+            h( 'div',
+               () => {
+                   const msg = 'hello world'
+                   return msg
+               }
+            ) ),
         'To parameterize your element, declare your element as a function with parameters',
 
         prismCode(
@@ -64,47 +65,35 @@ export default div(
                    ')',
                    ( ( name, ...children ) => div( `Watch ${name} `, ...children ) )( 'Jerry', span( 'of' ), b( ' the' ), strong( ' day' ) )
         ),
-
-        'fntags provides a utility for shifting an attributes object from a rest parameter or array called shiftAttrs.',
-        'This modifies the passed array. You can avoid this by using getAttrs instead.',
-
-        prismCode( '(...children) => {\n' +
-                   '    const attrs = shiftAttrs(children)\n' +
-                   '    return div(\`Watch \${attrs.name} \`, ...children)\n' +
-                   '}',
-                   ( ( ...children ) => {
-                       const attrs = shiftAttrs( children )
-                       return div( `Watch ${attrs.name} `, ...children )
-                   } )( { name: 'Jerry' }, span( 'of' ), p( 'the' ), strong( 'day' ) )
+        h4( 'Hyperscript Differences' ),
+        'fntags does not support setting the id or class via the tag, you must pass an attributes object with an id or class property.',
+        'fntags uses setAttribute for string properties instead of setting the property on the element and does not set them on the element object.'
+    ),
+    contentSection(
+        'Attributes',
+        'To set attributes and event handlers, pass an object as the first parameter to a tag.',
+        'String properties of the object become the attributes of the element.',
+        'Functions get added as event listeners for the property name less the \'on\' prefix.',
+        'Other types get set as properties of the element.',
+        prismCode(
+            'div({style: "color: limegreen"},\n' +
+            '    "こんにちは ", div("world!")\n' +
+            ')',
+            div( { style: 'color: limegreen' }, 'こんにちは ', div( 'world!' ) )
+        )
+    ),
+    contentSection(
+        'Creating templates with fnelements.js',
+        'For html style templates import html tag functions from fnelements.js',
+        'All non deprecated html elements and marquee(support and opinion varies) are exported as functions from fnelements.js.',
+        prismCode(
+            'div({style:\'font-size: 20px;\'},\n' +
+            '    \'hello!\',\n' +
+            '    span( { style: \'color: green\' },\n' +
+            '    \' world!\')\n' +
+            ')',
+            div( { style: 'font-size: 20px;' }, 'hello!', span( { style: 'color: green' }, ' world!' ) )
         ),
 
-
-        'Children can be altered in any way before being passed to a tag.',
-        prismCode( '( ...children ) => {\n' +
-                   '    const attrs = shiftAttrs( children )\n' +
-                   '    return div( \n' +
-                   '        `Watch ${attrs.name} `,\n' +
-                   '        ...children\n' +
-                   '        .map(el =>\n' +
-                   '            div({style:\'color:purple\'}, \n' +
-                   '                el\n' +
-                   '            ) \n' +
-                   '         ) \n' +
-                   '    )\n' +
-                   '}',
-                   ( ( ...children ) => {
-                           const attrs = shiftAttrs( children )
-                           return div(
-                               `Watch ${attrs.name}`,
-                               ...children
-                               .map(el =>
-                                         div({style:'color:purple'},
-                                             el
-                                         )
-                               )
-                           )
-                       }
-                   )( { name: 'Jerry' }, ' of', p( 'the' ), () => strong( 'day' ) )
-        )
     )
 )

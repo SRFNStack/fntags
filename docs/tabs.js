@@ -1,4 +1,5 @@
-import { a, div, fnbind, fnstate, shiftAttrs, li, ul } from './fntags.js'
+import { fnbind, fnstate, getAttrs } from './fntags.js'
+import { a, div, li, ul } from './fnelements.js'
 
 const tabButton = ( activeTab, thisIndex, { title } ) =>
     li( { class: 'nav-item', style:"cursor: pointer" },
@@ -12,7 +13,7 @@ const tabButton = ( activeTab, thisIndex, { title } ) =>
     )
 
 export default ( ...tabs ) => {
-    let attrs = shiftAttrs(tabs)
+    let attrs = getAttrs(tabs)
 
     tabs.forEach( t => {
         if( !t.title || typeof t.title !== 'string' ) throw 'each tab must have a title attribute'

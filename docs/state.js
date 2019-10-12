@@ -1,4 +1,5 @@
-import { br, button, div, fnbind, fnstate, input } from './fntags.js'
+import { fnbind, fnstate } from './fntags.js'
+import { br, button, div, input } from './fnelements.js'
 import prismCode from './prismCode.js'
 import contentSection from './contentSection.js'
 
@@ -34,7 +35,7 @@ export default div(
                    '               (e)=>state.name = e.target.value \n' +
                    '       }\n' +
                    '    ),\n' +
-                   '    ( el, st ) => el.value = st.name\n' +
+                   '    ( h, st ) => h.value = st.name\n' +
                    ')',
                    div(
                        () => {
