@@ -115,34 +115,23 @@ export const fnstate = ( initialState ) => {
 export const resetState = ( state, reinit = false ) => state[ '_fn_state_info' ] && state[ '_fn_state_info' ].reset( reinit )
 /**
  * render a given value to an element
- * A string value will become a TextNode
  * A dom node/element is returned verbatim
  * A function is executed and the value returned must be a dom node/element or string.
+ * All other element types become a TextNode via String(element)
  * This is useful for state binding because there we need to define elements as a function that takes a state so that the state doesn't need to be in scope of the function at run time.
  * @param element The element to render
  */
 export const renderElement = ( element ) => {
-    if( typeof element != 'string' && !element ) {
-        throw new Error( `children can't be undefined` ).stack
-    }
-    if( typeof element === 'string' )
-        return document.createTextNode( element )
-    else if( typeof element === 'function' ) {
+    if( typeof element === 'function' ) {
         const returnedElement = element()
-        if( typeof returnedElement === 'string' )
-            return document.createTextNode( returnedElement )
-        else if( !isNode( returnedElement ) ) badElementType( element )
-        return returnedElement
+        if(isNode(returnedElement))
+            return returnedElement
+        else
+            return document.createTextNode( String(returnedElement) )
     } else if( isNode( element ) )
         return element
     else
-        badElementType( element )
-}
-
-const badElementType = ( el ) => {
-    throw new Error( `Element type ${el.constructor && el.constructor.name || typeof el} ` +
-                     `is not supported. Elements must be one of [String, Function, Element, HTMLElement]` )
-        .stack
+        return document.createTextNode( String(element) )
 }
 
 const isfnstate = ( state ) => state.hasOwnProperty( '_fn_state_info' )
@@ -356,7 +345,7 @@ export const h = ( tag, ...children ) => {
     return element
 }
 
-const isAttrs = ( val ) => typeof val === 'object' && !Array.isArray( val ) && !isNode( val )
+const isAttrs = ( val ) => val && typeof val === 'object' && !Array.isArray( val ) && !isNode( val )
 /**
  * Aggregates all attribute objects from a list of children
  * @param children

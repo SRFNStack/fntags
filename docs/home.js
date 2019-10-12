@@ -4,15 +4,6 @@ import { a, button, div, hr, p, span } from './fnelements.js'
 const even = ( text ) => p( { style: 'font-weight: 400; margin-left: -55px; padding: 5px' }, text )
 const odd = ( text ) => p({style: 'margin-right: -50px; text-align: right; padding: 5px'}, text )
 
-const c1 = div('child1')
-const c2 = div('child2');
-
-[c1, c2].forEach(el=>el.addEventListener("cleanup", ()=>console.log('cleanup', el.innerText), true))
-
-const parent = div('parent', div('parent2', c1, c2))
-
-parent.dispatchEvent(new Event('cleanup'))
-
 export default div( { class: 'flex-center', style: 'flex-direction: column; font-size: 16px;' },
                     div(
                         ...[
