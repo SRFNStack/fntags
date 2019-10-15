@@ -34,25 +34,10 @@ export default div(
            a( { style: { color: secondaryColor, 'text-decoration': 'underline' }, href: 'https://github.com/hyperhype/hyperscript' }, 'hyperscript' ),
            ' style function called h.' ),
         prismCode( 'h(\'div\', \'hello world\')' ),
-        'h takes a tag and a rest parameter of child elements. Children can be a string, a dom node, or a function that returns either.' +
-        ' Other types will be coerced to a string. If a child is an array, each element will be appended, or specifically, the children are flatmapped.',
+        'h takes a tag and a rest parameter of child elements. Children can be a string a dom node.' +
+        'Other types will be coerced to a string. If a child is an array, each element of the array will be appended.',
         prismCode( 'h(\'div\', h(\'span\', {class: \'hello\'}, \'hello world\'))' ),
-        'Passing a function is useful when element creation needs to be deferred, delegated, or to create context variables like state objects.',
-        prismCode(
-            `h(\'div\',
-    ()=>{
-        const msg = \'hello world\'
-        return msg
-    }
-)`,
-            h( 'div',
-               () => {
-                   const msg = 'hello world'
-                   return msg
-               }
-            ) ),
         'To parameterize your element, declare your element as a function with parameters',
-
         prismCode(
             '(name) => div("Aloha ", span(\`\${name}!\`))\n',
             ( ( name ) => div( 'Aloha, ', span( `${name}!` ) ) )( 'Jerry' ) ),

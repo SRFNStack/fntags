@@ -11,22 +11,14 @@ export default div(
         'Create a variable to hold the state object.',
         prismCode( 'const state = fnstate({count: 0})' ),
         'Use fnbind to listen to state changes and update the element.',
-        prismCode( 'fnbind(state, (st)=>`Current count: ${st.count}`)',
-                   // ()=>{
-                   //     const state = fnstate({count:0})
-                   //     return div(
-                   //         fnbind(state, ()=>state.count),
-                   //         button({onclick: ()=> state.count = state.count+1}, '+1')
-                   //     )
-                   // }
-                   ),
+        prismCode( 'fnbind(state, (st)=>`Current count: ${st.count}`)'),
         'When a property is set on the state, the function is executed, and the current element is replaced with the returned element.',
         'This allows the element to be updated to reflect any changes.',
         'State is implemented using an es6 Proxy. Thus, nested property changes do not trigger state updates. You must set top level properties to trigger state updates.'
     ),
     contentSection(
         'Updating Instead of Replacing',
-        'If you don\'t want to replace the element, to maintain focus for instance, pass the element and a function to update it with.',
+        'If you don\'t want to replace the element, to maintain focus or cache a reference, pass the element and a function to update it with.',
         prismCode( 'fnbind(state,\n' +
                    '   input(\n' +
                    '       {\n' +
@@ -38,7 +30,7 @@ export default div(
                    '    ( h, st ) => h.value = st.name\n' +
                    ')',
                    div(
-                       () => {
+                       (() => {
                            const state = fnstate( { name: 'Jerry' } )
                            return div(
                                fnbind( state, () => div( state.name ) ),
@@ -53,7 +45,7 @@ export default div(
                                        ( el, st ) => el.value = st.name
                                )
                            )
-                       }
+                       })()
                    )
         )
     ),

@@ -42,17 +42,17 @@ export const fnbind = ( state, element, update ) => {
     if( typeof element !== 'function' && !isNode( element ) ) throw new Error( 'You can only bind functions and Elements' ).stack
     if( isNode( element ) && typeof update !== 'function' ) throw new Error( 'You must supply an update function when binding an element' ).stack
     const states = Array.isArray( state ) && state || [ state ]
+
     const el = states.reduce( ( el, st ) => {
                                   if( !isfnstate( st ) ) throw new Error( `State: ${st} is not initialized. Use fnstate() to initialize.` ).stack
                                   st._fn_state_info.addObserver( el, element, update )
+                                  el.current = typeof element === 'function' ? renderElement( element( state ) ) : element
                                   return el
                               },
                               { current: marker() }
     )
-    return () => {
-        el.current = typeof element === 'function' ? renderElement( element( state ) ) : element
-        return el.current
-    }
+
+    return el.current
 }
 
 /**
@@ -62,11 +62,11 @@ export const fnbind = ( state, element, update ) => {
  */
 export const fnstate = ( initialState ) => {
     if( typeof initialState !== 'object' ) throw new Error( 'initial state must be an object' ).stack
-    let observers = []
+    let observers = {}
     const notify = ( method ) => ( ...args ) => {
         let result = Reflect[ method ]( ...args )
-        for( let observer of observers ) {
-            observer( args[ 0 ] )
+        for( let key in observers ) {
+            observers[ key ].onNotify( args[ 0 ] )
         }
         return result
     }
@@ -75,36 +75,56 @@ export const fnstate = ( initialState ) => {
         deleteProperty: notify( 'deleteProperty' )
     } )
 
-    const addObserver = ( el, element, update ) => {
-        tagElement( el )
-        observers.push( ( state ) => {
-            const newElement = update ? update( el.current, state ) : renderElement( element( state ) )
-            if( newElement && isNode( newElement ) ) {
-                if( !isTagged( newElement ) )
+    function addObserver( el, element, update ){
+        tagElement( el.current )
+        observers[ getElId( el.current ) ] = {
+            currentEl(){return el.current},
+            updateCurrent( newElement ) {
+                if( newElement && isNode( newElement ) ) {
                     tagElement( newElement )
-                if( getElId( el.current ) !== getElId( newElement ) ) {
-                    delete observers[ getElId( el.current ) ]
-                    el.current.replaceWith( newElement )
-                    el.current = newElement
+                    if( getElId( el.current ) !== getElId( newElement ) ) {
+
+                        el.current.replaceWith( newElement )
+                        el.current = newElement
+                        if(isNode(element)) element = newElement
+                        observers[getElId(newElement)] = observers[getElId( el.current )]
+                        delete observers[ getElId( el.current ) ]
+                    }
                 }
+            },
+            onNotify( state ) {
+                this.updateCurrent( update ? update( el.current, state ) : renderElement( element( state ) ) )
             }
-        } )
+        }
     }
 
     Object.defineProperty( p, '_fn_state_info', {
-        value: Object.freeze( {
-                                  addObserver,
-                                  reset: ( reInit ) => {
-                                      observers = []
-                                      if( reInit ) Object.assign( p, initialState )
-                                  }
-                              } ),
+        value: Object.freeze(
+            {
+                addObserver,
+                reset: ( reInit ) => {
+                    observers = {}
+                    if( reInit ) Object.assign( p, initialState )
+                },
+                findElement: (filter) =>
+                {
+                    let foundId = Object.keys( observers ).find( o => filter(observers[ o ].currentEl()) )
+                    return foundId && observers[foundId].currentEl() || null
+                }
+            } ),
         enumerable: false,
         writable: false
     } )
 
     return p
 }
+
+/**
+ * find an element on a state using a filter function. The first matching element is returned.
+ * @param state The state to find elements on
+ * @param filter The filter function that takes a dom element and returns a boolean
+ */
+export const findElement = ( state, filter = ()=>true ) => state[ '_fn_state_info' ].findElement( filter )
 
 /**
  * Clear the observers and optionally set the state back to the initial state. This will remove all bindings to this state, meaning elements will no longer be updated.
@@ -114,25 +134,10 @@ export const fnstate = ( initialState ) => {
  */
 export const resetState = ( state, reinit = false ) => state[ '_fn_state_info' ] && state[ '_fn_state_info' ].reset( reinit )
 /**
- * render a given value to an element
- * A dom node/element is returned verbatim
- * A function is executed and the value returned must be a dom node/element or string.
- * All other element types become a TextNode via String(element)
- * This is useful for state binding because there we need to define elements as a function that takes a state so that the state doesn't need to be in scope of the function at run time.
- * @param element The element to render
+ * Convert non dom nodes to text nodes
  */
-export const renderElement = ( element ) => {
-    if( typeof element === 'function' ) {
-        const returnedElement = element()
-        if(isNode(returnedElement))
-            return returnedElement
-        else
-            return document.createTextNode( String(returnedElement) )
-    } else if( isNode( element ) )
-        return element
-    else
-        return document.createTextNode( String(element) )
-}
+export const renderElement = ( element ) => isNode( element ) ? element : document.createTextNode( String( element ) )
+
 
 const isfnstate = ( state ) => state.hasOwnProperty( '_fn_state_info' )
 
@@ -181,41 +186,47 @@ const getElId = ( el ) => isTagged( el ) && getTag( el ).id
  *      )
  *
  * @param children The attributes and children of this element.
- * @returns {function(*=)}
+ * @returns HTMLDivElement
  */
 export const route = ( ...children ) => {
 
     const routeEl = h( 'div', ...children )
+    const display = routeEl.style.display
     let path = routeEl.getAttribute( 'path' )
-    let absolute = !!routeEl.absolute || routeEl.getAttribute('absolute') === 'true'
+    let absolute = !!routeEl.absolute || routeEl.getAttribute( 'absolute' ) === 'true'
     if( !path ) {
         throw new Error( 'route must have a string path attribute' ).stack
     }
-    return fnbind( pathState, () => shouldDisplayRoute( path, absolute) ? routeEl : marker( {path, absolute} ) )
+    return fnbind( pathState, routeEl, () => {
+        if( shouldDisplayRoute( path, absolute ) ) {
+            routeEl.style.display = display
+        } else {
+            routeEl.style.display = 'none'
+        }
+    } )
 }
 
 /**
  * A link component that is a link to another route in this single page app
  * @param children The attributes of the anchor element and any children
  */
-export const fnlink = ( ...children ) =>
-    () => {
-        let a = h( 'a', ...children )
+export const fnlink = ( ...children ) => {
+    let a = h( 'a', ...children )
 
-        let to = a.getAttribute( 'to' )
-        if( !to ) {
-            throw new Error( 'fnlink must have a "to" string attribute' ).stack
-        }
-        a.addEventListener( 'click', ( e ) => {
-            e.preventDefault()
-            goTo( to )
-        } )
-        a.setAttribute(
-            'href',
-            pathState.info.rootPath + ensureSlash( to )
-        )
-        return a
+    let to = a.getAttribute( 'to' )
+    if( !to ) {
+        throw new Error( 'fnlink must have a "to" string attribute' ).stack
     }
+    a.addEventListener( 'click', ( e ) => {
+        e.preventDefault()
+        goTo( to )
+    } )
+    a.setAttribute(
+        'href',
+        pathState.info.rootPath + ensureSlash( to )
+    )
+    return a
+}
 
 /**
  * A function to navigate to the specified route
@@ -244,8 +255,8 @@ export const routeSwitch = ( ...children ) => {
                        }
                        for( let child of children ) {
                            const rendered = renderElement( child )
-                           if(rendered.getAttribute( 'path' )) {
-                               if( shouldDisplayRoute( rendered.getAttribute( 'path' ), !!rendered.absolute || rendered.getAttribute('absolute') === 'true' ) ) {
+                           if( rendered.getAttribute( 'path' ) ) {
+                               if( shouldDisplayRoute( rendered.getAttribute( 'path' ), !!rendered.absolute || rendered.getAttribute( 'absolute' ) === 'true' ) ) {
                                    sw.append( rendered )
                                    return sw
                                }
@@ -294,11 +305,10 @@ const shouldDisplayRoute = ( route, isAbsolute ) => {
 }
 
 /**
- * Create a function that will render an actual DomElement with the given attributes and children.
- *  * If the first argument is an object that is not an html element, then it is considered to be the attributes object.
+ * A function to create dom elements with the given attributes and children.
+ * If an argument is a non-node object it is considered an attributes object, attributes are combined with Object.assign in the order received.
  * All standard html attributes can be passed, as well as any other property.
- * Any attributes that are not strings are added as non-enumerable properties of the element.
- * Event listeners can either be a string or a function.
+ * Strings are added as attributes via setAttribute, functions are added as event listeners, other types are set as properties.
  *
  * The rest of the arguments will be considered children of this element and appended to it in the same order as passed.
  *
@@ -351,11 +361,11 @@ const isAttrs = ( val ) => val && typeof val === 'object' && !Array.isArray( val
  * @param children
  * @returns {{}} A single object containing all of the aggregated attribute objects
  */
-export const getAttrs = ( children ) => children.reduce((attrs, child)=>{
-    if(isAttrs(child))
-        Object.assign(attrs, child)
+export const getAttrs = ( children ) => children.reduce( ( attrs, child ) => {
+    if( isAttrs( child ) )
+        Object.assign( attrs, child )
     return attrs
-}, {})
+}, {} )
 
 /**
  * A hidden div node to mark your place in the dom

@@ -5,8 +5,7 @@ import { div, header, nav, span } from './fnelements.js'
 import { primaryColor, secondaryColor } from './constants.js'
 import { routeNavItems } from './routes.js'
 
-export default () =>
-    header( { class: 'container text-center' },
+export default header( { class: 'container text-center' },
          div( { class: 'flex-center', style: 'padding-bottom: 10px' },
               fnlink( { style: {cursor: 'pointer', color:'inherit', 'text-decoration': 'none'}, to: '/' },
                       fnbind( pathState, () =>
