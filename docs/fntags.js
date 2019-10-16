@@ -235,7 +235,9 @@ export const fnlink = ( ...children ) => {
 export const goTo = ( route ) => {
     let newPath = window.location.origin + pathState.info.rootPath + ensureSlash( route )
     history.pushState( {}, route, newPath )
-    pathState.info = Object.assign( pathState.info, { currentRoute: route } )
+    pathState.info = Object.assign( pathState.info, {
+        currentRoute: route.split(/[#?]/)[0]
+    } )
     if( newPath.indexOf( '#' ) > -1 ) {
         const el = document.getElementById( decodeURIComponent( newPath.split( '#' )[ 1 ] ) )
         el && el.scrollIntoView()

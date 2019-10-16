@@ -17,6 +17,16 @@ export default div(
         'State is implemented using an es6 Proxy. Thus, nested property changes do not trigger state updates. You must set top level properties to trigger state updates.'
     ),
     contentSection(
+        'Accessing Bound Dom Elements',
+        'If you would like to get access to the dom elements that are bound to a state, you can use the findElement function from fntags.js.',
+        'findElement behaves the same as Array.find. It takes the state to find the element on and an optional filter function.',
+        'The first element the filter returns true for is returned. By default, the first element encountered is returned.',
+        prismCode('findElement(state,\n    (el)=>el.innerText.startsWith("Current")\n)'),
+        'This should mostly be used want to reposition elements, clone them, or perform other non-destructive operations.',
+        'If you remove or replace the element the link to the state will be broken and future state updates will not be reflected.',
+        'You can safely update the children of the element as long as the child is not also bound to a state.'
+    ),
+    contentSection(
         'Updating Instead of Replacing',
         'If you don\'t want to replace the element, to maintain focus or cache a reference, pass the element and a function to update it with.',
         prismCode( 'fnbind(state,\n' +
