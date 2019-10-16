@@ -9,12 +9,12 @@
 - Bind any state to any element
 - Bind to more than one state
 - Routing for single page apps
-- Less than 3kb min+gz
 
 ```html
 <html><body>
 <script type="module">
-    import {fnapp, div, p, h1} from './fntags.js'
+    import {fnapp} from './fntags.js'
+    import {div, p, h1} from './fnelements.js'
     fnapp(document.body,
         div(
             h1("Welcome"),
