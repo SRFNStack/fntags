@@ -91,7 +91,7 @@
     )
     if( sessionStorage.redirect ) {
         setTimeout( () => {
-            goTo( sessionStorage.redirect.replace( location.pathname, '' ) )
+            goTo( sessionStorage.redirect.replace( location.pathname.split(/[#?]/)[0], '' ) )
             delete sessionStorage.redirect
         }, 1 )
     }
