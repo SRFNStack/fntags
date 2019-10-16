@@ -241,6 +241,8 @@ export const goTo = ( route ) => {
     if( newPath.indexOf( '#' ) > -1 ) {
         const el = document.getElementById( decodeURIComponent( newPath.split( '#' )[ 1 ] ) )
         el && el.scrollIntoView()
+    } else {
+        window.scrollTo(0,0)
     }
 }
 
