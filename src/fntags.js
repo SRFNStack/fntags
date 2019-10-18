@@ -249,6 +249,8 @@ export const goTo = ( route ) => {
 /**
  * An element that only renders the first route that matches and updates when the route is changed
  * The primary purpose of this element is to provide catchall routes for not found pages and path variables
+ * If a child is a function, the function will be called as needed on each path state change.
+ * This mimics multi page apps and allows you to initialize states and the like when routes are changed
  * @param children
  */
 export const routeSwitch = ( ...children ) => {
@@ -258,7 +260,7 @@ export const routeSwitch = ( ...children ) => {
                            sw.removeChild( sw.firstChild )
                        }
                        for( let child of children ) {
-                           const rendered = renderElement( child )
+                           const rendered = renderElement( typeof child === 'function' ? child() : child)
                            if( rendered.getAttribute( 'path' ) ) {
                                if( shouldDisplayRoute( rendered.getAttribute( 'path' ), !!rendered.absolute || rendered.getAttribute( 'absolute' ) === 'true' ) ) {
                                    sw.append( rendered )
