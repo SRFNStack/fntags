@@ -9,7 +9,9 @@ export default div(
         'If the currentRoute starts with the path followed by any of: ?, /, #, or the end of the string, the route is displayed.',
         prismCode( 'route( { path: \'/home\' })' ),
         'To require that the currentRoute matches the path exactly, set absolute: true on the attributes object',
-        prismCode( 'route( { path: \'/\', absolute: true })' )
+        prismCode( 'route( { path: \'/\', absolute: true })' ),
+        'Children of route elements can be functions. This is useful if you want to ensure a clean state when the route is changed.',
+        prismCode( 'route( { path: \'/\', absolute: true }, ()=>new Date().toString())' ),
     ),
     contentSection(
         'Navigating',
