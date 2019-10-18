@@ -190,7 +190,7 @@ const getElId = ( el ) => isTagged( el ) && getTag( el ).id
  */
 export const route = ( ...children ) => {
 
-    const routeEl = h( 'div', ...children )
+    const routeEl = h( 'div')
     const display = routeEl.style.display
     let path = routeEl.getAttribute( 'path' )
     let absolute = !!routeEl.absolute || routeEl.getAttribute( 'absolute' ) === 'true'
@@ -199,6 +199,8 @@ export const route = ( ...children ) => {
     }
     return fnbind( pathState, routeEl, () => {
         if( shouldDisplayRoute( path, absolute ) ) {
+            while(routeEl.firstChild) routeEl.removeChild(routeEl.firstChild)
+            routeEl.append(...children.map(c=>typeof c === 'function' ? c() : c))
             routeEl.style.display = display
         } else {
             routeEl.style.display = 'none'
