@@ -47,6 +47,9 @@ export default div(
             '    route( { path: \'/.*\' },\n' +
             '        h3( \'404 Page not found\' )\n' +
             '    )\n' +
-            ')' )
+            ')' ),
+        "Children of routeSwitch can be functions. This allows you to nicely abstract pages to single imports and re-initialize them on route change.",
+        prismCode(
+            'routeSwitch(\n    route( { path: \'/hello\' }, ()=>{         const state = fnstate({a:"b"})         div(state.a)}))' ),
     )
 )
