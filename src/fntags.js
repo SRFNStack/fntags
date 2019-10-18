@@ -189,23 +189,26 @@ const getElId = ( el ) => isTagged( el ) && getTag( el ).id
  * @returns HTMLDivElement
  */
 export const route = ( ...children ) => {
-
-    const routeEl = h( 'div')
+    const attrs = getAttrs(children)
+    children = children.filter(c=>!isAttrs(c))
+    const routeEl = h( 'div', attrs)
     const display = routeEl.style.display
     let path = routeEl.getAttribute( 'path' )
     let absolute = !!routeEl.absolute || routeEl.getAttribute( 'absolute' ) === 'true'
     if( !path ) {
         throw new Error( 'route must have a string path attribute' ).stack
     }
-    return fnbind( pathState, routeEl, () => {
+    const update = () => {
         if( shouldDisplayRoute( path, absolute ) ) {
-            while(routeEl.firstChild) routeEl.removeChild(routeEl.firstChild)
-            routeEl.append(...children.map(c=>typeof c === 'function' ? c() : c))
+            while( routeEl.firstChild ) routeEl.removeChild( routeEl.firstChild )
+            routeEl.append( ...children.map( c => typeof c === 'function' ? c() : c ) )
             routeEl.style.display = display
         } else {
             routeEl.style.display = 'none'
         }
-    } )
+    }
+    update()
+    return fnbind( pathState, routeEl, update)
 }
 
 /**
