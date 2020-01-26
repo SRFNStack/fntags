@@ -44,11 +44,11 @@ export default div(
         'Path parameters can be used for any route that does not allow unlimited slashes in the path (pretty much anything without a .*).',
         'To use, simply replace a section of the path with a variable name prefixed by a $.',
         prismCode( 'route( { path: \'/some/$snak\' } )' ),
-        'The pathParameters will be updated on any route change to include an object containing the properties and their values',
+        'The pathParameters.current will be updated on any route change to include an object containing the properties and their values',
         prismCode("goTo(\'/some/taco\')"),
         prismCode(
             'import {pathParameters} from \'fntags\'\n' +
-            'alert(pathParameters.snak === \'taco\')'
+            'alert(pathParameters.current.snak === \'taco\')'
         )
     ),
     contentSection("Deep Links",
