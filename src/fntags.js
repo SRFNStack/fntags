@@ -40,7 +40,9 @@ export const isNode = ( el ) =>
  */
 export const fnbind = ( state, element, update ) => {
     if( typeof element !== 'function' && !isNode( element ) ) throw new Error( 'You can only bind functions and Elements' ).stack
-    if( isNode( element ) && typeof update !== 'function' ) throw new Error( 'Either include an update function with this element, or pass a function instead of an element.' ).stack
+    if( isNode( element ) &&
+        typeof update !==
+        'function' ) throw new Error( 'Either include an update function with this element, or pass a function instead of an element.' ).stack
     const states = Array.isArray( state ) && state || [ state ]
 
     const el = states.reduce( ( el, st ) => {
@@ -75,10 +77,10 @@ export const fnstate = ( initialState ) => {
         deleteProperty: notify( 'deleteProperty' )
     } )
 
-    function addObserver( el, element, update ){
+    function addObserver( el, element, update ) {
         tagElement( el.current )
         observers[ getElId( el.current ) ] = {
-            currentEl(){return el.current},
+            currentEl() {return el.current},
             updateCurrent( newElement ) {
                 if( newElement && isNode( newElement ) ) {
                     tagElement( newElement )
@@ -86,8 +88,8 @@ export const fnstate = ( initialState ) => {
 
                         el.current.replaceWith( newElement )
                         el.current = newElement
-                        if(isNode(element)) element = newElement
-                        observers[getElId(newElement)] = observers[getElId( el.current )]
+                        if( isNode( element ) ) element = newElement
+                        observers[ getElId( newElement ) ] = observers[ getElId( el.current ) ]
                         delete observers[ getElId( el.current ) ]
                     }
                 }
@@ -106,10 +108,9 @@ export const fnstate = ( initialState ) => {
                     observers = {}
                     if( reInit ) Object.assign( p, initialState )
                 },
-                findElement: (filter) =>
-                {
-                    let foundId = Object.keys( observers ).find( o => filter(observers[ o ].currentEl()) )
-                    return foundId && observers[foundId].currentEl() || null
+                findElement: ( filter ) => {
+                    let foundId = Object.keys( observers ).find( o => filter( observers[ o ].currentEl() ) )
+                    return foundId && observers[ foundId ].currentEl() || null
                 }
             } ),
         enumerable: false,
@@ -124,7 +125,7 @@ export const fnstate = ( initialState ) => {
  * @param state The state to find elements on
  * @param filter The filter function that takes a dom element and returns a boolean
  */
-export const findElement = ( state, filter = ()=>true ) => state[ '_fn_state_info' ].findElement( filter )
+export const findElement = ( state, filter = () => true ) => state[ '_fn_state_info' ].findElement( filter )
 
 /**
  * Clear the observers and optionally set the state back to the initial state. This will remove all bindings to this state, meaning elements will no longer be updated.
@@ -189,9 +190,9 @@ const getElId = ( el ) => isTagged( el ) && getTag( el ).id
  * @returns HTMLDivElement
  */
 export const route = ( ...children ) => {
-    const attrs = getAttrs(children)
-    children = children.filter(c=>!isAttrs(c))
-    const routeEl = h( 'div', attrs)
+    const attrs = getAttrs( children )
+    children = children.filter( c => !isAttrs( c ) )
+    const routeEl = h( 'div', attrs )
     const display = routeEl.style.display
     let path = routeEl.getAttribute( 'path' )
     let absolute = !!routeEl.absolute || routeEl.getAttribute( 'absolute' ) === 'true'
@@ -200,25 +201,27 @@ export const route = ( ...children ) => {
     }
     const update = () => {
         if( shouldDisplayRoute( path, absolute ) ) {
-            while( routeEl.firstChild ) routeEl.removeChild( routeEl.firstChild )
+            while( routeEl.firstChild ) {
+                routeEl.removeChild( routeEl.firstChild )
+            }
             routeEl.append( ...children.map( c => typeof c === 'function' ? c() : c ) )
             routeEl.style.display = display
-            pathState.info = {...pathState.info, pathParameters: extractPathParameters(path)}
+            pathState.info = { ...pathState.info, pathParameters: extractPathParameters( path ) }
         } else {
             routeEl.style.display = 'none'
         }
     }
     update()
-    return fnbind( pathState, routeEl, update)
+    return fnbind( pathState, routeEl, update )
 }
 
 function extractPathParameters( path ) {
-    let pathParts = path.split("/")
-    let currentParts = pathState.info.currentRoute.split("/")
+    let pathParts = path.split( '/' )
+    let currentParts = pathState.info.currentRoute.split( '/' )
     let parameters = {}
-    for(let i=0; i<pathParts.length; i++) {
-        if(pathParts[i].startsWith("$")){
-            parameters[pathParts[i].substr(1)] = currentParts[i]
+    for( let i = 0; i < pathParts.length; i++ ) {
+        if( pathParts[ i ].startsWith( '$' ) ) {
+            parameters[ pathParts[ i ].substr( 1 ) ] = currentParts[ i ]
         }
     }
     return parameters
@@ -229,9 +232,9 @@ function extractPathParameters( path ) {
  * @param children The attributes of the anchor element and any children
  */
 export const fnlink = ( ...children ) => {
-    let context= null
-    if(children[0] && children[0].context){
-        context = children[0].context
+    let context = null
+    if( children[ 0 ] && children[ 0 ].context ) {
+        context = children[ 0 ].context
     }
     let a = h( 'a', ...children )
 
@@ -259,14 +262,14 @@ export const goTo = ( route, context ) => {
     let newPath = window.location.origin + pathState.info.rootPath + ensureOnlyLeadingSlash( route )
     history.pushState( {}, route, newPath )
     pathState.info = Object.assign( pathState.info, {
-        currentRoute: route.split(/[#?]/)[0],
+        currentRoute: route.split( /[#?]/ )[ 0 ],
         context
     } )
     if( newPath.indexOf( '#' ) > -1 ) {
         const el = document.getElementById( decodeURIComponent( newPath.split( '#' )[ 1 ] ) )
         el && el.scrollIntoView()
     } else {
-        window.scrollTo(0,0)
+        window.scrollTo( 0, 0 )
     }
 }
 
@@ -303,7 +306,7 @@ export const pathState = fnstate(
     {
         info: {
             rootPath: ensureOnlyLeadingSlash( window.location.pathname ),
-            currentRoute: ensureOnlyLeadingSlash(window.location.pathname.replace( pathState.info.rootPath, '' )) || '/',
+            currentRoute: ensureOnlyLeadingSlash( window.location.pathname ),
             context: null,
             pathParameters: {}
         }
@@ -312,12 +315,16 @@ export const pathState = fnstate(
 /**
  * Set the root path of the app. This is necessary to make deep linking work in cases where the same html file is served from all paths.
  */
-export const setRootPath = ( rootPath ) => pathState.info = Object.assign( pathState.info, { rootPath: ensureOnlyLeadingSlash( rootPath )} )
+export const setRootPath = ( rootPath ) => pathState.info = Object.assign( pathState.info,
+                                                                           {
+                                                                               rootPath: ensureOnlyLeadingSlash( rootPath ),
+                                                                               currentRoute: ensureOnlyLeadingSlash( window.location.pathname.replace( rootPath, '' ) ) || '/'
+                                                                           } )
 
 window.addEventListener( 'popstate', () =>
     pathState.info = Object.assign(
         pathState.info, {
-            currentRoute: ensureOnlyLeadingSlash(window.location.pathname.replace( pathState.info.rootPath, '' )) || '/'
+            currentRoute: ensureOnlyLeadingSlash( window.location.pathname.replace( pathState.info.rootPath, '' ) ) || '/'
         }
     )
 )
@@ -328,7 +335,7 @@ const shouldDisplayRoute = ( route, isAbsolute ) => {
     if( isAbsolute ) {
         return currPath === path || currPath === ( path + '/' )
     } else {
-        const pattern = path.replace(/\/\$[^/]+(\/|$)/, '/[^/]+$1').replace( /^(.*)\/([^\/]*)$/, '$1/?$2([/?#]|$)' )
+        const pattern = path.replace( /\/\$[^/]+(\/|$)/, '/[^/]+$1' ).replace( /^(.*)\/([^\/]*)$/, '$1/?$2([/?#]|$)' )
         return !!currPath.match( pattern )
     }
 
