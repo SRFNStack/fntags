@@ -327,7 +327,7 @@ const shouldDisplayRoute = ( route, isAbsolute ) => {
     if( isAbsolute ) {
         return currPath === path || currPath === ( path + '/' )
     } else {
-        const pattern = path.replace(/\/\$[^/]+(\/|$)/, '[^/]+').replace( /^(.*)\/([^\/]*)$/, '$1/?$2([/?#]|$)' )
+        const pattern = path.replace(/\/\$[^/]+(\/|$)/, '/[^/]+$1').replace( /^(.*)\/([^\/]*)$/, '$1/?$2([/?#]|$)' )
         return !!currPath.match( pattern )
     }
 
