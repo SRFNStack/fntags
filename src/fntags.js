@@ -203,7 +203,7 @@ export const route = ( ...children ) => {
             while( routeEl.firstChild ) routeEl.removeChild( routeEl.firstChild )
             routeEl.append( ...children.map( c => typeof c === 'function' ? c() : c ) )
             routeEl.style.display = display
-            extractPathParameters(path)
+            pathState.info = {...pathState.info, pathParameters: extractPathParameters(path)}
         } else {
             routeEl.style.display = 'none'
         }
@@ -214,7 +214,7 @@ export const route = ( ...children ) => {
 
 function extractPathParameters( path ) {
     let pathParts = path.split("/")
-    let currentParts = window.location.pathname.split("/")
+    let currentParts = pathState.info.currentRoute.split("/")
     let parameters = {}
     for(let i=0; i<pathParts.length; i++) {
         if(pathParts[i].startsWith("$")){
@@ -244,7 +244,7 @@ export const fnlink = ( ...children ) => {
     } )
     a.setAttribute(
         'href',
-        pathState.info.rootPath + ensureSlash( to )
+        pathState.info.rootPath + ensureOnlyLeadingSlash( to )
     )
     return a
 }
@@ -255,7 +255,7 @@ export const fnlink = ( ...children ) => {
  * @param context Data related to the route change
  */
 export const goTo = ( route, context ) => {
-    let newPath = window.location.origin + pathState.info.rootPath + ensureSlash( route )
+    let newPath = window.location.origin + pathState.info.rootPath + ensureOnlyLeadingSlash( route )
     history.pushState( {}, route, newPath )
     pathState.info = Object.assign( pathState.info, {
         currentRoute: route.split(/[#?]/)[0],
@@ -293,7 +293,7 @@ export const routeSwitch = ( ...children ) => {
     )
 }
 
-const ensureSlash = ( part ) => {
+const ensureOnlyLeadingSlash = ( part ) => {
     part = part.startsWith( '/' ) ? part : '/' + part
     return part.endsWith( '/' ) ? part.slice( 0, -1 ) : part
 }
@@ -301,7 +301,7 @@ const ensureSlash = ( part ) => {
 export const pathState = fnstate(
     {
         info: {
-            rootPath: ensureSlash( window.location.pathname ),
+            rootPath: ensureOnlyLeadingSlash( window.location.pathname ),
             currentRoute: '/',
             context: null,
             pathParameters: {}
@@ -311,18 +311,18 @@ export const pathState = fnstate(
 /**
  * Set the root path of the app. This is necessary to make deep linking work in cases where the same html file is served from all paths.
  */
-export const setRootPath = ( rootPath ) => pathState.info = Object.assign( pathState.info, { rootPath: ensureSlash( rootPath ), currentRoute: window.location.pathname } )
+export const setRootPath = ( rootPath ) => pathState.info = Object.assign( pathState.info, { rootPath: ensureOnlyLeadingSlash( rootPath )} )
 
 window.addEventListener( 'popstate', () =>
     pathState.info = Object.assign(
         pathState.info, {
-            currentRoute: window.location.pathname.replace( pathState.info.rootPath, '' ) || '/'
+            currentRoute: ensureOnlyLeadingSlash(window.location.pathname.replace( pathState.info.rootPath, '' )) || '/'
         }
     )
 )
 
 const shouldDisplayRoute = ( route, isAbsolute ) => {
-    let path = pathState.info.rootPath + ensureSlash( route )
+    let path = pathState.info.rootPath + ensureOnlyLeadingSlash( route )
     const currPath = window.location.pathname
     if( isAbsolute ) {
         return currPath === path || currPath === ( path + '/' )
