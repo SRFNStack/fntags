@@ -221,6 +221,7 @@ function extractPathParameters( path ) {
             parameters[pathParts[i].substr(1)] = currentParts[i]
         }
     }
+    return parameters
 }
 
 /**
