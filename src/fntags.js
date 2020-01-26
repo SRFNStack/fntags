@@ -40,7 +40,7 @@ export const isNode = ( el ) =>
  */
 export const fnbind = ( state, element, update ) => {
     if( typeof element !== 'function' && !isNode( element ) ) throw new Error( 'You can only bind functions and Elements' ).stack
-    if( isNode( element ) && typeof update !== 'function' ) throw new Error( 'You must supply an update function when binding an element' ).stack
+    if( isNode( element ) && typeof update !== 'function' ) throw new Error( 'Either include an update function with this element, or pass a function instead of an element.' ).stack
     const states = Array.isArray( state ) && state || [ state ]
 
     const el = states.reduce( ( el, st ) => {
