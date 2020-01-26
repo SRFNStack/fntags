@@ -19,7 +19,7 @@ export default div(
         'fnlink has a single required attribute, \'to\' that is the route to navigate to. You can additionally provide a context property that can be accessed from the pathState.',
         prismCode( 'fnlink({to: \'/home\', context: {key:\'this is handy\'}}, \'Home\')' ),
         'goTo takes the route to navigate to and optionally a context as the second.',
-        prismCode( 'goTo(\'/home\', \'so hard to do this in other frameworks...\')' )
+        prismCode( 'goTo(\'/home\', {\'some\':\'datazzz\')' )
     ),
     contentSection(
         'Path State',
