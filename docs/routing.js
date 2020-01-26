@@ -30,7 +30,7 @@ export default div(
             'pathState.info = {\n' +
             '    rootPath: \'\',\n' +
             '    currentRoute: \'/\',\n' +
-            '    context: \'/\'\n' +
+            '    context: \'secret data\'\n' +
             '}'
         ),
         'rootPath is the path the app is served from. The default is the current window path when fntags.js is loaded.',
