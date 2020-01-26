@@ -302,7 +302,7 @@ export const pathState = fnstate(
     {
         info: {
             rootPath: ensureOnlyLeadingSlash( window.location.pathname ),
-            currentRoute: '/',
+            currentRoute: ensureOnlyLeadingSlash(window.location.pathname.replace( pathState.info.rootPath, '' )) || '/',
             context: null,
             pathParameters: {}
         }
