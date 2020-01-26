@@ -30,8 +30,25 @@ export default div(
             'pathState.info = {\n' +
             '    rootPath: \'\',\n' +
             '    currentRoute: \'/\',\n' +
+            '    pathParameters: \'{}\',\n' +
             '    context: \'secret data\'\n' +
             '}'
+        ),
+        'rootPath is the path the app is served from. The default is the current window path when fntags.js is loaded.',
+        'currentRoute is the route the user is currently at. More precisely, it\'s the remainder of the current path after removing the root path prefix.',
+        'context is the data passed as the context to fnlink or goto verbatim',
+        'pathParameters is an object containing key value pairs for any path parameters defined for the route',
+    ),
+    contentSection(
+        'Path Parameters',
+        'Path parameters can be used for any route that does not allow unlimited slashes in the path (pretty much anything without a .*).',
+        'To use, simply replace a section of the path with a variable name prefixed by a $.',
+        prismCode( 'route( { path: \'/some/$snak\' } )' ),
+        'The pathState.info.pathParameters will be updated on any route change to include an object containing the properties and their values',
+        prismCode("goTo(\'/some/taco\'"),
+        prismCode(
+            'import {pathState} from \'fntags\'\n' +
+            'alert(pathState.info.pathParameters.snak === \'taco\')'
         ),
         'rootPath is the path the app is served from. The default is the current window path when fntags.js is loaded.',
         'currentRoute is the route the user is currently at. More precisely, it\'s the remainder of the current path after removing the root path prefix.',

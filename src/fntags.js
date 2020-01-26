@@ -203,12 +203,24 @@ export const route = ( ...children ) => {
             while( routeEl.firstChild ) routeEl.removeChild( routeEl.firstChild )
             routeEl.append( ...children.map( c => typeof c === 'function' ? c() : c ) )
             routeEl.style.display = display
+            extractPathParameters(path)
         } else {
             routeEl.style.display = 'none'
         }
     }
     update()
     return fnbind( pathState, routeEl, update)
+}
+
+function extractPathParameters( path ) {
+    let pathParts = path.split("/")
+    let currentParts = window.location.pathname.split("/")
+    let parameters = {}
+    for(let i=0; i<pathParts.length; i++) {
+        if(pathParts[i].startsWith("$")){
+            parameters[pathParts[i].substr(1)] = currentParts[i]
+        }
+    }
 }
 
 /**
@@ -291,7 +303,8 @@ export const pathState = fnstate(
         info: {
             rootPath: ensureSlash( window.location.pathname ),
             currentRoute: '/',
-            context: null
+            context: null,
+            pathParameters: {}
         }
     } )
 
@@ -314,7 +327,7 @@ const shouldDisplayRoute = ( route, isAbsolute ) => {
     if( isAbsolute ) {
         return currPath === path || currPath === ( path + '/' )
     } else {
-        const pattern = path.replace( /^(.*)\/([^\/]*)$/, '$1/?$2([/?#]|$)' )
+        const pattern = path.replace(/\/\$[^/]+(\/|$)/, '[^/]+').replace( /^(.*)\/([^\/]*)$/, '$1/?$2([/?#]|$)' )
         return !!currPath.match( pattern )
     }
 
