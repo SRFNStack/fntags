@@ -216,6 +216,10 @@ export const route = ( ...children ) => {
  * @param children The attributes of the anchor element and any children
  */
 export const fnlink = ( ...children ) => {
+    let context= null
+    if(children[0] && children[0].context){
+        context = children[0].context
+    }
     let a = h( 'a', ...children )
 
     let to = a.getAttribute( 'to' )
@@ -224,7 +228,7 @@ export const fnlink = ( ...children ) => {
     }
     a.addEventListener( 'click', ( e ) => {
         e.preventDefault()
-        goTo( to )
+        goTo( to, context )
     } )
     a.setAttribute(
         'href',
@@ -235,13 +239,15 @@ export const fnlink = ( ...children ) => {
 
 /**
  * A function to navigate to the specified route
- * @param route
+ * @param route The route to navigate to
+ * @param context Data related to the route change
  */
-export const goTo = ( route ) => {
+export const goTo = ( route, context ) => {
     let newPath = window.location.origin + pathState.info.rootPath + ensureSlash( route )
     history.pushState( {}, route, newPath )
     pathState.info = Object.assign( pathState.info, {
-        currentRoute: route.split(/[#?]/)[0]
+        currentRoute: route.split(/[#?]/)[0],
+        context
     } )
     if( newPath.indexOf( '#' ) > -1 ) {
         const el = document.getElementById( decodeURIComponent( newPath.split( '#' )[ 1 ] ) )
@@ -284,7 +290,8 @@ export const pathState = fnstate(
     {
         info: {
             rootPath: ensureSlash( window.location.pathname ),
-            currentRoute: '/'
+            currentRoute: '/',
+            context: null
         }
     } )
 

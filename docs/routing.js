@@ -10,16 +10,16 @@ export default div(
         prismCode( 'route( { path: \'/home\' })' ),
         'To require that the currentRoute matches the path exactly, set absolute: true on the attributes object',
         prismCode( 'route( { path: \'/\', absolute: true })' ),
-        'Children of route elements can be functions. This is useful if you want to ensure a clean state when the route is changed.',
+        'Children of route elements can be functions. This is useful for re-loading dynamic content on route change.',
         prismCode( 'route( { path: \'/\', absolute: true }, ()=>new Date().toString())' ),
     ),
     contentSection(
         'Navigating',
         'To navigate within the app, either create an fnlink element or import and call the goTo function.',
-        'fnlink has a single required attribute, \'to\' that is the route to navigate to.',
-        prismCode( 'fnlink({to: \'/home\'}, \'Home\')' ),
-        'goTo takes the route to navigate to as the only parameter.',
-        prismCode( 'goTo(\'/home\')' )
+        'fnlink has a single required attribute, \'to\' that is the route to navigate to. You can additionally provide a context property that can be accessed from the pathState.',
+        prismCode( 'fnlink({to: \'/home\', context: {key:\'this is handy\'}}, \'Home\')' ),
+        'goTo takes the route to navigate to and optionally a context as the second.',
+        prismCode( 'goTo(\'/home\', \'so hard to do this in other frameworks...\')' )
     ),
     contentSection(
         'Path State',
@@ -28,12 +28,16 @@ export default div(
         'pathState has a single property, info.',
         prismCode(
             'pathState.info = {\n' +
-            '    rootPath: \'\'\n' +
-            '    currentRoute: \'/\'\n' +
+            '    rootPath: \'\',\n' +
+            '    currentRoute: \'/\',\n' +
+            '    context: \'/\'\n' +
             '}'
         ),
         'rootPath is the path the app is served from. The default is the current window path when fntags.js is loaded.',
         'currentRoute is the route the user is currently at. More precisely, it\'s the remainder of the current path after removing the root path prefix.',
+        'context is the data passed as the context to fnlink or goto verbatim',
+    ),
+    contentSection("Deep Links",
         'Deep linking will not work correctly in cases where the same html file is served from every path.',
         p( 'For instance, when using ', code( 'try_files $uri index.html' ), ' in nginx.' ),
         'To fix this, import and call setRootPath with the appropriate root path.',
