@@ -206,7 +206,7 @@ export const route = ( ...children ) => {
             }
             routeEl.append( ...children.map( c => typeof c === 'function' ? c() : c ) )
             routeEl.style.display = display
-            pathState.info = { ...pathState.info, pathParameters: extractPathParameters( path ) }
+            pathParameters.current = extractPathParameters( path )
         } else {
             routeEl.style.display = 'none'
         }
@@ -301,6 +301,8 @@ const ensureOnlyLeadingSlash = ( part ) => {
     part = part.startsWith( '/' ) ? part : '/' + part
     return part.endsWith( '/' ) ? part.slice( 0, -1 ) : part
 }
+
+export const pathParameters = fnstate({current: {}})
 
 export const pathState = fnstate(
     {

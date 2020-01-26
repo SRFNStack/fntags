@@ -44,15 +44,12 @@ export default div(
         'Path parameters can be used for any route that does not allow unlimited slashes in the path (pretty much anything without a .*).',
         'To use, simply replace a section of the path with a variable name prefixed by a $.',
         prismCode( 'route( { path: \'/some/$snak\' } )' ),
-        'The pathState.info.pathParameters will be updated on any route change to include an object containing the properties and their values',
-        prismCode("goTo(\'/some/taco\'"),
+        'The pathParameters will be updated on any route change to include an object containing the properties and their values',
+        prismCode("goTo(\'/some/taco\')"),
         prismCode(
-            'import {pathState} from \'fntags\'\n' +
-            'alert(pathState.info.pathParameters.snak === \'taco\')'
-        ),
-        'rootPath is the path the app is served from. The default is the current window path when fntags.js is loaded.',
-        'currentRoute is the route the user is currently at. More precisely, it\'s the remainder of the current path after removing the root path prefix.',
-        'context is the data passed as the context to fnlink or goto verbatim',
+            'import {pathParameters} from \'fntags\'\n' +
+            'alert(pathParameters.snak === \'taco\')'
+        )
     ),
     contentSection("Deep Links",
         'Deep linking will not work correctly in cases where the same html file is served from every path.',
