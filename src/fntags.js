@@ -201,12 +201,12 @@ export const route = ( ...children ) => {
     }
     const update = () => {
         if( shouldDisplayRoute( path, absolute ) ) {
+            pathParameters.current = extractPathParameters( path )
             while( routeEl.firstChild ) {
                 routeEl.removeChild( routeEl.firstChild )
             }
             routeEl.append( ...children.map( c => typeof c === 'function' ? c() : c ) )
             routeEl.style.display = display
-            pathParameters.current = extractPathParameters( path )
         } else {
             routeEl.style.display = 'none'
         }
