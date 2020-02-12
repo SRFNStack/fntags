@@ -9,9 +9,9 @@ export default header( { class: 'container text-center' },
          div( { class: 'flex-center', style: 'padding-bottom: 10px' },
               fnlink( { style: {cursor: 'pointer', color:'inherit', 'text-decoration': 'none'}, to: '/' },
                       fnbind( pathState, () =>
-                          span( { class: 'display-font', style: 'font-size: 24px;' + ( pathState.info.currentRoute === '/' ? 'color: ' + secondaryColor : '' ) }, 'fntags - ' )
+                          span( { class: 'display-font', style: 'font-size: 24px;' + ( pathState.info.currentRoute === '/' ? 'color: ' + secondaryColor : '' ) }, 'fntags -' )
                       ),
-                      span( { style: 'font-size: 18px; margin-left: 5px' }, 'functions as tags.' ) )
+                      span( { style: 'font-size: 18px; margin-left: 5px' }, 'less fluff, more stuff' ) )
          ),
          nav( { class: 'flex-center', style: 'border-bottom: solid 1px darkgray; background-color: ' + primaryColor },
               div( { class: 'flex-center noselect' }, ...routeNavItems() ) )
