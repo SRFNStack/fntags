@@ -95,7 +95,7 @@ export const fnstate = ( initialState ) => {
                 }
             },
             onNotify( state ) {
-                this.updateCurrent( update ? update( el.current, state ) : renderElement( element( state ) ) )
+                this.updateCurrent(  renderElement( update ? update( el.current, state ) : element( state ) ) )
             }
         }
     }
@@ -215,7 +215,7 @@ export const route = ( ...children ) => {
             while( routeEl.firstChild ) {
                 routeEl.removeChild( routeEl.firstChild )
             }
-            routeEl.append( ...children.map( c => typeof c === 'function' ? c() : c ) )
+            routeEl.append( ...children.map( c => renderElement(typeof c === 'function' ? c() : c )) )
             routeEl.style.display = display
         } else {
             routeEl.style.display = 'none'
