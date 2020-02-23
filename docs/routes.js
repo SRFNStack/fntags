@@ -11,7 +11,7 @@ import { secondaryColor } from './constants.js'
 const routes = [
     { url: '/', component: home, absolute: true },
     { url: '/build', linkText: 'Build', component: build },
-    { url: '/tutorial', linkText: 'Tutorial', component: tutorial },
+    // { url: '/tutorial', linkText: 'Tutorial', component: tutorial },
     { url: '/state', linkText: 'State', component: state },
     { url: '/routing', linkText: 'Routing', component: routing },
 
