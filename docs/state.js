@@ -14,7 +14,8 @@ export default div(
         prismCode( 'fnbind(state, (st)=>`Current count: ${st.count}`)'),
         'When a property is set on the state, the function is executed, and the current element is replaced with the returned element.',
         'This allows the element to be updated to reflect any changes.',
-        'State is implemented using an es6 Proxy. Thus, nested property changes do not trigger state updates. You must set top level properties to trigger state updates.'
+        'State is implemented using an es6 Proxy. Thus, nested property changes do not trigger state updates. You must set top level properties to trigger state updates.',
+        'A promise can be returned from this function. A promise should resolve to either an element, a function that returns an element, or another promise.'
     ),
     contentSection(
         'Accessing Bound Dom Elements',
