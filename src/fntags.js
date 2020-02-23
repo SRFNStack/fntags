@@ -135,9 +135,19 @@ export const findElement = ( state, filter = () => true ) => state[ '_fn_state_i
  */
 export const resetState = ( state, reinit = false ) => state[ '_fn_state_info' ] && state[ '_fn_state_info' ].reset( reinit )
 /**
- * Convert non dom nodes to text nodes
+ * Convert non dom nodes to text nodes and allow promises to resolve to elements
  */
-export const renderElement = ( element ) => isNode( element ) ? element : document.createTextNode( String( element ) )
+export const renderElement = ( element ) => {
+    if(isNode(element)) {
+        return element
+    } else if( Promise.resolve(element) === element) {
+        const node = marker()
+        element.then(el=>node.replaceWith(renderElement(el)))
+        return node
+    } else {
+        return document.createTextNode( String( element ) )
+    }
+}
 
 
 const isfnstate = ( state ) => state.hasOwnProperty( '_fn_state_info' )
