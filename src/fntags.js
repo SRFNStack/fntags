@@ -142,7 +142,7 @@ export const renderElement = ( element ) => {
         return element
     } else if( Promise.resolve(element) === element) {
         const node = marker()
-        element.then(el=>node.replaceWith(renderElement(el)))
+        element.then(el=>node.replaceWith(renderElement(el))).catch(e=>console.error("Caught failed element promise.", e))
         return node
     } else {
         return document.createTextNode( String( element ) )
