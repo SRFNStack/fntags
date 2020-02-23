@@ -95,7 +95,7 @@ export const fnstate = ( initialState ) => {
                 }
             },
             onNotify( state ) {
-                this.updateCurrent(  renderElement( update ? update( el.current, state ) : element( state ) ) )
+                this.updateCurrent( update ? update( el.current, state ) : renderElement( element( state ) ) )
             }
         }
     }
