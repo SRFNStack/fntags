@@ -384,9 +384,8 @@ export const h = ( tag, ...children ) => {
                         } )
                     } else if( a.startsWith( 'on' ) && typeof attr === 'function' ) {
                         element.addEventListener( a.substring( 2 ), attr )
-                    } else if( typeof attr === 'string' ) {
-                        element.setAttribute( a, attr )
                     } else {
+                        element.setAttribute( a, attr )
                         Object.defineProperty( element, a, {
                             value: attr,
                             enumerable: false
