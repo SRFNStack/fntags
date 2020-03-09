@@ -3,7 +3,7 @@ import home from './home.js'
 import state from './state.js'
 import fourOhFore from './404.js'
 import routing from './routing.js'
-import tutorial from './tutorial.js'
+//import tutorial from './tutorial.js'
 
 import { fnbind, fnlink, pathState, route } from './fntags.js'
 import { secondaryColor } from './constants.js'
