@@ -40,16 +40,18 @@ export const isNode = ( el ) =>
  */
 export const fnbind = ( state, element, update ) => {
     if( typeof element !== 'function' && !isNode( element ) ) throw new Error( 'You can only bind functions and Elements' ).stack
-    if( isNode( element ) && typeof update !== 'function' ) throw new Error( 'You must supply an update function when binding an element' ).stack
+    if( isNode( element ) &&
+        typeof update !==
+        'function' ) throw new Error( 'Either include an update function with this element, or pass a function instead of an element.' ).stack
     const states = Array.isArray( state ) && state || [ state ]
 
     const el = states.reduce( ( el, st ) => {
-                                  if( !isfnstate( st ) ) throw new Error( `State: ${st} is not initialized. Use fnstate() to initialize.` ).stack
-                                  st._fn_state_info.addObserver( el, element, update )
-                                  el.current = typeof element === 'function' ? renderElement( element( state ) ) : element
-                                  return el
-                              },
-                              { current: marker() }
+            if( !isfnstate( st ) ) throw new Error( `State: ${st} is not initialized. Use fnstate() to initialize.` ).stack
+            st._fn_state_info.addObserver( el, element, update )
+            el.current = typeof element === 'function' ? renderElement( element( state ) ) : element
+            return el
+        },
+        { current: marker() }
     )
 
     return el.current
@@ -63,10 +65,14 @@ export const fnbind = ( state, element, update ) => {
 export const fnstate = ( initialState ) => {
     if( typeof initialState !== 'object' ) throw new Error( 'initial state must be an object' ).stack
     let observers = {}
+    let detachedObservers = []
     const notify = ( method ) => ( ...args ) => {
         let result = Reflect[ method ]( ...args )
         for( let key in observers ) {
             observers[ key ].onNotify( args[ 0 ] )
+        }
+        for (let observer of detachedObservers) {
+            observer(args[0])
         }
         return result
     }
@@ -75,10 +81,10 @@ export const fnstate = ( initialState ) => {
         deleteProperty: notify( 'deleteProperty' )
     } )
 
-    function addObserver( el, element, update ){
+    function addObserver( el, element, update ) {
         tagElement( el.current )
         observers[ getElId( el.current ) ] = {
-            currentEl(){return el.current},
+            currentEl() {return el.current},
             updateCurrent( newElement ) {
                 if( newElement && isNode( newElement ) ) {
                     tagElement( newElement )
@@ -86,8 +92,8 @@ export const fnstate = ( initialState ) => {
 
                         el.current.replaceWith( newElement )
                         el.current = newElement
-                        if(isNode(element)) element = newElement
-                        observers[getElId(newElement)] = observers[getElId( el.current )]
+                        if( isNode( element ) ) element = newElement
+                        observers[ getElId( newElement ) ] = observers[ getElId( el.current ) ]
                         delete observers[ getElId( el.current ) ]
                     }
                 }
@@ -102,14 +108,16 @@ export const fnstate = ( initialState ) => {
         value: Object.freeze(
             {
                 addObserver,
+                addDetachedObserver(callback) {
+                    detachedObservers.push(callback)
+                },
                 reset: ( reInit ) => {
                     observers = {}
                     if( reInit ) Object.assign( p, initialState )
                 },
-                findElement: (filter) =>
-                {
-                    let foundId = Object.keys( observers ).find( o => filter(observers[ o ].currentEl()) )
-                    return foundId && observers[foundId].currentEl() || null
+                findElement: ( filter ) => {
+                    let foundId = Object.keys( observers ).find( o => filter( observers[ o ].currentEl() ) )
+                    return foundId && observers[ foundId ].currentEl() || null
                 }
             } ),
         enumerable: false,
@@ -120,11 +128,18 @@ export const fnstate = ( initialState ) => {
 }
 
 /**
+ * Observe state changed
+ * @param state The state to observe
+ * @param callback The new state
+ */
+export const observeState = (state, callback) => state._fn_state_info.addDetachedObserver(callback)
+
+/**
  * find an element on a state using a filter function. The first matching element is returned.
  * @param state The state to find elements on
  * @param filter The filter function that takes a dom element and returns a boolean
  */
-export const findElement = ( state, filter = ()=>true ) => state[ '_fn_state_info' ].findElement( filter )
+export const findElement = ( state, filter = () => true ) => state[ '_fn_state_info' ].findElement( filter )
 
 /**
  * Clear the observers and optionally set the state back to the initial state. This will remove all bindings to this state, meaning elements will no longer be updated.
@@ -134,9 +149,19 @@ export const findElement = ( state, filter = ()=>true ) => state[ '_fn_state_inf
  */
 export const resetState = ( state, reinit = false ) => state[ '_fn_state_info' ] && state[ '_fn_state_info' ].reset( reinit )
 /**
- * Convert non dom nodes to text nodes
+ * Convert non dom nodes to text nodes and allow promises to resolve to elements
  */
-export const renderElement = ( element ) => isNode( element ) ? element : document.createTextNode( String( element ) )
+export const renderElement = ( element ) => {
+    if(isNode(element)) {
+        return element
+    } else if( Promise.resolve(element) === element) {
+        const node = marker()
+        element.then(el=>node.replaceWith(renderElement(el))).catch(e=>console.error("Caught failed element promise.", e))
+        return node
+    } else {
+        return document.createTextNode( String( element ) )
+    }
+}
 
 
 const isfnstate = ( state ) => state.hasOwnProperty( '_fn_state_info' )
@@ -189,9 +214,9 @@ const getElId = ( el ) => isTagged( el ) && getTag( el ).id
  * @returns HTMLDivElement
  */
 export const route = ( ...children ) => {
-    const attrs = getAttrs(children)
-    children = children.filter(c=>!isAttrs(c))
-    const routeEl = h( 'div', attrs)
+    const attrs = getAttrs( children )
+    children = children.filter( c => !isAttrs( c ) )
+    const routeEl = h( 'div', attrs )
     const display = routeEl.style.display
     let path = routeEl.getAttribute( 'path' )
     let absolute = !!routeEl.absolute || routeEl.getAttribute( 'absolute' ) === 'true'
@@ -200,15 +225,30 @@ export const route = ( ...children ) => {
     }
     const update = () => {
         if( shouldDisplayRoute( path, absolute ) ) {
-            while( routeEl.firstChild ) routeEl.removeChild( routeEl.firstChild )
-            routeEl.append( ...children.map( c => typeof c === 'function' ? c() : c ) )
+            pathParameters.current = extractPathParameters( path )
+            while( routeEl.firstChild ) {
+                routeEl.removeChild( routeEl.firstChild )
+            }
+            routeEl.append( ...children.map( c => renderElement(typeof c === 'function' ? c() : c )) )
             routeEl.style.display = display
         } else {
             routeEl.style.display = 'none'
         }
     }
     update()
-    return fnbind( pathState, routeEl, update)
+    return fnbind( pathState, routeEl, update )
+}
+
+function extractPathParameters( path ) {
+    let pathParts = path.split( '/' )
+    let currentParts = pathState.info.currentRoute.split( '/' )
+    let parameters = {}
+    for( let i = 0; i < pathParts.length; i++ ) {
+        if( pathParts[ i ].startsWith( '$' ) ) {
+            parameters[ pathParts[ i ].substr( 1 ) ] = currentParts[ i ]
+        }
+    }
+    return parameters
 }
 
 /**
@@ -216,6 +256,10 @@ export const route = ( ...children ) => {
  * @param children The attributes of the anchor element and any children
  */
 export const fnlink = ( ...children ) => {
+    let context = null
+    if( children[ 0 ] && children[ 0 ].context ) {
+        context = children[ 0 ].context
+    }
     let a = h( 'a', ...children )
 
     let to = a.getAttribute( 'to' )
@@ -224,30 +268,32 @@ export const fnlink = ( ...children ) => {
     }
     a.addEventListener( 'click', ( e ) => {
         e.preventDefault()
-        goTo( to )
+        goTo( to, context )
     } )
     a.setAttribute(
         'href',
-        pathState.info.rootPath + ensureSlash( to )
+        pathState.info.rootPath + ensureOnlyLeadingSlash( to )
     )
     return a
 }
 
 /**
  * A function to navigate to the specified route
- * @param route
+ * @param route The route to navigate to
+ * @param context Data related to the route change
  */
-export const goTo = ( route ) => {
-    let newPath = window.location.origin + pathState.info.rootPath + ensureSlash( route )
+export const goTo = ( route, context ) => {
+    let newPath = window.location.origin + pathState.info.rootPath + ensureOnlyLeadingSlash( route )
     history.pushState( {}, route, newPath )
     pathState.info = Object.assign( pathState.info, {
-        currentRoute: route.split(/[#?]/)[0]
+        currentRoute: route.split( /[#?]/ )[ 0 ],
+        context
     } )
     if( newPath.indexOf( '#' ) > -1 ) {
         const el = document.getElementById( decodeURIComponent( newPath.split( '#' )[ 1 ] ) )
         el && el.scrollIntoView()
     } else {
-        window.scrollTo(0,0)
+        window.scrollTo( 0, 0 )
     }
 }
 
@@ -259,55 +305,63 @@ export const goTo = ( route ) => {
 export const routeSwitch = ( ...children ) => {
     const sw = h( 'div', getAttrs( children ) )
     return fnbind( pathState, () => {
-                       while( sw.firstChild ) {
-                           sw.removeChild( sw.firstChild )
-                       }
-                       for( let child of children ) {
-                           const rendered = renderElement( child )
-                           if( rendered.getAttribute( 'path' ) ) {
-                               if( shouldDisplayRoute( rendered.getAttribute( 'path' ), !!rendered.absolute || rendered.getAttribute( 'absolute' ) === 'true' ) ) {
-                                   sw.append( rendered )
-                                   return sw
-                               }
-                           }
-                       }
-                   }
+            while( sw.firstChild ) {
+                sw.removeChild( sw.firstChild )
+            }
+            for( let child of children ) {
+                const rendered = renderElement( child )
+                if( rendered.getAttribute( 'path' ) ) {
+                    if( shouldDisplayRoute( rendered.getAttribute( 'path' ), !!rendered.absolute || rendered.getAttribute( 'absolute' ) === 'true' ) ) {
+                        sw.append( rendered )
+                        return sw
+                    }
+                }
+            }
+        }
     )
 }
 
-const ensureSlash = ( part ) => {
+const ensureOnlyLeadingSlash = ( part ) => {
     part = part.startsWith( '/' ) ? part : '/' + part
     return part.endsWith( '/' ) ? part.slice( 0, -1 ) : part
 }
 
+export const pathParameters = fnstate({current: {}})
+
 export const pathState = fnstate(
     {
         info: {
-            rootPath: ensureSlash( window.location.pathname ),
-            currentRoute: '/'
+            rootPath: ensureOnlyLeadingSlash( window.location.pathname ),
+            currentRoute: ensureOnlyLeadingSlash( window.location.pathname ),
+            context: null,
+            pathParameters: {}
         }
     } )
 
 /**
  * Set the root path of the app. This is necessary to make deep linking work in cases where the same html file is served from all paths.
  */
-export const setRootPath = ( rootPath ) => pathState.info = Object.assign( pathState.info, { rootPath: ensureSlash( rootPath ), currentRoute: window.location.pathname } )
+export const setRootPath = ( rootPath ) => pathState.info = Object.assign( pathState.info,
+    {
+        rootPath: ensureOnlyLeadingSlash( rootPath ),
+        currentRoute: ensureOnlyLeadingSlash( window.location.pathname.replace( rootPath, '' ) ) || '/'
+    } )
 
 window.addEventListener( 'popstate', () =>
     pathState.info = Object.assign(
         pathState.info, {
-            currentRoute: window.location.pathname.replace( pathState.info.rootPath, '' ) || '/'
+            currentRoute: ensureOnlyLeadingSlash( window.location.pathname.replace( pathState.info.rootPath, '' ) ) || '/'
         }
     )
 )
 
 const shouldDisplayRoute = ( route, isAbsolute ) => {
-    let path = pathState.info.rootPath + ensureSlash( route )
+    let path = pathState.info.rootPath + ensureOnlyLeadingSlash( route )
     const currPath = window.location.pathname
     if( isAbsolute ) {
         return currPath === path || currPath === ( path + '/' )
     } else {
-        const pattern = path.replace( /^(.*)\/([^\/]*)$/, '$1/?$2([/?#]|$)' )
+        const pattern = path.replace( /\/\$[^/]+(\/|$)/, '/[^/]+$1' ).replace( /^(.*)\/([^\/]*)$/, '$1/?$2([/?#]|$)' )
         return !!currPath.match( pattern )
     }
 
@@ -346,6 +400,9 @@ export const h = ( tag, ...children ) => {
                         element.addEventListener( a.substring( 2 ), attr )
                     } else if( typeof attr === 'string' ) {
                         element.setAttribute( a, attr )
+                    } else if( a === "value") {
+                        //value is always a an attribute because setting it as a property causes problems
+                        element.setAttribute(a, attr)
                     } else {
                         Object.defineProperty( element, a, {
                             value: attr,

@@ -65,10 +65,14 @@ export const fnbind = ( state, element, update ) => {
 export const fnstate = ( initialState ) => {
     if( typeof initialState !== 'object' ) throw new Error( 'initial state must be an object' ).stack
     let observers = {}
+    let detachedObservers = []
     const notify = ( method ) => ( ...args ) => {
         let result = Reflect[ method ]( ...args )
         for( let key in observers ) {
             observers[ key ].onNotify( args[ 0 ] )
+        }
+        for (let observer of detachedObservers) {
+            observer(args[0])
         }
         return result
     }
@@ -104,6 +108,9 @@ export const fnstate = ( initialState ) => {
         value: Object.freeze(
             {
                 addObserver,
+                addDetachedObserver(callback) {
+                    detachedObservers.push(callback)
+                },
                 reset: ( reInit ) => {
                     observers = {}
                     if( reInit ) Object.assign( p, initialState )
@@ -119,6 +126,13 @@ export const fnstate = ( initialState ) => {
 
     return p
 }
+
+/**
+ * Observe state changed
+ * @param state The state to observe
+ * @param callback The new state
+ */
+export const observeState = (state, callback) => state._fn_state_info.addDetachedObserver(callback)
 
 /**
  * find an element on a state using a filter function. The first matching element is returned.
