@@ -38,22 +38,21 @@ export const isNode = ( el ) =>
  * @param update A function to perform a manual update with.
  *          This function receives two arguments. The element and the new state
  */
-export const fnbind = function ( state, element, update ) {
+export const fnbind = function( state, element, update ) {
     if( typeof element !== 'function' && !isNode( element ) ) throw new Error( 'You can only bind functions and Elements' ).stack
     if( isNode( element ) &&
         typeof update !==
         'function' ) throw new Error( 'Either include an update function with this element, or pass a function instead of an element.' ).stack
     const states = Array.isArray( state ) && state || [ state ]
-
-    const el = states.reduce( ( el, st ) => {
-                                  if( !isfnstate( st ) ) throw new Error( `State: ${st} is not initialized. Use fnstate() to initialize.` ).stack
-                                  st._fn_state_info.addObserver( el, element, update )
-                                  el.current = typeof element === 'function' ? renderElement( element() ) : element
-                                  return el
-                              },
-                              { current: marker() }
+    const rendered = { current: typeof element === 'function' ? renderElement( element() ) : element }
+    states.forEach(
+        ( st ) => {
+            if( !isfnstate( st ) ) throw new Error( `State: ${st} is not an f'nstate. Use fnstate() to create one.` ).stack
+            st._fn_state_info.addObserver( rendered, element, update )
+        }
     )
-    return el.current
+
+    return rendered.current
 }
 
 /**
@@ -82,6 +81,23 @@ export const fnstate = ( initialState ) => {
 
     state.patch = ( update ) => state( Object.assign( currentState, update ) )
 
+    let cache = new Map()
+
+    /**
+     * Map the state to a key and value and cache the result. Using this helps avoid re-rendering expensive elements
+     * @param keyFn A function to retrieve the key to use from the state
+     * @param mapFn A function to map the state to an element
+     * @returns {*|HTMLDivElement|Text|any}
+     */
+    state.map = ( keyFn, mapFn ) => {
+        if( !currentState ) return renderElement( '' )
+        let key = keyFn(currentState)
+        if( cache.has(key) ) return cache.get(key)
+        let el = mapFn(currentState)
+        cache.set(key, el)
+        return el
+    }
+
     function addObserver( el, element, update ) {
         tagElement( el.current )
         observers[ getElId( el.current ) ] = {
@@ -100,7 +116,7 @@ export const fnstate = ( initialState ) => {
                 }
             },
             notify() {
-                this.updateCurrent( update ? update( el.current) : renderElement( element() ) )
+                this.updateCurrent( update ? update( el.current ) : renderElement( element() ) )
             }
         }
     }
@@ -114,6 +130,7 @@ export const fnstate = ( initialState ) => {
                 },
                 reset: ( reInit ) => {
                     observers = {}
+                    cache.clear()
                     if( reInit ) currentState = initialState
                 },
                 findElement: ( filter ) => {
@@ -348,9 +365,9 @@ export const setRootPath = ( rootPath ) => pathState.patch(
 )
 
 window.addEventListener( 'popstate', () =>
-    pathState.patch({
-            currentRoute: ensureOnlyLeadingSlash( window.location.pathname.replace( pathState().rootPath, '' ) ) || '/'
-        }
+    pathState.patch( {
+                         currentRoute: ensureOnlyLeadingSlash( window.location.pathname.replace( pathState().rootPath, '' ) ) || '/'
+                     }
     )
 )
 
