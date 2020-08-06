@@ -21,8 +21,6 @@ export const isNode = ( el ) =>
     el &&
     ( el instanceof Node || el instanceof Element || el.constructor.toString().search( /object HTML.+Element/ ) > -1 )
 
-const boundCache = new Map()
-
 /**
  * Bind one or more states to the given element.
  * @param state Either a single state object or an array of state objects to watch
@@ -41,8 +39,6 @@ const boundCache = new Map()
  *          This function receives two arguments. The element and the new state
  */
 export const fnbind = function ( state, element, update ) {
-    if(boundCache.get(arguments)) return boundCache.get(arguments).current
-
     if( typeof element !== 'function' && !isNode( element ) ) throw new Error( 'You can only bind functions and Elements' ).stack
     if( isNode( element ) &&
         typeof update !==
@@ -57,7 +53,6 @@ export const fnbind = function ( state, element, update ) {
                               },
                               { current: marker() }
     )
-    boundCache.set(arguments, el)
     return el.current
 }
 
