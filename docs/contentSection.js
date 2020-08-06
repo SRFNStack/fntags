@@ -7,7 +7,7 @@ export default ( title, ...content ) => section(
                   style: 'cursor: pointer',
                   title: title,
                   onclick: ( e ) => {
-                      goTo( `${pathState.info.currentRoute}#${encodeURIComponent( title )}` )
+                      goTo( `${pathState().currentRoute}#${encodeURIComponent( title )}` )
                   }
               },
               ' \uD83D\uDD17'

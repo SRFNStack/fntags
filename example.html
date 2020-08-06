@@ -25,13 +25,13 @@
         fnlink( { to: '/hello' }, 'hello' ),
         fnlink( { to: '/goodbye' }, 'goodbye' )
     )
-    const state = fnstate({count: 0})
+    const count = fnstate(0)
 
     let navInput = input( { placeholder: 'navigate to' } )
     fnapp( document.body,
            nav,
-           fnbind(state, ()=> `Current count: ${state.count}`),
-           button({onclick: ()=> state.count = state.count + 1}, "+1"),
+           fnbind(count, ()=> `Current count: ${count()}`),
+           button({onclick: ()=> count(count() + 1)}, "+1"),
            router(
                form( {
                          style: 'display: inline-block',
@@ -63,7 +63,7 @@
 
     setTimeout( () => {
                     console.log( 'hello' )
-                    appState.currentUser = { name: 'fntags' }
+                    appState.patch({currentUser:{ name: 'fntags' }})
                 },
                 2000 )
 

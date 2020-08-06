@@ -25,30 +25,28 @@ export default div(
         'Path State',
         'pathState can be imported and bound to in order to listen to path changes.',
         prismCode( 'import { pathState } from \'./fntags.js\'' ),
-        'pathState has a single property, info.',
+        'pathState is a state function that contains information about the path',
         prismCode(
-            'pathState.info = {\n' +
+            'pathState() ~== {\n' +
             '    rootPath: \'\',\n' +
             '    currentRoute: \'/\',\n' +
-            '    pathParameters: \'{}\',\n' +
             '    context: \'secret data\'\n' +
             '}'
         ),
         'rootPath is the path the app is served from. The default is the current window path when fntags.js is loaded.',
         'currentRoute is the route the user is currently at. More precisely, it\'s the remainder of the current path after removing the root path prefix.',
-        'context is the data passed as the context to fnlink or goto verbatim',
-        'pathParameters is an object containing key value pairs for any path parameters defined for the route',
+        'context is the data passed as the context to fnlink or goto verbatim'
     ),
     contentSection(
         'Path Parameters',
         'Path parameters can be used for any route that does not allow unlimited slashes in the path (pretty much anything without a .*).',
         'To use, simply replace a section of the path with a variable name prefixed by a $.',
         prismCode( 'route( { path: \'/some/$snak\' } )' ),
-        'The pathParameters.current will be updated on any route change to include an object containing the properties and their values',
+        'The pathParameters will be updated on any route change to include an object containing the properties and their values',
         prismCode("goTo(\'/some/taco\')"),
         prismCode(
             'import {pathParameters} from \'fntags\'\n' +
-            'alert(pathParameters.current.snak === \'taco\')'
+            'alert(pathParameters().snak === \'taco\')'
         )
     ),
     contentSection("Deep Links",
