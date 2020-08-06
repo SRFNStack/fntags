@@ -40,7 +40,7 @@ const boundCache = new Map()
  * @param update A function to perform a manual update with.
  *          This function receives two arguments. The element and the new state
  */
-export const fnbind = function( state, element, update ) {
+export const fnbind = function ( state, element, update ) {
     if(boundCache.get(arguments)) return boundCache.get(arguments).current
 
     if( typeof element !== 'function' && !isNode( element ) ) throw new Error( 'You can only bind functions and Elements' ).stack
