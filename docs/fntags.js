@@ -82,25 +82,6 @@ export const fnstate = ( initialState ) => {
 
     state.patch = ( update ) => state( Object.assign( currentState, update ) )
 
-    let mapCache = new Map()
-
-    /**
-     * Map the state to a key and and element and use the key to cache the result.
-     * Using this helps avoid re-rendering expensive elements
-     * @param keyFn A function to retrieve the key to use from the state
-     * @param mapFn A function to map the state to an element
-     * @returns {*|HTMLDivElement|Text}
-     */
-    state.map = ( keyFn, mapFn ) => {
-        if( !currentState ) return renderElement( '' )
-        let key = keyFn( currentState )
-        if( mapCache.has( key ) ) return mapCache.get( key )
-        let el = mapFn( currentState )
-        mapCache.set( key, el )
-        return el
-    }
-
-
     /**
      * Map an array or object to the children of an element. This can be done using fnbind, but this method is much more efficient so it's preferred for large arrays.
      * @param parent The element to bind children to
