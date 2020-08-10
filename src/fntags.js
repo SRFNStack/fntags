@@ -17,9 +17,7 @@ export const fnapp = ( root, ...children ) => {
  * @param el
  * @returns {boolean}
  */
-export const isNode = ( el ) =>
-    el &&
-    ( el instanceof Node || el instanceof Element || el.constructor.toString().search( /object HTML.+Element/ ) > -1 )
+export const isNode = ( el ) => el instanceof Node
 
 /**
  * Bind one or more states to the given element.
@@ -108,10 +106,10 @@ export const fnstate = ( initialState ) => {
                     if( getElId( el.current ) !== getElId( newElement ) ) {
 
                         el.current.replaceWith( newElement )
-                        el.current = newElement
                         if( isNode( element ) ) element = newElement
                         observers[ getElId( newElement ) ] = observers[ getElId( el.current ) ]
                         delete observers[ getElId( el.current ) ]
+                        el.current = newElement
                     }
                 }
             },
