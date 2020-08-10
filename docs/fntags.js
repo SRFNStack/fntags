@@ -19,6 +19,7 @@ export const fnapp = ( root, ...children ) => {
  */
 export const isNode = ( el ) => el instanceof Node
 
+const cache = new Map()
 /**
  * Bind one or more states to the given element.
  * @param state Either a single state object or an array of state objects to watch
@@ -37,6 +38,7 @@ export const isNode = ( el ) => el instanceof Node
  *          This function receives two arguments. The element and the new state
  */
 export const fnbind = function( state, element, update ) {
+    if( cache.has( getElId( element ) ) ) return cache.get( getElId( element ) )
     if( typeof element !== 'function' && !isNode( element ) ) throw new Error( 'You can only bind functions and Elements' ).stack
     if( isNode( element ) &&
         typeof update !==
@@ -49,7 +51,8 @@ export const fnbind = function( state, element, update ) {
             st._fn_state_info.addObserver( rendered, element, update )
         }
     )
-
+    tagElement( element )
+    cache.set( getElId( element ), element )
     return rendered.current
 }
 
@@ -79,21 +82,79 @@ export const fnstate = ( initialState ) => {
 
     state.patch = ( update ) => state( Object.assign( currentState, update ) )
 
-    let cache = new Map()
+    let mapCache = new Map()
 
     /**
-     * Map the state to a key and value and cache the result. Using this helps avoid re-rendering expensive elements
+     * Map the state to a key and and element and use the key to cache the result.
+     * Using this helps avoid re-rendering expensive elements
      * @param keyFn A function to retrieve the key to use from the state
      * @param mapFn A function to map the state to an element
-     * @returns {*|HTMLDivElement|Text|any}
+     * @returns {*|HTMLDivElement|Text}
      */
     state.map = ( keyFn, mapFn ) => {
         if( !currentState ) return renderElement( '' )
-        let key = keyFn(currentState)
-        if( cache.has(key) ) return cache.get(key)
-        let el = mapFn(currentState)
-        cache.set(key, el)
+        let key = keyFn( currentState )
+        if( mapCache.has( key ) ) return mapCache.get( key )
+        let el = mapFn( currentState )
+        mapCache.set( key, el )
         return el
+    }
+
+
+    /**
+     * Map an array or object to the children of an element. This can be done using fnbind, but this method is much more efficient so it's preferred for large arrays.
+     * @param parent The element to bind children to
+     * @param keyFn A function for mapping each element to a unique key, or the mapping function if the state is an object. The property names of the object are used as the keys
+     * in that case
+     * @param mapFn A function to map an element in the array to an html element
+     * @returns {*} The parent
+     */
+    state.mapChildren = ( parent, keyFn, mapFn ) => {
+        let childCache = new Map()
+        detachedObservers.push( () => {
+            let isArray = Array.isArray( currentState )
+            if( !isArray || typeof currentState !== 'object' ) {
+                console.warn( 'Can\'t mapChildren for non-array, non-object state value ' + currentState )
+                return
+            }
+            let keys = isArray ? currentState.map( keyFn ) : Object.keys( currentState )
+            if(!isArray) mapFn = keyFn
+            if( keys.length === 0 ) {
+                while( parent.firstChild ) {
+                    parent.removeChild( parent.firstChild )
+                }
+                childCache.clear()
+            } else {
+                let currentChild = parent.firstChild
+                for( let i in keys ) {
+                    let data = isArray ? currentState[ i ] : currentState[ keys[ i ] ]
+                    let key = keys[ i ]
+                    let element = childCache.get( key )
+                    if( !element ) {
+                        element = mapFn( data )
+                        tagElement( element )
+                        childCache.set( key, element )
+                    }
+                    if( currentChild ) {
+                        let elId = getElId(element)
+                        let childId = getElId( currentChild )
+                        if( elId !== childId ) {
+                            currentChild.replaceWith( element )
+                        }
+                        currentChild = currentChild.nextSibling
+                    } else {
+                        parent.appendChild( element )
+                    }
+                }
+                while( currentChild && currentChild !== parent.lastChild) {
+                    let lastId = getElId(parent.lastChild)
+                    childCache.delete(lastId)
+                    parent.removeChild( parent.lastChild )
+                }
+            }
+
+        } )
+        return parent
     }
 
     function addObserver( el, element, update ) {
