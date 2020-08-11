@@ -99,7 +99,7 @@ export const fnstate = ( initialState ) => {
                 return
             }
             let keys = isArray ? currentState.map( keyFn ) : Object.keys( currentState )
-            if(!isArray) mapFn = keyFn
+            if( !isArray ) mapFn = keyFn
             if( keys.length === 0 ) {
                 while( parent.firstChild ) {
                     parent.removeChild( parent.firstChild )
@@ -117,19 +117,22 @@ export const fnstate = ( initialState ) => {
                         childCache.set( key, element )
                     }
                     if( currentChild ) {
-                        let elId = getElId(element)
+                        let elId = getElId( element )
                         let childId = getElId( currentChild )
                         if( elId !== childId ) {
-                            currentChild.replaceWith( element )
+                            let tmp = currentChild
+                            currentChild = currentChild.nextSibling
+                            tmp.replaceWith( element )
+                        } else {
+                            currentChild = currentChild.nextSibling
                         }
-                        currentChild = currentChild.nextSibling
                     } else {
                         parent.appendChild( element )
                     }
                 }
-                while( currentChild && currentChild !== parent.lastChild) {
-                    let lastId = getElId(parent.lastChild)
-                    childCache.delete(lastId)
+                while( currentChild && currentChild !== parent.lastChild ) {
+                    let lastId = getElId( parent.lastChild )
+                    childCache.delete( lastId )
                     parent.removeChild( parent.lastChild )
                 }
             }
