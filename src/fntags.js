@@ -122,6 +122,8 @@ export const fnstate = ( initialState ) => {
                         if( elId !== childId ) {
                             let tmp = currentChild
                             currentChild = currentChild.nextSibling
+                            //create a placeholder so the sibling iteration doesn't get disrupted when this element gets detached
+                            element.replaceWith(document.createTextNode(''))
                             tmp.replaceWith( element )
                         } else {
                             currentChild = currentChild.nextSibling
