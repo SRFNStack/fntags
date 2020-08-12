@@ -9,7 +9,7 @@ export const fnapp = ( root, ...children ) => {
         if( !root ) throw new Error( `No such element with id ${root}` ).stack
     }
     if( !isNode( root ) ) throw new Error( 'Invalid root element' ).stack
-    root.append( ...children.map( c => renderElement( c, root ) ) )
+    root.append( ...children.map( c => renderNode( c ) ) )
 }
 
 /**
@@ -19,7 +19,6 @@ export const fnapp = ( root, ...children ) => {
  */
 export const isNode = ( el ) => el instanceof Node
 
-const cache = new Map()
 /**
  * Bind one or more states to the given element.
  * @param state Either a single state object or an array of state objects to watch
@@ -38,22 +37,35 @@ const cache = new Map()
  *          This function receives two arguments. The element and the new state
  */
 export const fnbind = function( state, element, update ) {
-    if( cache.has( getElId( element ) ) ) return cache.get( getElId( element ) )
     if( typeof element !== 'function' && !isNode( element ) ) throw new Error( 'You can only bind functions and Elements' ).stack
     if( isNode( element ) &&
         typeof update !==
         'function' ) throw new Error( 'Either include an update function with this element, or pass a function instead of an element.' ).stack
     const states = Array.isArray( state ) && state || [ state ]
-    const rendered = { current: typeof element === 'function' ? renderElement( element() ) : element }
+    const el = { current: typeof element === 'function' ? renderNode( element() ) : element }
+    tagNode(el.current)
     states.forEach(
         ( st ) => {
-            if( !isfnstate( st ) ) throw new Error( `State: ${st} is not an f'nstate. Use fnstate() to create one.` ).stack
-            st._fn_state_info.addObserver( rendered, element, update )
+            if( !st.isFnState ) throw new Error( `State: ${st} is not an f'nstate. Use fnstate() to create one.` ).stack
+            st.subscribe(() => {
+                if( update )
+                    update( el.current )
+                else {
+                    let newElement = renderNode( element() )
+                    if( newElement ) {
+                        tagNode( newElement )
+                        if( getElId( el.current ) !== getElId( newElement ) ) {
+                            el.current.replaceWith( newElement )
+                            if( isNode( element ) ) element = newElement
+                            el.current = newElement
+                        }
+                    }
+                }
+            })
         }
     )
-    tagElement( element )
-    cache.set( getElId( element ), element )
-    return rendered.current
+    tagNode( element )
+    return el.current
 }
 
 /**
@@ -63,17 +75,13 @@ export const fnbind = function( state, element, update ) {
  */
 export const fnstate = ( initialState ) => {
     let currentState = initialState
-    let observers = {}
-    let detachedObservers = []
+    let observers = []
     const state = function( newState ) {
         if( arguments.length === 0 ) {
             return currentState
         } else {
             currentState = newState
-            for( let key in observers ) {
-                observers[ key ].notify( newState )
-            }
-            for( let observer of detachedObservers ) {
+            for( let observer of observers ) {
                 observer( newState )
             }
         }
@@ -92,7 +100,7 @@ export const fnstate = ( initialState ) => {
      */
     state.mapChildren = ( parent, keyFn, mapFn ) => {
         let childCache = new Map()
-        detachedObservers.push( () => {
+        observers.push( () => {
             let isArray = Array.isArray( currentState )
             if( !isArray || typeof currentState !== 'object' ) {
                 console.warn( 'Can\'t mapChildren for non-array, non-object state value ' + currentState )
@@ -113,7 +121,7 @@ export const fnstate = ( initialState ) => {
                     let element = childCache.get( key )
                     if( !element ) {
                         element = mapFn( data )
-                        tagElement( element )
+                        tagNode( element )
                         childCache.set( key, element )
                     }
                     if( currentChild ) {
@@ -123,7 +131,7 @@ export const fnstate = ( initialState ) => {
                             let tmp = currentChild
                             currentChild = currentChild.nextSibling
                             //create a placeholder so the sibling iteration doesn't get disrupted when this element gets detached
-                            element.replaceWith(document.createTextNode(''))
+                            element.replaceWith( document.createTextNode( '' ) )
                             tmp.replaceWith( element )
                         } else {
                             currentChild = currentChild.nextSibling
@@ -143,102 +151,40 @@ export const fnstate = ( initialState ) => {
         return parent
     }
 
-    function addObserver( el, element, update ) {
-        tagElement( el.current )
-        observers[ getElId( el.current ) ] = {
-            currentEl() {return el.current},
-            updateCurrent( newElement ) {
-                if( newElement && isNode( newElement ) ) {
-                    tagElement( newElement )
-                    if( getElId( el.current ) !== getElId( newElement ) ) {
+    state.subscribe = (callback)=>observers.push(callback)
 
-                        el.current.replaceWith( newElement )
-                        if( isNode( element ) ) element = newElement
-                        observers[ getElId( newElement ) ] = observers[ getElId( el.current ) ]
-                        delete observers[ getElId( el.current ) ]
-                        el.current = newElement
-                    }
-                }
-            },
-            notify() {
-                this.updateCurrent( update ? update( el.current ) : renderElement( element() ) )
-            }
-        }
+    state.reset = ( reInit ) => {
+        observers = []
+        if( reInit ) currentState = initialState
     }
 
-    Object.defineProperty( state, '_fn_state_info', {
-        value:
-            {
-                addObserver,
-                addDetachedObserver( callback ) {
-                    detachedObservers.push( callback )
-                },
-                reset: ( reInit ) => {
-                    observers = {}
-                    cache.clear()
-                    if( reInit ) currentState = initialState
-                },
-                findElement: ( filter ) => {
-                    let foundId = Object.keys( observers ).find( o => filter( observers[ o ].currentEl() ) )
-                    return foundId && observers[ foundId ].currentEl() || null
-                }
-            },
-        enumerable: false,
-        writable: false
-    } )
+    state.isFnState = true
 
     return state
 }
 
 /**
- * Observe state changed
- * @param state The state to observe
- * @param callback The new state
+ * Convert non dom nodes to text nodes and allow promises to resolve to nodes
  */
-export const observeState = ( state, callback ) => state._fn_state_info.addDetachedObserver( callback )
-
-/**
- * find an element on a state using a filter function. The first matching element is returned.
- * @param state The state to find elements on
- * @param filter The filter function that takes a dom element and returns a boolean
- */
-export const findElement = ( state, filter = () => true ) => state[ '_fn_state_info' ].findElement( filter )
-
-/**
- * Clear the observers and optionally set the state back to the initial state. This will remove all bindings to this state, meaning elements will no longer be updated.
- * @param state The state to reset
- * @param reinit Whether to change the values of the state back to the initial state after removing the observers
- * @returns {*|void}
- */
-export const resetState = ( state, reinit = false ) => state[ '_fn_state_info' ] && state[ '_fn_state_info' ].reset( reinit )
-/**
- * Convert non dom nodes to text nodes and allow promises to resolve to elements
- */
-export const renderElement = ( element ) => {
-    if( isNode( element ) ) {
-        return element
-    } else if( Promise.resolve( element ) === element ) {
+export const renderNode = ( node ) => {
+    if( isNode( node ) ) {
+        return node
+    } else if( Promise.resolve( node ) === node ) {
         const node = marker()
-        element.then( el => node.replaceWith( renderElement( el ) ) ).catch( e => console.error( 'Caught failed element promise.', e ) )
+        node.then( el => node.replaceWith( renderNode( el ) ) ).catch( e => console.error( 'Caught failed node promise.', e ) )
         return node
     } else {
-        return document.createTextNode( String( element ) )
+        return document.createTextNode( node + '' )
     }
 }
 
-
-const isfnstate = ( state ) => typeof state === 'function' && state.hasOwnProperty( '_fn_state_info' )
-
 let lastId = 0
-const fntag = '_fn_element_info'
+const fntag = '_fninfo'
 
-const tagElement = ( el ) => {
+const tagNode = ( el ) => {
     if( !el.hasOwnProperty( fntag ) ) {
         Object.defineProperty( el, fntag, {
-            value: Object.freeze(
-                {
-                    id: lastId++
-                } ),
+            value: { id: lastId++ },
             enumerable: false,
             writable: false
         } )
@@ -292,7 +238,8 @@ export const route = ( ...children ) => {
             while( routeEl.firstChild ) {
                 routeEl.removeChild( routeEl.firstChild )
             }
-            routeEl.append( ...children.map( c => renderElement( typeof c === 'function' ? c() : c ) ) )
+            //this forces a re-render on route change
+            routeEl.append( ...children.map( c => renderNode( typeof c === 'function' ? c() : c ) ) )
             routeEl.style.display = display
         } else {
             routeEl.style.display = 'none'
@@ -373,7 +320,7 @@ export const routeSwitch = ( ...children ) => {
                            sw.removeChild( sw.firstChild )
                        }
                        for( let child of children ) {
-                           const rendered = renderElement( child )
+                           const rendered = renderNode( child )
                            if( rendered.getAttribute( 'path' ) ) {
                                if( shouldDisplayRoute( rendered.getAttribute( 'path' ), !!rendered.absolute || rendered.getAttribute( 'absolute' ) === 'true' ) ) {
                                    sw.append( rendered )
@@ -445,39 +392,41 @@ const shouldDisplayRoute = ( route, isAbsolute ) => {
 export const h = ( tag, ...children ) => {
     let element = document.createElement( tag )
     if( children ) {
-        children.forEach( ( child ) => {
+        for( let child of children ) {
             if( isAttrs( child ) ) {
-                Object.keys( child ).forEach( a => {
+                for( let a in child ) {
                     let attr = child[ a ]
                     if( a === 'style' && typeof attr === 'object' ) {
-                        Object.keys( attr ).forEach( ( style ) => {
+                        for( let style in attr ) {
                             let match = attr[ style ].toString().match( /(.*)\W+!important\W*$/ )
                             if( match )
                                 element.style.setProperty( style, match[ 1 ], 'important' )
                             else
                                 element.style.setProperty( style, attr[ style ] )
-                        } )
-                    } else if( a.startsWith( 'on' ) && typeof attr === 'function' ) {
-                        element.addEventListener( a.substring( 2 ), attr )
-                    } else if( typeof attr === 'string' ) {
-                        element.setAttribute( a, attr )
+                        }
                     } else if( a === 'value' ) {
                         //value is always a an attribute because setting it as a property causes problems
                         element.setAttribute( a, attr )
+                    } else if( typeof attr === 'string' ) {
+                        element.setAttribute( a, attr )
+                    } else if( a.startsWith( 'on' ) && typeof attr === 'function' ) {
+                        element.addEventListener( a.substring( 2 ), attr )
                     } else {
                         Object.defineProperty( element, a, {
                             value: attr,
                             enumerable: false
                         } )
                     }
-                } )
+                }
             } else {
                 if( Array.isArray( child ) )
-                    child.forEach( c => element.append( renderElement( c ) ) )
+                    for( let c of child ) {
+                        element.append( renderNode( c ) )
+                    }
                 else
-                    element.append( renderElement( child ) )
+                    element.append( renderNode( child ) )
             }
-        } )
+        }
     }
     return element
 }

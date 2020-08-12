@@ -1,5 +1,5 @@
 export {
-    fnapp, isNode, fnbind, fnstate, findElement, resetState, renderElement, route, fnlink, goTo, routeSwitch, pathParameters, pathState, setRootPath, h, getAttrs
+    fnapp, isNode, fnbind, fnstate, renderNode, route, fnlink, goTo, routeSwitch, pathParameters, pathState, setRootPath, h, getAttrs
 }from './src/fntags.js'
 export {
     a,
