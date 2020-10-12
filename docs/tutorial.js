@@ -150,7 +150,7 @@ export default div(
     contentSection(
         'Add State',
         'At this point, we have a semi-working app that can store todos in memory, but doesn\'t display them.',
-        'To get our ui to automatically update when a todo is added, we will use the fnstate and fnbind functions to turn our todo storage into a bindable state object.',
+        'To get our ui to automatically update when a todo is added, we will use the fnstate and bindAs functions to turn our todo storage into a bindable state object.',
         div( 'Change the contents of ', strong( 'todo.js' ), ' to the following.' ),
         'The key changes are the fnstate import, the change of todos type and being passed to fnstate, and the way the new todo is added in the onsubmit function.',
         prismCode( `import { route, routeSwitch, fnstate } from './fntags.js'

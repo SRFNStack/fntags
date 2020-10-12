@@ -1,4 +1,4 @@
-import { fnbind, fnstate } from './fntags.js'
+import { fnstate } from './fntags.js'
 import { button, code, div, pre } from './fnelements.js'
 
 export default ( sourceCode, demo, maxWidth = '450px' ) => {
@@ -30,11 +30,11 @@ export default ( sourceCode, demo, maxWidth = '450px' ) => {
     return div( { style: `margin: auto; display: flex; flex-direction: column; align-items: flex-end; padding-bottom: 15px;width: 100%; max-width: ${maxWidth};` },
                 demo &&
                 button( { onclick: () => isDemo( !isDemo() ), style: 'width: 65px; padding: 3px 0;' },
-                        fnbind( isDemo, () => isDemo() ? 'Code' : 'Demo' )
+                        isDemo.bindAs(() => isDemo() ? 'Code' : 'Demo' )
                 )
                 || '',
 
-                fnbind( isDemo, () => isDemo() ? demoDiv : src )
+                isDemo.bindAs(() => isDemo() ? demoDiv : src )
     )
 
 }

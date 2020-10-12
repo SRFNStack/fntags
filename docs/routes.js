@@ -5,7 +5,7 @@ import fourOhFore from './404.js'
 import routing from './routing.js'
 //import tutorial from './tutorial.js'
 
-import { fnbind, fnlink, pathState, route } from './fntags.js'
+import { fnlink, pathState, route } from './fntags.js'
 import { secondaryColor } from './constants.js'
 
 const routes = [
@@ -16,7 +16,7 @@ const routes = [
     { url: '/routing', linkText: 'Routing', component: routing },
 
     // {url: "/reference", linkText: 'Reference', component: reference},
-    { url: '.*', component: fourOhFore }
+    { url: '.*', component: home }
 ]
 
 export const routeElements = () => routes.map( ( r ) => route( { path: r.url, absolute: !!r.absolute }, r.component ) )
@@ -24,7 +24,7 @@ export const routeNavItems = () =>
     routes
         .filter( r => r.linkText )
         .map(
-            ( r ) => fnbind( pathState, () =>
+            ( r ) => pathState.bindAs( () =>
                 fnlink( {
                             to: r.url,
                             style: {

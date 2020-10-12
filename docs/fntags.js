@@ -20,67 +20,66 @@ export const fnapp = ( root, ...children ) => {
 export const isNode = ( el ) => el instanceof Node
 
 /**
- * Bind one or more states to the given element.
- * @param state Either a single state object or an array of state objects to watch
- * @param element An element that will be updated whenever the state changes.
- *          If passing a function, the function will be executed on each state change and the returned value will be rendered to a component.
- *          This function receives the new state as it's only argument.
- *
- *          If passing a dom node/element, then you must also supply an update function to perform the update on the element.
- *          This is the preferred method for inputs as it ensures the element is not re-created and focus is lost.
- *
- *          Other inputs are not allowed
- *
- *          Avoid changing the bound state unconditionally in either update case as it can cause an infinite update loop.
- *
- * @param update A function to perform a manual update with.
- *          This function receives two arguments. The element and the new state
- */
-export const fnbind = function( state, element, update ) {
-    if( typeof element !== 'function' && !isNode( element ) ) throw new Error( 'You can only bind functions and Elements' ).stack
-    if( isNode( element ) &&
-        typeof update !==
-        'function' ) throw new Error( 'Either include an update function with this element, or pass a function instead of an element.' ).stack
-    const states = Array.isArray( state ) && state || [ state ]
-    const el = { current: typeof element === 'function' ? renderNode( element() ) : element }
-    tagNode(el.current)
-    states.forEach(
-        ( st ) => {
-            if( !st.isFnState ) throw new Error( `State: ${st} is not an f'nstate. Use fnstate() to create one.` ).stack
-            st.subscribe(() => {
-                if( update )
-                    update( el.current )
-                else {
-                    let newElement = renderNode( element() )
-                    if( newElement ) {
-                        tagNode( newElement )
-                        if( getElId( el.current ) !== getElId( newElement ) ) {
-                            el.current.replaceWith( newElement )
-                            if( isNode( element ) ) element = newElement
-                            el.current = newElement
-                        }
-                    }
-                }
-            })
-        }
-    )
-    tagNode( element )
-    return el.current
-}
-
-/**
  * Create a state object that can be bound to.
- * @param initialState The initial state
+ * @param initialValue The initial state
  * @returns function A function that can be used to get and set the state
  */
-export const fnstate = ( initialState ) => {
-    let currentState = initialState
+export const fnstate = ( initialValue ) => {
+    let childStates = []
     let observers = []
+    const boundContexts = []
+    const proxyArray = ( value ) => {
+        if( Array.isArray( value ) ) {
+            childStates = value.map( fnstate )
+            return new Proxy( value, {
+                set( target, p, value ) {
+                    if( childStates[ p ] ) childStates[ p ]( value )
+                    else {
+                        let newState = fnstate( value )
+                        childStates[ p ] = newState
+                        boundContexts.forEach( ctx => {
+                            if( ctx.update ) {
+                                newState.subscribe( () => ctx.update( ctx.boundElement ) )
+                            } else {
+                                let boundElement = replaceOnUpdate( newState, () => ctx.element( value ) )
+
+                                ctx.boundElement[ p ] = boundElement
+                                let closerToZero = Math.abs( 0 - p ) < Math.abs( ctx.boundElement.length - p )
+                                for( let i = p; closerToZero && i < ctx.boundElement.length || i >= 0; closerToZero ? i++ : i-- ) {
+                                    if( ctx.boundElement[ i ].parent ) {
+                                        if( closerToZero )
+                                            ctx.boundElement[ i ].insertBefore( boundElement )
+                                        else
+                                            ctx.boundElement[ i ].insertAfter( boundElement )
+                                    }
+                                }
+                            }
+                        } )
+                    }
+                    return Reflect.set( ...arguments )
+                },
+                deleteProperty( target, p ) {
+                    if( childStates[ p ] ) {
+                        boundContexts.forEach( ctx => {
+                            ctx.boundElement[ p ].replaceWith( '' )
+                            delete ctx.boundElement[ p ]
+                        } )
+                        delete childStates[ p ]
+                    }
+                    return Reflect.deleteProperty( ...arguments )
+                }
+            } )
+        } else
+            return value
+    }
+
+    let currentValue = proxyArray( initialValue )
+
     const state = function( newState ) {
         if( arguments.length === 0 ) {
-            return currentState
+            return currentValue
         } else {
-            currentState = newState
+            currentValue = proxyArray( newState )
             for( let observer of observers ) {
                 observer( newState )
             }
@@ -88,77 +87,59 @@ export const fnstate = ( initialState ) => {
         return newState
     }
 
-    state.patch = ( update ) => state( Object.assign( currentState, update ) )
+    const replaceOnUpdate = ( st, element ) => {
+        let current = renderNode( element() )
+        tagNode( current )
 
-    /**
-     * Map an array or object to the children of an element. This can be done using fnbind, but this method is much more efficient so it's preferred for large arrays.
-     * @param parent The element to bind children to
-     * @param keyFn A function for mapping each element to a unique key, or the mapping function if the state is an object. The property names of the object are used as the keys
-     * in that case
-     * @param mapFn A function to map an element in the array to an html element
-     * @returns {*} The parent
-     */
-    state.mapChildren = ( parent, keyFn, mapFn ) => {
-        let childCache = new Map()
-        observers.push( () => {
-            let isArray = Array.isArray( currentState )
-            if( !isArray || typeof currentState !== 'object' ) {
-                console.warn( 'Can\'t mapChildren for non-array, non-object state value ' + currentState )
-                return
-            }
-            let keys = isArray ? currentState.map( keyFn ) : Object.keys( currentState )
-            if( !isArray ) mapFn = keyFn
-            if( keys.length === 0 ) {
-                while( parent.firstChild ) {
-                    parent.removeChild( parent.firstChild )
-                }
-                childCache.clear()
-            } else {
-                let currentChild = parent.firstChild
-                for( let i in keys ) {
-                    let data = isArray ? currentState[ i ] : currentState[ keys[ i ] ]
-                    let key = keys[ i ]
-                    let element = childCache.get( key )
-                    if( !element ) {
-                        element = mapFn( data )
-                        tagNode( element )
-                        childCache.set( key, element )
-                    }
-                    if( currentChild ) {
-                        let elId = getElId( element )
-                        let childId = getElId( currentChild )
-                        if( elId !== childId ) {
-                            let tmp = currentChild
-                            currentChild = currentChild.nextSibling
-                            //create a placeholder so the sibling iteration doesn't get disrupted when this element gets detached
-                            element.replaceWith( document.createTextNode( '' ) )
-                            tmp.replaceWith( element )
-                        } else {
-                            currentChild = currentChild.nextSibling
-                        }
-                    } else {
-                        parent.appendChild( element )
-                    }
-                }
-                while( currentChild && currentChild !== parent.lastChild ) {
-                    let lastId = getElId( parent.lastChild )
-                    childCache.delete( lastId )
-                    parent.removeChild( parent.lastChild )
+        st.subscribe( () => {
+            let newElement = renderNode( element() )
+            if( newElement ) {
+                tagNode( newElement )
+                if( getElId( current ) !== getElId( newElement ) ) {
+                    current.replaceWith( newElement )
+                    current = newElement
                 }
             }
-
         } )
-        return parent
+        return current
     }
 
-    state.subscribe = (callback)=>observers.push(callback)
+    /**
+     * Bind this state to the given element
+     *
+     * @param element The element to bind to, if not a function, an update function must be passed
+     * @param update If passed this will be executed directly when the state changes with no other intervention
+     * @returns {(HTMLDivElement|Text)[]|HTMLDivElement|Text}
+     */
+    state.bindAs = ( element, update ) => {
+        if( typeof element !== 'function' && !update )
+            throw new Error( 'You must pass an update function when passing a non function element' )
+        let boundElement
+        if( update ) {
+            boundElement = renderNode( typeof element === 'function' ? element( currentValue ) : element );
+            [...childStates, state].forEach( st => st.subscribe( () => update( boundElement ) ) )
+        } else {
+            if( Array.isArray( currentValue ) ) {
+                boundElement = childStates.map(
+                    childState =>
+                        replaceOnUpdate( childState, () => element( childState() ) )
+                )
+            } else {
+                boundElement = replaceOnUpdate( state, () => element( currentValue ) )
+            }
+        }
+        boundContexts.push( { element, update, boundElement } )
+        return boundElement
+    }
+
+    state.patch = ( update ) => state( Object.assign( currentValue, update ) )
+
+    state.subscribe = ( callback ) => observers.push( callback )
 
     state.reset = ( reInit ) => {
         observers = []
-        if( reInit ) currentState = initialState
+        if( reInit ) currentValue = initialValue
     }
-
-    state.isFnState = true
 
     return state
 }
@@ -246,7 +227,7 @@ export const route = ( ...children ) => {
         }
     }
     update()
-    return fnbind( pathState, routeEl, update )
+    return pathState.bindAs( routeEl, update )
 }
 
 function extractPathParameters( path ) {
@@ -315,20 +296,22 @@ export const goTo = ( route, context ) => {
  */
 export const routeSwitch = ( ...children ) => {
     const sw = h( 'div', getAttrs( children ) )
-    return fnbind( pathState, () => {
-                       while( sw.firstChild ) {
-                           sw.removeChild( sw.firstChild )
-                       }
-                       for( let child of children ) {
-                           const rendered = renderNode( child )
-                           if( rendered.getAttribute( 'path' ) ) {
-                               if( shouldDisplayRoute( rendered.getAttribute( 'path' ), !!rendered.absolute || rendered.getAttribute( 'absolute' ) === 'true' ) ) {
-                                   sw.append( rendered )
-                                   return sw
-                               }
-                           }
-                       }
-                   }
+
+    return pathState.bindAs(
+        () => {
+            while( sw.firstChild ) {
+                sw.removeChild( sw.firstChild )
+            }
+            for( let child of children ) {
+                const rendered = renderNode( child )
+                if( rendered.getAttribute( 'path' ) ) {
+                    if( shouldDisplayRoute( rendered.getAttribute( 'path' ), !!rendered.absolute || rendered.getAttribute( 'absolute' ) === 'true' ) ) {
+                        sw.append( rendered )
+                        return sw
+                    }
+                }
+            }
+        }
     )
 }
 
