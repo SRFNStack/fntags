@@ -5,7 +5,7 @@ import fourOhFore from './404.js'
 import routing from './routing.js'
 //import tutorial from './tutorial.js'
 
-import { fnlink, pathState, route } from './fntags.js'
+import { fnlink, pathState, route } from './lib/fntags.js'
 import { secondaryColor } from './constants.js'
 
 const routes = [

@@ -1,5 +1,5 @@
-import { fnstate } from './fntags.js'
-import { button, div, input, br, code, span } from './fnelements.js'
+import { fnstate } from './lib/fntags.js'
+import { button, div, input, br, code, span } from './lib/fnelements.js'
 import prismCode from './prismCode.js'
 import contentSection from './contentSection.js'
 
@@ -22,9 +22,15 @@ export default div(
         ' to bind the state with an element'),
         prismCode( 'document.body.append( count.bindAs( () => `Current count: ${count()}` ) )' ),
         'When the state is changed, the passed function is executed, and the current element is replaced with the newly returned element.',
-        'If the value is an array, each element will be bound to the passed function and any time an element is added, removed, or replaced in an array the corresponding element will be updated. ' +
+        span('Call ',
+             code( 'state.bindValues' ),
+             ' to bind the state with the values of array. This will make the set of elements reflect changes to position and any change to value.'),
+        'When using bindValues, you must supply a keyMapper when creating the state, this is necessary to correctly match the array value to the corresponding element.',
+        prismCode( 'const peeps = fnstate(["greg","jerry"])\n' +
+                   'document.body.append( peeps.bindValues( (peep) => `Hello ${peep}` ) )' ),
+        'The bind function receives the value wrapped as an fnstate, not the raw value. This allows binding to value changes.',
         'This is more efficient than re-setting the entire array as that will require re-creating each element in the array. ',
-        'A promise can be returned from the function passed to bindAs. The promise should resolve to either an element, a function that returns an element, or another promise.'
+        'A promise can be returned from either bind function to allow for asynchronous element creation. The promise should resolve to either an element, a function that returns an element, or another promise.'
     ),
     contentSection( 'Patching State',
                     'The function returned by fnstate has a patch function property that can be used to apply a patch to the existing state using Object.assign.',

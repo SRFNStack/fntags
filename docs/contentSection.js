@@ -1,5 +1,5 @@
-import { goTo, pathState } from './fntags.js'
-import { h3, hr, p, section, span } from './fnelements.js'
+import { goTo, pathState } from './lib/fntags.js'
+import { h3, hr, p, section, span } from './lib/fnelements.js'
 
 export default ( title, ...content ) => section(
     h3( { id: title }, title,

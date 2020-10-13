@@ -1,4 +1,4 @@
-import { a, div, h4, strong } from './fnelements.js'
+import { a, div, h4, strong } from './lib/fnelements.js'
 import contentSection from './contentSection.js'
 import prismCode from './prismCode.js'
 import { code } from '../src/fnelements.js'

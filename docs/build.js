@@ -1,5 +1,5 @@
-import { h } from './fntags.js'
-import { a, b, div, h1, h4, p, span, strong } from './fnelements.js'
+import { h } from './lib/fntags.js'
+import { a, b, div, h1, h4, p, span, strong } from './lib/fnelements.js'
 import contentSection from './contentSection.js'
 import prismCode from './prismCode.js'
 import { secondaryColor } from './constants.js'

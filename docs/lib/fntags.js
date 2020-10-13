@@ -27,8 +27,8 @@ export const isNode = ( el ) => el instanceof Node
  * @returns function A function that can be used to get and set the state
  */
 export const fnstate = ( initialValue, mapKey ) => {
+    let currentValue = initialValue
     let childStates = {}
-    let currentValue = proxyArray( initialValue )
     let observers = []
     const bindContexts = []
 
@@ -37,43 +37,14 @@ export const fnstate = ( initialValue, mapKey ) => {
             return currentValue
         } else {
             //skip updates if states are identical
-            currentValue = proxyArray( newState )
-            for( let observer of observers ) {
-                observer( newState )
+            if( !deepEqual( currentValue, newState ) ) {
+                currentValue = newState
+                for( let observer of observers ) {
+                    observer( newState )
+                }
             }
         }
         return newState
-    }
-
-    function proxyArray( value ) {
-        if( Array.isArray( value ) ) {
-            return new Proxy( value, {
-                get( target, p ) {
-                    if( parseInt( p.toString() ) == p ) {
-                        //unwrap any state objects, since the user deals with state objects
-                        if(target[p] && target[p].isFnState) target[p] = target[p]()
-                        let key = keyMapper( target[ p ], p )
-                        if( childStates[ key ] ) {
-                            return childStates[ key ]
-                        } else {
-                            return childStates[ key ] = fnstate( target[ p ] )
-                        }
-                    } else {
-                        return Reflect.get( ...arguments )
-                    }
-                },
-                set( target, p, value ) {
-                    if( value && value.isFnState ) value = value()
-                    if( parseInt( p.toString() ) == p && bindContexts.length > 0 ) {
-                        let key = keyMapper( value, p )
-                        if( !childStates[ key ] )
-                            childStates[ key ] = fnstate( value )
-                    }
-                    return Reflect.set( ...arguments )
-                }
-            } )
-        } else
-            return value
     }
 
     function keyMapper( value, index ) {
@@ -89,14 +60,20 @@ export const fnstate = ( initialValue, mapKey ) => {
     let collectBoundElements = function( boundElementByKey, ctx ) {
         let seenKeys = {}
         return currentValue.map( ( v, i ) => {
-            let key = keyMapper( v(), i )
+            let key = keyMapper( v, i )
             if( seenKeys[ key ] ) throw new Error( 'Duplicate keys in a bound array are not allowed. Try prepending the index?' )
             if( boundElementByKey[ key ] )
                 return boundElementByKey[ key ]
             else {
-                childStates[ key ] = v
-                let node = renderNode( evaluateElement( ctx.element, v ) )
-                node.key = key
+                let newState = fnstate( v )
+                childStates[ key ] = newState
+                let node
+                if( ctx.update ) {
+                    node = renderNode( evaluateElement( ctx.element, currentValue ) )
+                    newState.subscribe( () => ctx.update( node ) )
+                } else {
+                    node = replaceOnUpdate( newState, () => ctx.element( newState ), i )
+                }
                 return node
             }
         } )
@@ -108,25 +85,29 @@ export const fnstate = ( initialValue, mapKey ) => {
         let parent = ctx.parent
         for( let i = ctx.boundElements.length - 1; i >= 0; i-- ) {
             let current = ctx.boundElements[ i ]
-            let key = keyMapper( currentValue[ i ](), i )
+            let key = keyMapper( currentValue[ i ], i )
             //place the element in the parent
             if( !prev ) {
+                prev = current
                 if( !parent.lastChild || parent.lastChild.key !== current.key ) parent.append( current )
             } else {
                 if( !prev.previousSibling || prev.previousSibling.key !== current.key )
-                    parent.insertBefore( current, prev )
+                    parent.insertBefore( prev, current )
             }
 
-            prev = current
-
             delete remainingElements[ key ]
+
+            if( !deepEqual( currentValue[ i ], childStates[ key ]() ) ) {
+                childStates[ key ]( currentValue[ i ] )
+            }
         }
         //deleted keys
         if( Object.keys( remainingElements ) ) {
             for( let key in remainingElements ) {
-                let remaining = remainingElements[ key ]
-                delete childStates[ remaining.key ]
-                remaining.remove()
+                let el = remainingElements[ key ]
+                childStates[ el.key ].reset()
+                delete childStates[ el.key ]
+                el.remove()
             }
         }
     }
@@ -137,15 +118,14 @@ export const fnstate = ( initialValue, mapKey ) => {
     function reconcile() {
         if( !childStates )
             childStates = currentValue.reduce( ( statesByKey, v, i ) => {
-                statesByKey[ keyMapper( v(), i ) ] = v
+                statesByKey[ keyMapper( v, i ) ] = fnstate( v )
                 return statesByKey
             }, {} )
 
         for( let ctx of bindContexts ) {
             if( !ctx.boundElements ) ctx.boundElements = []
-            let boundElementByKey = ctx.boundElements.reduce( ( elByKey, el ) => {
-                elByKey[ el.key ] = el
-                return elByKey
+            let boundElementByKey = ctx.boundElements.reduce( ( elByKey, el, i ) => {
+                elByKey[ el.key ] = { el, i }
             }, {} )
             ctx.boundElements = collectBoundElements( boundElementByKey, ctx )
 

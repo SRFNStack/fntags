@@ -1,7 +1,7 @@
 //30px header, 25px text fntags - (15px text, vertical center aligned) functions as tags. Write javascript instead of html
 //50px header with just text to
-import { fnlink, pathState } from './fntags.js'
-import { div, header, nav, span } from './fnelements.js'
+import { fnlink, pathState } from './lib/fntags.js'
+import { div, header, nav, span } from './lib/fnelements.js'
 import { primaryColor, secondaryColor } from './constants.js'
 import { routeNavItems } from './routes.js'
 

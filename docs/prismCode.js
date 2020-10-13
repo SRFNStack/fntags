@@ -1,5 +1,5 @@
-import { fnstate } from './fntags.js'
-import { button, code, div, pre } from './fnelements.js'
+import { fnstate } from './lib/fntags.js'
+import { button, code, div, pre } from './lib/fnelements.js'
 
 export default ( sourceCode, demo, maxWidth = '450px' ) => {
     const isDemo = fnstate( false )

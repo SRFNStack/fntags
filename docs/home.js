@@ -1,5 +1,5 @@
-import { goTo } from './fntags.js'
-import { a, button, div, hr, p, span } from './fnelements.js'
+import { goTo } from './lib/fntags.js'
+import { a, button, div, hr, p, span } from './lib/fnelements.js'
 
 const even = ( text ) => p( { style: 'font-weight: 400; margin-left: -15px; text-align: left; padding: 5px' }, text )
 const odd = ( text ) => p({style: 'margin-left: 15px; text-align: left; padding: 5px'}, text )
