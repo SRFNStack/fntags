@@ -23,7 +23,7 @@ export const isNode = ( el ) => el instanceof Node
  * Create a state object that can be bound to.
  * @param initialValue The initial state
  * @param mapKey A map function to extract a key from an element in the array. Receives the element and the index in the array.
- *                  The index should only be used for simple static cases, a real unique key is much preferred.
+ *                  The index should only be used for simple static cases where rows don't move around, a real unique key is much preferred.
  * @returns function A function that can be used to get and set the state
  */
 export const fnstate = ( initialValue, mapKey ) => {
@@ -46,12 +46,12 @@ export const fnstate = ( initialValue, mapKey ) => {
     }
 
     function proxyArray( value ) {
-        if( Array.isArray( value ) ) {
-            return new Proxy( value, {
+        if( Array.isArray( value ) && !value.__isProxy ) {
+            let p = new Proxy( value, {
                 get( target, p ) {
                     if( parseInt( p.toString() ) == p ) {
-                        //unwrap any state objects, since the user deals with state objects
-                        if(target[p] && target[p].isFnState) target[p] = target[p]()
+                        //unwrap any state objects, since the user deals with state objects they may have explicitly set an index to a state object instead of a value
+                        if( target[ p ] && target[ p ].isFnState ) target[ p ] = target[ p ]()
                         let key = keyMapper( target[ p ], p )
                         if( childStates[ key ] ) {
                             return childStates[ key ]
@@ -72,6 +72,12 @@ export const fnstate = ( initialValue, mapKey ) => {
                     return Reflect.set( ...arguments )
                 }
             } )
+            Object.defineProperty( p, '__isProxy', {
+                value: true,
+                enumerable: false,
+                writable: false
+            } )
+            return p
         } else
             return value
     }
@@ -86,37 +92,38 @@ export const fnstate = ( initialValue, mapKey ) => {
             return mapKey( value, index )
     }
 
-    let collectBoundElements = function( boundElementByKey, ctx ) {
-        let seenKeys = {}
-        return currentValue.map( ( v, i ) => {
-            let key = keyMapper( v(), i )
-            if( seenKeys[ key ] ) throw new Error( 'Duplicate keys in a bound array are not allowed. Try prepending the index?' )
-            if( boundElementByKey[ key ] )
-                return boundElementByKey[ key ]
-            else {
-                childStates[ key ] = v
-                let node = renderNode( evaluateElement( ctx.element, v ) )
-                node.key = key
-                return node
-            }
-        } )
-    }
-
-    function arrangeElements( boundElementByKey, ctx ) {
-        let remainingElements = Object.assign( {}, boundElementByKey )
+    function arrangeElements( ctx ) {
+        let remainingElements = Object.assign( {}, ctx.boundElementByKey )
         let prev = null
         let parent = ctx.parent
-        for( let i = ctx.boundElements.length - 1; i >= 0; i-- ) {
-            let current = ctx.boundElements[ i ]
-            let key = keyMapper( currentValue[ i ](), i )
+        let seenKeys = {}
+        for( let i = currentValue.length - 1; i >= 0; i-- ) {
+            let valueState = currentValue[ i ]
+            let key = keyMapper( valueState(), i )
+            if( seenKeys[ key ] ) throw new Error( 'Duplicate keys in a bound array are not allowed. Try appending the index?' )
+            seenKeys[ key ] = true
+            let current = ctx.boundElementByKey[ key ]
+            let isNew = false
+            if( !current ) {
+                isNew = true
+                current = ctx.boundElementByKey[ key ] = renderNode( evaluateElement( ctx.element, valueState ) )
+                current.key = key
+            }
             //place the element in the parent
             if( !prev ) {
                 if( !parent.lastChild || parent.lastChild.key !== current.key ) parent.append( current )
             } else {
-                if( !prev.previousSibling || prev.previousSibling.key !== current.key )
+                if( !prev.previousSibling ) {
                     parent.insertBefore( current, prev )
+                } else if( prev.previousSibling.key !== current.key ) {
+                    //if it's a new key, always insert it
+                    if(isNew)
+                        parent.insertBefore( current, prev )
+                    //if it's an existing key, replace the current object with the correct object
+                    else
+                        prev.previousSibling.replaceWith(current)
+                }
             }
-
             prev = current
 
             delete remainingElements[ key ]
@@ -135,21 +142,9 @@ export const fnstate = ( initialValue, mapKey ) => {
      * Reconcile the state of the current array value with the state of the bound elements
      */
     function reconcile() {
-        if( !childStates )
-            childStates = currentValue.reduce( ( statesByKey, v, i ) => {
-                statesByKey[ keyMapper( v(), i ) ] = v
-                return statesByKey
-            }, {} )
-
         for( let ctx of bindContexts ) {
-            if( !ctx.boundElements ) ctx.boundElements = []
-            let boundElementByKey = ctx.boundElements.reduce( ( elByKey, el ) => {
-                elByKey[ el.key ] = el
-                return elByKey
-            }, {} )
-            ctx.boundElements = collectBoundElements( boundElementByKey, ctx )
-
-            arrangeElements( boundElementByKey, ctx )
+            if( !ctx.boundElementByKey ) ctx.boundElementByKey = {}
+            arrangeElements( ctx )
         }
     }
 
@@ -355,73 +350,3 @@ export const getAttrs = ( children ) => children.reduce( ( attrs, child ) => {
  * @returns {HTMLDivElement}
  */
 const marker = ( attrs ) => h( 'div', Object.assign( attrs || {}, { style: 'display:none' } ) )
-
-//from https://github.com/epoberezkin/fast-deep-equal, not an es6 module
-const deepEqual = function( a, b ) {
-    if( a === b ) return true
-
-    if( a && b && typeof a == 'object' && typeof b == 'object' ) {
-        if( a.constructor !== b.constructor ) return false
-
-        let length, i, keys
-        if( Array.isArray( a ) ) {
-            length = a.length
-            if( length !== b.length ) return false
-            for( i = length; i-- !== 0; ) {
-                if( !deepEqual( a[ i ], b[ i ] ) ) return false
-            }
-            return true
-        }
-
-        if( ( a instanceof Map ) && ( b instanceof Map ) ) {
-            if( a.size !== b.size ) return false
-            for( i of a.entries() ) {
-                if( !b.has( i[ 0 ] ) ) return false
-            }
-            for( i of a.entries() ) {
-                if( !deepEqual( i[ 1 ], b.get( i[ 0 ] ) ) ) return false
-            }
-            return true
-        }
-
-        if( ( a instanceof Set ) && ( b instanceof Set ) ) {
-            if( a.size !== b.size ) return false
-            for( i of a.entries() ) {
-                if( !b.has( i[ 0 ] ) ) return false
-            }
-            return true
-        }
-
-        if( ArrayBuffer.isView( a ) && ArrayBuffer.isView( b ) ) {
-            length = a.length
-            if( length !== b.length ) return false
-            for( i = length; i-- !== 0; ) {
-                if( a[ i ] !== b[ i ] ) return false
-            }
-            return true
-        }
-
-        if( a.constructor === RegExp ) return a.source === b.source && a.flags === b.flags
-        if( a.valueOf !== Object.prototype.valueOf ) return a.valueOf() === b.valueOf()
-        if( a.toString !== Object.prototype.toString ) return a.toString() === b.toString()
-
-        keys = Object.keys( a )
-        length = keys.length
-        if( length !== Object.keys( b ).length ) return false
-
-        for( i = length; i-- !== 0; ) {
-            if( !Object.prototype.hasOwnProperty.call( b, keys[ i ] ) ) return false
-        }
-
-        for( i = length; i-- !== 0; ) {
-            let key = keys[ i ]
-
-            if( !deepEqual( a[ key ], b[ key ] ) ) return false
-        }
-
-        return true
-    }
-
-    // true if both NaN, false otherwise
-    return a !== a && b !== b
-}
