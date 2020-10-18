@@ -1,9 +1,10 @@
 import { fnstate } from './lib/fntags.js'
-import { button, div, input, br, code, span } from './lib/fnelements.js'
+import { br, button, code, div, input, span } from './lib/fnelements.js'
 import prismCode from './prismCode.js'
 import contentSection from './contentSection.js'
 
 const appState = fnstate( { userName: 'Jerry' } )
+let data = fnstate( [1, 2, 3, 4], v => v )
 
 export default div(
     contentSection(
@@ -13,24 +14,54 @@ export default div(
         'To access the current value of the function, call it with no arguments. ' +
         'To change the state, pass the new value to the function.',
         prismCode( 'const count = fnstate(0)' ),
-        span('Call ',
-        code( 'state.subscribe' ),
-        ' on the created state with a callback to be notified whenever there is a state change. This callback receives no arguments.'),
+        span( 'Call ',
+              code( 'state.subscribe' ),
+              ' on the created state with a callback to be notified whenever there is a state change. This callback receives no arguments.' ),
         prismCode( 'count.subscribe( () => alert( `Current count: ${count()}` ) )' ),
-        span('Call ',
-        code( 'state.bindAs' ),
-        ' to bind the state with an element'),
+        span( 'Call ',
+              code( 'state.bindAs' ),
+              ' to bind the state with an element' ),
         prismCode( 'document.body.append( count.bindAs( () => `Current count: ${count()}` ) )' ),
         'When the state is changed, the passed function is executed, and the current element is replaced with the newly returned element.',
-        span('Call ',
-             code( 'state.bindValues' ),
-             ' to bind the state with the values of array. This will make the set of elements reflect changes to position and any change to value.'),
+        span( 'Call ',
+              code( 'state.bindValues' ),
+              ' to bind the state with the values of array. This will make the set of elements reflect changes to position and any change to value.' ),
         'When using bindValues, you must supply a keyMapper when creating the state, this is necessary to correctly match the array value to the corresponding element.',
         prismCode( 'const peeps = fnstate(["greg","jerry"])\n' +
                    'document.body.append( peeps.bindValues( (peep) => `Hello ${peep}` ) )' ),
         'The bind function receives the value wrapped as an fnstate, not the raw value. This allows binding to value changes.',
         'This is more efficient than re-setting the entire array as that will require re-creating each element in the array. ',
         'A promise can be returned from either bind function to allow for asynchronous element creation. The promise should resolve to either an element, a function that returns an element, or another promise.'
+    ),
+    contentSection( 'Selecting Children',
+                    'If using bindValues you can handle selecting and deselecting elements of the row by adding an onselect and ondeselect handler to the element you return for the value in the array.',
+                    prismCode(
+                        `let data = fnstate([1,2,3,4], v=>v)
+data.bindValues(
+        div(),
+        n=>
+            span({
+                style: {padding: '5px', cursor: 'pointer', 'font-size': '40px'},
+                onclick:()=>data.select(n()),
+                onselect: e=>e.target.style.color = 'limegreen',
+                ondeselect: e=>e.target.style.color = 'black'
+            },
+            n()
+    )
+)
+`,
+                        data.bindValues(
+                            div(),
+                            n => span( {
+                                           style: { padding: '5px', cursor: 'pointer', 'font-size': '40px' },
+                                           onclick: () => data.select( n() ),
+                                           onselect: e => e.target.style.color = 'limegreen',
+                                           ondeselect: e => e.target.style.color = 'black'
+                                       },
+                                       n()
+                            )
+                        )
+                    )
     ),
     contentSection( 'Patching State',
                     'The function returned by fnstate has a patch function property that can be used to apply a patch to the existing state using Object.assign.',
@@ -179,7 +210,7 @@ return div(
                            const greeting = fnstate( 'Hello' )
                            let triggered = false
                            return div(
-                               greeting.bindAs( () => greeting() ),' ', appState.bindAs( () => appState().userName ), '!',
+                               greeting.bindAs( () => greeting() ), ' ', appState.bindAs( () => appState().userName ), '!',
                                div(
                                    greeting.bindAs(
                                        input( {

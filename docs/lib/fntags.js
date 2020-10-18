@@ -17,12 +17,12 @@ export const fnstate = ( initialValue, mapKey ) => {
     let currentValue = proxyArray( initialValue )
     let observers = []
     const bindContexts = []
+    let selected
 
     const state = function( newState ) {
         if( arguments.length === 0 ) {
             return currentValue
         } else {
-            //skip updates if states are identical
             currentValue = proxyArray( newState )
             for( let observer of observers ) {
                 observer( newState )
@@ -36,13 +36,14 @@ export const fnstate = ( initialValue, mapKey ) => {
             let p = new Proxy( value, {
                 get( target, p ) {
                     if( parseInt( p.toString() ) == p ) {
+                        let v = target[ p ]
                         //unwrap any state objects, since the user deals with state objects they may have explicitly set an index to a state object instead of a value
-                        if( target[ p ] && target[ p ].isFnState ) target[ p ] = target[ p ]()
-                        let key = keyMapper( target[ p ], p )
+                        if( v && v.isFnState ) v = v()
+                        let key = keyMapper( v, p )
                         if( childStates[ key ] ) {
                             return childStates[ key ]
                         } else {
-                            return childStates[ key ] = fnstate( target[ p ] )
+                            return childStates[ key ] = fnstate( v )
                         }
                     } else {
                         return Reflect.get( ...arguments )
@@ -83,6 +84,11 @@ export const fnstate = ( initialValue, mapKey ) => {
         let prev = null
         let parent = ctx.parent
         let seenKeys = {}
+
+        if( currentValue.length === 0 ) {
+            parent.textContent = ''
+            return
+        }
         for( let i = currentValue.length - 1; i >= 0; i-- ) {
             let valueState = currentValue[ i ]
             let key = keyMapper( valueState(), i )
@@ -116,6 +122,7 @@ export const fnstate = ( initialValue, mapKey ) => {
         }
         //deleted keys
         for( let key of Object.keys( remainingElements ) ) {
+            if( selected === key ) selected = null
             delete childStates[ key ]
             remainingElements[ key ].remove()
         }
@@ -205,6 +212,21 @@ export const fnstate = ( initialValue, mapKey ) => {
             return boundElement
         } else {
             return replaceOnUpdate( state, () => element( currentValue ) )
+        }
+    }
+
+    let deselectEvent = new Event( 'deselect' )
+    let selectEvent = new Event( 'select' )
+
+    state.select = ( key ) => {
+        for( let ctx of bindContexts ) {
+            if( selected && ctx.boundElementByKey[ selected ] ) {
+                ctx.boundElementByKey[ selected ].dispatchEvent( deselectEvent )
+            }
+            selected = key
+            if( ctx.boundElementByKey[ key ] ) {
+                ctx.boundElementByKey[ key ].dispatchEvent( selectEvent )
+            }
         }
     }
 
