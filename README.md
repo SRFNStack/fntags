@@ -12,13 +12,13 @@
 ```html
 <html><body>
 <script type="module">
-    import {fnapp, fnstate} from './fntags.js'
+    import {fnstate} from './fntags.js'
     import {div, p, h1} from './fnelements.js'
     
     const welcome = fnstate('Welcome')
 
 
-    fnapp(document.body,
+    document.body.append(
         div(
             welcome.bindAs(()=>h1(welcome())),
             p("to fntags")

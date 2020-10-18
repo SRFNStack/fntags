@@ -24,7 +24,6 @@ export default div(
         h4( 'Manually Downloading' ),
         'Go to GitHub and download the files into the directory you created.',
         'When importing make sure you use the correct relative url.',
-        prismCode( 'import {fnapp} from \'./fntags.js\'' ),
         h4( 'Installing with npm' ),
         div( 'To use npm, first you will need to ensure ', a( { href: 'https://nodejs.org/' }, 'nodejs' ), ' is installed on your computer.' ),
         div( 'Verify npm is installed by typing ',
@@ -58,7 +57,7 @@ export default div(
 </html>
 `, undefined, '100%' ),
         div( 'Now create an ', strong( 'app.js' ), ' file that will contain the root of the app.' ),
-        prismCode( `import { fnapp, route, routeSwitch, setRootPath, fnlink } from './fntags.js'
+        prismCode( `import { route, routeSwitch, setRootPath, fnlink } from './fnroute.js'
 import { div, ul, li } from './fnelements.js'
 
 //Set the root path to make deep linking work correctly
@@ -83,8 +82,7 @@ const header = div(
 
 const footer = div( { class: 'footer' }, 'myFnFooter' )
 
-fnapp(
-    document.body,
+    document.body.append(
     header,
     div( { class: 'content' },
          //Only display the first route that matches 
@@ -106,7 +104,7 @@ fnapp(
         'A component is any html element, or any function that returns an html element.',
         'The easiest way to share components is to export them from a module.',
         div( 'Create a file called ', strong( 'todo.js' ), ' with the following content' ),
-        prismCode( `import { route, routeSwitch } from './fntags.js'
+        prismCode( `import { route, routeSwitch } from './fnroute.js'
 import { form, input, li, ul, div } from './fnelements.js'
 
 //The storage for the list of todos
@@ -153,7 +151,8 @@ export default div(
         'To get our ui to automatically update when a todo is added, we will use the fnstate and bindAs functions to turn our todo storage into a bindable state object.',
         div( 'Change the contents of ', strong( 'todo.js' ), ' to the following.' ),
         'The key changes are the fnstate import, the change of todos type and being passed to fnstate, and the way the new todo is added in the onsubmit function.',
-        prismCode( `import { route, routeSwitch, fnstate } from './fntags.js'
+        prismCode( `import { route, routeSwitch } from './fnroute.js'
+        import { fnstate } from './fntags.js'
 import { form, input, li, ul, div } from './fnelements.js'
 
 //This is now a state object that can be bound to by other components

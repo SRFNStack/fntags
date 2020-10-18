@@ -1,4 +1,4 @@
-import { goTo, pathState } from './lib/fntags.js'
+import { goTo, pathState } from './lib/fnroute.js'
 import { h3, hr, p, section, span } from './lib/fnelements.js'
 
 export default ( title, ...content ) => section(

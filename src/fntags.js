@@ -1,18 +1,4 @@
 /**
- * A helper function that will append the given children to the given root element
- * @param root Either an element id string or an element itself
- * @param children The children to append to the root element
- */
-export const fnapp = ( root, ...children ) => {
-    if( typeof root === 'string' ) {
-        root = document.getElementById( root )
-        if( !root ) throw new Error( `No such element with id ${root}` ).stack
-    }
-    if( !isNode( root ) ) throw new Error( 'Invalid root element' ).stack
-    root.append( ...children.map( c => renderNode( c ) ) )
-}
-
-/**
  * Check if a value is an dom node
  * @param el
  * @returns {boolean}
@@ -100,7 +86,7 @@ export const fnstate = ( initialValue, mapKey ) => {
         for( let i = currentValue.length - 1; i >= 0; i-- ) {
             let valueState = currentValue[ i ]
             let key = keyMapper( valueState(), i )
-            if( seenKeys[ key ] ) throw new Error( 'Duplicate keys in a bound array are not allowed. Try appending the index?' )
+            if( seenKeys[ key ] ) throw new Error( 'Duplicate keys in a bound array are not allowed.' )
             seenKeys[ key ] = true
             let current = ctx.boundElementByKey[ key ]
             let isNew = false
@@ -117,11 +103,11 @@ export const fnstate = ( initialValue, mapKey ) => {
                     parent.insertBefore( current, prev )
                 } else if( prev.previousSibling.key !== current.key ) {
                     //if it's a new key, always insert it
-                    if(isNew)
+                    if( isNew )
                         parent.insertBefore( current, prev )
                     //if it's an existing key, replace the current object with the correct object
                     else
-                        prev.previousSibling.replaceWith(current)
+                        prev.previousSibling.replaceWith( current )
                 }
             }
             prev = current
@@ -129,12 +115,9 @@ export const fnstate = ( initialValue, mapKey ) => {
             delete remainingElements[ key ]
         }
         //deleted keys
-        if( Object.keys( remainingElements ) ) {
-            for( let key in remainingElements ) {
-                let remaining = remainingElements[ key ]
-                delete childStates[ remaining.key ]
-                remaining.remove()
-            }
+        for( let key of Object.keys( remainingElements ) ) {
+            delete childStates[ key ]
+            remainingElements[ key ].remove()
         }
     }
 
@@ -163,11 +146,9 @@ export const fnstate = ( initialValue, mapKey ) => {
     const replaceOnUpdate = ( st, element, i ) => {
         let current = setKey( renderNode( element() ), i )
         st.subscribe( function() {
-            tag( current )
             let newElement = setKey( renderNode( element() ), i )
             if( newElement ) {
-                tag( newElement )
-                if( getTagId( current ) !== getTagId( newElement ) ) {
+                if( !newElement.key || newElement.key !== current.key ) {
                     current.replaceWith( newElement )
                     current = newElement
                 }
@@ -238,20 +219,18 @@ export const fnstate = ( initialValue, mapKey ) => {
         if( reInit ) currentValue = initialValue
     }
 
-    tag( state )
-
     return state
 }
 
 const evaluateElement = ( element, value ) => typeof element === 'function' ? element( value ) : element
 
 /**
- * Convert non dom nodes to text nodes and allow promises to resolve to nodes
+ * Convert non objects (objects are assumed to be nodes) to text nodes and allow promises to resolve to nodes
  */
 export const renderNode = ( node ) => {
-    if( isNode( node ) ) {
+    if( typeof node === 'object' && node.then === undefined ) {
         return node
-    } else if( Promise.resolve( node ) === node ) {
+    } else if( typeof node.then === 'function' ) {
         const node = marker()
         node.then( el => node.replaceWith( renderNode( el ) ) ).catch( e => console.error( 'Caught failed node promise.', e ) )
         return node
@@ -259,23 +238,6 @@ export const renderNode = ( node ) => {
         return document.createTextNode( node + '' )
     }
 }
-
-let lastId = 0
-const fntag = '_fninfo'
-
-const tag = ( el ) => {
-    if( !el.hasOwnProperty( fntag ) ) {
-        Object.defineProperty( el, fntag, {
-            value: { id: lastId++ },
-            enumerable: false,
-            writable: false
-        } )
-    }
-}
-
-const getTag = ( el ) => el[ fntag ]
-const isTagged = ( el ) => el && el.hasOwnProperty( fntag )
-const getTagId = ( el ) => isTagged( el ) && getTag( el ).id
 
 /**
  * A function to create dom elements with the given attributes and children.
@@ -293,42 +255,40 @@ const getTagId = ( el ) => isTagged( el ) && getTag( el ).id
  */
 export const h = ( tag, ...children ) => {
     let element = document.createElement( tag )
-    if( children ) {
-        for( let child of children ) {
-            if( isAttrs( child ) ) {
-                for( let a in child ) {
-                    let attr = child[ a ]
-                    if( a === 'style' && typeof attr === 'object' ) {
-                        for( let style in attr ) {
-                            let match = attr[ style ].toString().match( /(.*)\W+!important\W*$/ )
-                            if( match )
-                                element.style.setProperty( style, match[ 1 ], 'important' )
-                            else
-                                element.style.setProperty( style, attr[ style ] )
-                        }
-                    } else if( a === 'value' ) {
-                        //value is always a an attribute because setting it as a property causes problems
-                        element.setAttribute( a, attr )
-                    } else if( typeof attr === 'string' ) {
-                        element.setAttribute( a, attr )
-                    } else if( a.startsWith( 'on' ) && typeof attr === 'function' ) {
-                        element.addEventListener( a.substring( 2 ), attr )
-                    } else {
-                        Object.defineProperty( element, a, {
-                            value: attr,
-                            enumerable: false
-                        } )
-                    }
+    if( isAttrs( children[ 0 ] ) ) {
+        let attrs = children.shift()
+        for( let a in attrs ) {
+            let attr = attrs[ a ]
+            if( a === 'style' && typeof attr === 'object' ) {
+                for( let style in attr ) {
+                    let match = attr[ style ].toString().match( /(.*)\W+!important\W*$/ )
+                    if( match )
+                        element.style.setProperty( style, match[ 1 ], 'important' )
+                    else
+                        element.style.setProperty( style, attr[ style ] )
                 }
+            } else if( a === 'value' ) {
+                //value is always an attribute because setting it as a property causes problems
+                element.setAttribute( a, attr )
+            } else if( typeof attr === 'string' ) {
+                element.setAttribute( a, attr )
+            } else if( a.startsWith( 'on' ) && typeof attr === 'function' ) {
+                element.addEventListener( a.substring( 2 ), attr )
             } else {
-                if( Array.isArray( child ) )
-                    for( let c of child ) {
-                        element.append( renderNode( c ) )
-                    }
-                else
-                    element.append( renderNode( child ) )
+                Object.defineProperty( element, a, {
+                    value: attr,
+                    enumerable: false
+                } )
             }
         }
+    }
+    for( let child of children ) {
+        if( Array.isArray( child ) )
+            for( let c of child ) {
+                element.append( renderNode( c ) )
+            }
+        else
+            element.append( renderNode( child ) )
     }
     return element
 }
@@ -339,11 +299,7 @@ export const isAttrs = ( val ) => val && typeof val === 'object' && !Array.isArr
  * @param children
  * @returns {{}} A single object containing all of the aggregated attribute objects
  */
-export const getAttrs = ( children ) => children.reduce( ( attrs, child ) => {
-    if( isAttrs( child ) )
-        Object.assign( attrs, child )
-    return attrs
-}, {} )
+export const getAttrs = ( children ) => isAttrs( children[ 0 ] ) ? children[ 0 ] : {}
 
 /**
  * A hidden div node to mark your place in the dom

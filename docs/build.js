@@ -8,12 +8,12 @@ export default div(
     contentSection(
         'Getting Started',
         'fntags is an es6 module, to start creating elements, import h or tag functions from \'fntags\' and use them to construct templates.',
-        'Call fnapp with an element or an id to append elements to it.',
+        'Create elements using h and directly append them to the dom.',
         prismCode(
             `<script type="module">
-    import {fnapp, h} from './fntags.js'
+    import {h} from './fntags.js'
     import {h1} from './fnelements.js'
-    fnapp(document.body,
+    document.body.append(
         h('div',
             h1("Internets go here.")
         )

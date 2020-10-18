@@ -1,4 +1,4 @@
-import { goTo } from './lib/fntags.js'
+import { goTo } from './lib/fnroute.js'
 import { a, button, div, hr, p, span } from './lib/fnelements.js'
 
 const even = ( text ) => p( { style: 'font-weight: 400; margin-left: -15px; text-align: left; padding: 5px' }, text )
