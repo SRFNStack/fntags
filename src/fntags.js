@@ -73,7 +73,6 @@ export const fnstate = ( initialValue, mapKey ) => {
         if( typeof value !== 'object' )
             return value
         else if( !mapKey ) {
-            console.warn( 'Using index as key for value: ' + value + '. You should pass a mapKey function when creating your state with fnstate.' )
             return index
         } else
             return mapKey( value, index )
@@ -139,7 +138,7 @@ export const fnstate = ( initialValue, mapKey ) => {
     }
 
     const setKey = ( element, i ) => {
-        if( !element.key && keyMapper ) element.key = keyMapper( currentValue, i )
+        if( !element.key && mapKey ) element.key = keyMapper( currentValue, i )
         return element
     }
 
@@ -178,8 +177,11 @@ export const fnstate = ( initialValue, mapKey ) => {
         if( !parent ) throw new Error( 'You must provide a parent element to bind the children to. aka Need Bukkit.' )
         if( typeof element !== 'function' && !update )
             throw new Error( 'You must pass an update function when passing a non function element' )
-        if( !keyMapper )
-            throw new Error( 'You must create your fnstate with a keymapper to use bindValues. Each element in the array must have a unique id.' )
+        if( !mapKey ) {
+            console.warn('Using value index as key, may not work correctly when moving items...')
+            mapKey = ( o, i ) => i
+        }
+
         if( !Array.isArray( currentValue ) ) {
             return state.bindAs( element, update )
         }
