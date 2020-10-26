@@ -1,6 +1,6 @@
 # fntags
 
-> less fluss, more stuff
+> less fluff, more stuff
 
 ### [Documentiaton](https://narcolepticsnowman.github.io/fntags)
 

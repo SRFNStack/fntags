@@ -254,7 +254,7 @@ const evaluateElement = ( element, value ) => typeof element === 'function' ? el
 export const renderNode = ( node ) => {
     if( typeof node === 'object' && node.then === undefined ) {
         return node
-    } else if( typeof node.then === 'function' ) {
+    } else if( node && typeof node.then === 'function' ) {
         const node = marker()
         node.then( el => node.replaceWith( renderNode( el ) ) ).catch( e => console.error( 'Caught failed node promise.', e ) )
         return node
