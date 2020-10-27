@@ -110,16 +110,15 @@ function doBindValues( ctx, parent, element, update ) {
         return ctx.state.bindAs( element, update )
     }
     ctx.currentValue = ctx.currentValue.map( fnstate )
-    const bindCtx = { element, update, parent }
-    ctx.bindContexts.push( bindCtx )
+    ctx.bindContexts.push( { element, update, parent } )
     ctx.state.subscribe( () => {
         if( !Array.isArray( ctx.currentValue ) ) {
             console.warn( 'A state used with bindValues was updated to a non array value. This will be converted to an array of 1 and the state will be updated.' )
             setTimeout( () => ctx.state( [ctx.currentValue] ), 1 )
         } else
-            reconcile(ctx)
+            reconcile( ctx )
     } )
-    reconcile(ctx)
+    reconcile( ctx )
     return parent
 }
 
@@ -131,7 +130,7 @@ function doBindAs( ctx, element, update ) {
         ctx.state.subscribe( () => update( boundElement ) )
         return boundElement
     } else {
-        return replaceOnUpdate( ctx,() => element( ctx.currentValue ), 0 )
+        return replaceOnUpdate( ctx, () => element( ctx.currentValue ), 0 )
     }
 }
 
@@ -158,7 +157,7 @@ function replaceOnUpdate( ctx, element, i ) {
 function reconcile( ctx ) {
     for( let bindContext of ctx.bindContexts ) {
         if( !bindContext.boundElementByKey ) bindContext.boundElementByKey = {}
-        arrangeElements(ctx, bindContext )
+        arrangeElements( ctx, bindContext )
     }
 }
 
@@ -177,15 +176,17 @@ function keyMapper( mapKey, value, index ) {
 }
 
 function arrangeElements( ctx, bindContext ) {
-    let remainingElements = Object.assign( {}, bindContext.boundElementByKey )
+    if( ctx.currentValue.length === 0 ) {
+        bindContext.parent.textContent = ''
+        bindContext.boundElementByKey = {}
+        return
+    }
+    let remainingElements = Object.keys( bindContext.boundElementByKey )
+                                  .reduce( ( keys, key ) => ( keys[ key ] = true ) && keys, {} )
     let prev = null
     let parent = bindContext.parent
     let seenKeys = {}
 
-    if( ctx.currentValue.length === 0 ) {
-        parent.textContent = ''
-        return
-    }
     for( let i = ctx.currentValue.length - 1; i >= 0; i-- ) {
         let valueState = ctx.currentValue[ i ]
         if( !valueState || !valueState.isFnState )
@@ -205,11 +206,11 @@ function arrangeElements( ctx, bindContext ) {
             if( !parent.lastChild || parent.lastChild.key !== current.key ) parent.append( current )
         } else {
             if( !prev.previousSibling ) {
-                parent.insertBefore( current, prev )
+                prev.insertAdjacentElement( 'beforeBegin', current )
             } else if( prev.previousSibling.key !== current.key ) {
                 //if it's a new key, always insert it
                 if( isNew )
-                    parent.insertBefore( current, prev )
+                    prev.insertAdjacentElement( 'beforeBegin', current )
                 //if it's an existing key, replace the current object with the correct object
                 else
                     prev.previousSibling.replaceWith( current )
@@ -222,7 +223,8 @@ function arrangeElements( ctx, bindContext ) {
     //deleted keys
     for( let key of Object.keys( remainingElements ) ) {
         if( ctx.selected === key ) ctx.selected = null
-        remainingElements[ key ].remove()
+        bindContext.boundElementByKey[ key ].remove()
+        delete bindContext.boundElementByKey[ key ]
     }
 }
 
@@ -279,10 +281,7 @@ export const h = ( tag, ...children ) => {
             } else if( a.startsWith( 'on' ) && typeof attr === 'function' ) {
                 element.addEventListener( a.substring( 2 ), attr )
             } else {
-                Object.defineProperty( element, a, {
-                    value: attr,
-                    enumerable: false
-                } )
+                element[a] = attr
             }
         }
     }
