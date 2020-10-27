@@ -13,154 +13,22 @@ export const isNode = ( el ) => el instanceof Node
  * @returns function A function that can be used to get and set the state
  */
 export const fnstate = ( initialValue, mapKey ) => {
-    let childStates = {}
-    let currentValue = proxyArray( initialValue )
-    let observers = []
-    const bindContexts = []
-    let selected
-
-    const state = function( newState ) {
-        if( arguments.length === 0 ) {
-            return currentValue
-        } else {
-            currentValue = proxyArray( newState )
-            for( let observer of observers ) {
-                observer( newState )
-            }
-        }
-        return newState
-    }
-
-    function proxyArray( value ) {
-        if( Array.isArray( value ) && !value.__isProxy ) {
-            let p = new Proxy( value, {
-                get( target, p ) {
-                    if( parseInt( p.toString() ) == p ) {
-                        let v = target[ p ]
-                        //unwrap any state objects, since the user deals with state objects they may have explicitly set an index to a state object instead of a value
-                        if( v && v.isFnState ) v = v()
-                        let key = keyMapper( v, p )
-                        if( childStates[ key ] ) {
-                            return childStates[ key ]
-                        } else {
-                            return childStates[ key ] = fnstate( v )
-                        }
-                    } else {
-                        return Reflect.get( ...arguments )
-                    }
-                },
-                set( target, p, value ) {
-                    if( value && value.isFnState ) value = value()
-                    if( parseInt( p.toString() ) == p && bindContexts.length > 0 ) {
-                        let key = keyMapper( value, p )
-                        if( !childStates[ key ] )
-                            childStates[ key ] = fnstate( value )
-                    }
-                    return Reflect.set( ...arguments )
-                }
-            } )
-            Object.defineProperty( p, '__isProxy', {
-                value: true,
-                enumerable: false,
-                writable: false
-            } )
-            return p
-        } else
-            return value
-    }
-
-    function keyMapper( value, index ) {
-        if( typeof value !== 'object' )
-            return value
-        else if( !mapKey ) {
-            return index
-        } else
-            return mapKey( value, index )
-    }
-
-    function arrangeElements( ctx ) {
-        let remainingElements = Object.assign( {}, ctx.boundElementByKey )
-        let prev = null
-        let parent = ctx.parent
-        let seenKeys = {}
-
-        if( currentValue.length === 0 ) {
-            parent.textContent = ''
-            return
-        }
-        for( let i = currentValue.length - 1; i >= 0; i-- ) {
-            let valueState = currentValue[ i ]
-            let key = keyMapper( valueState(), i )
-            if( seenKeys[ key ] ) throw new Error( 'Duplicate keys in a bound array are not allowed.' )
-            seenKeys[ key ] = true
-            let current = ctx.boundElementByKey[ key ]
-            let isNew = false
-            if( !current ) {
-                isNew = true
-                current = ctx.boundElementByKey[ key ] = renderNode( evaluateElement( ctx.element, valueState ) )
-                current.key = key
-            }
-            //place the element in the parent
-            if( !prev ) {
-                if( !parent.lastChild || parent.lastChild.key !== current.key ) parent.append( current )
+    let ctx = {
+        currentValue: initialValue,
+        observers: [],
+        bindContexts: [],
+        mapKey,
+        state( newState ) {
+            if( arguments.length === 0 ) {
+                return ctx.currentValue
             } else {
-                if( !prev.previousSibling ) {
-                    parent.insertBefore( current, prev )
-                } else if( prev.previousSibling.key !== current.key ) {
-                    //if it's a new key, always insert it
-                    if( isNew )
-                        parent.insertBefore( current, prev )
-                    //if it's an existing key, replace the current object with the correct object
-                    else
-                        prev.previousSibling.replaceWith( current )
+                ctx.currentValue = newState
+                for( let observer of ctx.observers ) {
+                    observer( newState )
                 }
             }
-            prev = current
-
-            delete remainingElements[ key ]
+            return newState
         }
-        //deleted keys
-        for( let key of Object.keys( remainingElements ) ) {
-            if( selected === key ) selected = null
-            delete childStates[ key ]
-            remainingElements[ key ].remove()
-        }
-    }
-
-    /**
-     * Reconcile the state of the current array value with the state of the bound elements
-     */
-    function reconcile() {
-        for( let ctx of bindContexts ) {
-            if( !ctx.boundElementByKey ) ctx.boundElementByKey = {}
-            arrangeElements( ctx )
-        }
-    }
-
-    const setKey = ( element, i ) => {
-        if( !element.key && mapKey ) element.key = keyMapper( currentValue, i )
-        return element
-    }
-
-    /**
-     * Replace the element when the state is updated
-     * @param st The updated state
-     * @param element The updated element
-     * @param i
-     * @returns {*}
-     */
-    const replaceOnUpdate = ( st, element, i ) => {
-        let current = setKey( renderNode( element() ), i )
-        st.subscribe( function() {
-            let newElement = setKey( renderNode( element() ), i )
-            if( newElement ) {
-                if( !newElement.key || newElement.key !== current.key ) {
-                    current.replaceWith( newElement )
-                    current = newElement
-                }
-            }
-        } )
-        return current
     }
 
     /**
@@ -172,31 +40,7 @@ export const fnstate = ( initialValue, mapKey ) => {
      * @param element The element to bind to. If not a function, an update function must be passed
      * @param update If passed this will be executed directly when the state of any value changes with no other intervention
      */
-    state.bindValues = ( parent, element, update ) => {
-        parent = renderNode( parent )
-        if( !parent ) throw new Error( 'You must provide a parent element to bind the children to. aka Need Bukkit.' )
-        if( typeof element !== 'function' && !update )
-            throw new Error( 'You must pass an update function when passing a non function element' )
-        if( !mapKey ) {
-            console.warn('Using value index as key, may not work correctly when moving items...')
-            mapKey = ( o, i ) => i
-        }
-
-        if( !Array.isArray( currentValue ) ) {
-            return state.bindAs( element, update )
-        }
-        const ctx = { element, update, parent }
-        bindContexts.push( ctx )
-        state.subscribe( () => {
-            if( !Array.isArray( currentValue ) ) {
-                console.warn( 'A state used with bindValues was updated to a non array value. This will be converted to an array of 1 and the state will be updated.' )
-                setTimeout( () => state( [currentValue] ), 1 )
-            } else
-                reconcile()
-        } )
-        reconcile()
-        return parent
-    }
+    ctx.state.bindValues = ( parent, element, update ) => doBindValues( ctx, parent, element, update )
 
     /**
      * Bind this state to the given element
@@ -205,45 +49,181 @@ export const fnstate = ( initialValue, mapKey ) => {
      * @param update If passed this will be executed directly when the state changes with no other intervention
      * @returns {(HTMLDivElement|Text)[]|HTMLDivElement|Text}
      */
-    state.bindAs = ( element, update ) => {
-        if( typeof element !== 'function' && !update )
-            throw new Error( 'You must pass an update function when passing a non function element' )
-        if( update ) {
-            let boundElement = renderNode( evaluateElement( element, currentValue ) )
-            state.subscribe( () => update( boundElement ) )
-            return boundElement
+    ctx.state.bindAs = ( element, update ) => doBindAs( ctx, element, update )
+
+    /**
+     * Mark the element with the given key as selected. This triggers select events to be dispatched.
+     */
+    ctx.state.select = ( key ) => doSelect( ctx, key )
+
+    ctx.state.isFnState = true
+
+    /**
+     * Perform an Object.assign on the current state using the provided update
+     */
+    ctx.state.patch = ( update ) => ctx.state( Object.assign( ctx.currentValue, update ) )
+
+    /**
+     * Register a callback that will be executed whenever the state is changed
+     */
+    ctx.state.subscribe = ( callback ) => ctx.observers.push( callback )
+
+    /**
+     * Remove all of the observers and optionally reset the value to it's initial value
+     */
+    ctx.state.reset = ( reInit ) => doReset( ctx, reInit, initialValue )
+
+    return ctx.state
+}
+
+function doReset( ctx, reInit, initialValue ) {
+    ctx.observers = []
+    if( reInit ) ctx.currentValue = initialValue
+}
+
+let deselectEvent = new Event( 'deselect' )
+let selectEvent = new Event( 'select' )
+
+function doSelect( ctx, key ) {
+    for( let bindCtx of ctx.bindContexts ) {
+        if( bindCtx.selected && bindCtx.boundElementByKey[ bindCtx.selected ] ) {
+            bindCtx.boundElementByKey[ bindCtx.selected ].dispatchEvent( deselectEvent )
+        }
+        bindCtx.selected = key
+        if( bindCtx.boundElementByKey[ key ] ) {
+            bindCtx.boundElementByKey[ key ].dispatchEvent( selectEvent )
+        }
+    }
+}
+
+function doBindValues( ctx, parent, element, update ) {
+    parent = renderNode( parent )
+    if( !parent ) throw new Error( 'You must provide a parent element to bind the children to. aka Need Bukkit.' )
+    if( typeof element !== 'function' && !update )
+        throw new Error( 'You must pass an update function when passing a non function element' )
+    if( !ctx.mapKey ) {
+        console.warn( 'Using value index as key, may not work correctly when moving items...' )
+        ctx.mapKey = ( o, i ) => i
+    }
+
+    if( !Array.isArray( ctx.currentValue ) ) {
+        return ctx.state.bindAs( element, update )
+    }
+    ctx.currentValue = ctx.currentValue.map( fnstate )
+    const bindCtx = { element, update, parent }
+    ctx.bindContexts.push( bindCtx )
+    ctx.state.subscribe( () => {
+        if( !Array.isArray( ctx.currentValue ) ) {
+            console.warn( 'A state used with bindValues was updated to a non array value. This will be converted to an array of 1 and the state will be updated.' )
+            setTimeout( () => ctx.state( [ctx.currentValue] ), 1 )
+        } else
+            reconcile(ctx)
+    } )
+    reconcile(ctx)
+    return parent
+}
+
+function doBindAs( ctx, element, update ) {
+    if( typeof element !== 'function' && !update )
+        throw new Error( 'You must pass an update function when passing a non function element' )
+    if( update ) {
+        let boundElement = renderNode( evaluateElement( element, ctx.currentValue ) )
+        ctx.state.subscribe( () => update( boundElement ) )
+        return boundElement
+    } else {
+        return replaceOnUpdate( ctx,() => element( ctx.currentValue ), 0 )
+    }
+}
+
+/**
+ * Replace the element when the state is updated
+ */
+function replaceOnUpdate( ctx, element, i ) {
+    let current = setKey( ctx, renderNode( element() ), i )
+    ctx.state.subscribe( function() {
+        let newElement = setKey( ctx, renderNode( element() ), i )
+        if( newElement ) {
+            if( !newElement.key || newElement.key !== current.key ) {
+                current.replaceWith( newElement )
+                current = newElement
+            }
+        }
+    } )
+    return current
+}
+
+/**
+ * Reconcile the state of the current array value with the state of the bound elements
+ */
+function reconcile( ctx ) {
+    for( let bindContext of ctx.bindContexts ) {
+        if( !bindContext.boundElementByKey ) bindContext.boundElementByKey = {}
+        arrangeElements(ctx, bindContext )
+    }
+}
+
+function setKey( ctx, element, i ) {
+    if( !element.key && ctx.mapKey ) element.key = keyMapper( ctx.mapKey, ctx.currentValue, i )
+    return element
+}
+
+function keyMapper( mapKey, value, index ) {
+    if( typeof value !== 'object' )
+        return value
+    else if( !mapKey ) {
+        return index
+    } else
+        return mapKey( value, index )
+}
+
+function arrangeElements( ctx, bindContext ) {
+    let remainingElements = Object.assign( {}, bindContext.boundElementByKey )
+    let prev = null
+    let parent = bindContext.parent
+    let seenKeys = {}
+
+    if( ctx.currentValue.length === 0 ) {
+        parent.textContent = ''
+        return
+    }
+    for( let i = ctx.currentValue.length - 1; i >= 0; i-- ) {
+        let valueState = ctx.currentValue[ i ]
+        if( !valueState || !valueState.isFnState )
+            valueState = ctx.currentValue[ i ] = fnstate( valueState )
+        let key = keyMapper( ctx.mapKey, valueState(), i )
+        if( seenKeys[ key ] ) throw new Error( 'Duplicate keys in a bound array are not allowed.' )
+        seenKeys[ key ] = true
+        let current = bindContext.boundElementByKey[ key ]
+        let isNew = false
+        if( !current ) {
+            isNew = true
+            current = bindContext.boundElementByKey[ key ] = renderNode( evaluateElement( bindContext.element, valueState ) )
+            current.key = key
+        }
+        //place the element in the parent
+        if( !prev ) {
+            if( !parent.lastChild || parent.lastChild.key !== current.key ) parent.append( current )
         } else {
-            return replaceOnUpdate( state, () => element( currentValue ) )
-        }
-    }
-
-    let deselectEvent = new Event( 'deselect' )
-    let selectEvent = new Event( 'select' )
-
-    state.select = ( key ) => {
-        for( let ctx of bindContexts ) {
-            if( selected && ctx.boundElementByKey[ selected ] ) {
-                ctx.boundElementByKey[ selected ].dispatchEvent( deselectEvent )
-            }
-            selected = key
-            if( ctx.boundElementByKey[ key ] ) {
-                ctx.boundElementByKey[ key ].dispatchEvent( selectEvent )
+            if( !prev.previousSibling ) {
+                parent.insertBefore( current, prev )
+            } else if( prev.previousSibling.key !== current.key ) {
+                //if it's a new key, always insert it
+                if( isNew )
+                    parent.insertBefore( current, prev )
+                //if it's an existing key, replace the current object with the correct object
+                else
+                    prev.previousSibling.replaceWith( current )
             }
         }
+        prev = current
+
+        delete remainingElements[ key ]
     }
-
-    state.isFnState = true
-
-    state.patch = ( update ) => state( Object.assign( currentValue, update ) )
-
-    state.subscribe = ( callback ) => observers.push( callback )
-
-    state.reset = ( reInit ) => {
-        observers = []
-        if( reInit ) currentValue = initialValue
+    //deleted keys
+    for( let key of Object.keys( remainingElements ) ) {
+        if( ctx.selected === key ) ctx.selected = null
+        remainingElements[ key ].remove()
     }
-
-    return state
 }
 
 const evaluateElement = ( element, value ) => typeof element === 'function' ? element( value ) : element
@@ -254,7 +234,7 @@ const evaluateElement = ( element, value ) => typeof element === 'function' ? el
 export const renderNode = ( node ) => {
     if( typeof node === 'object' && node.then === undefined ) {
         return node
-    } else if( typeof node.then === 'function' ) {
+    } else if( node && typeof node.then === 'function' ) {
         const node = marker()
         node.then( el => node.replaceWith( renderNode( el ) ) ).catch( e => console.error( 'Caught failed node promise.', e ) )
         return node
