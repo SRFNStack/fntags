@@ -40,11 +40,18 @@ export default div(
 data.bindValues(
         div(),
         n=>
-            span({
-                style: {padding: '5px', cursor: 'pointer', 'font-size': '40px'},
-                onclick:()=>data.select(n()),
-                onselect: e=>e.target.style.color = 'limegreen',
-                ondeselect: e=>e.target.style.color = 'black'
+            span( {
+                style: {
+                    padding: '5px',
+                    cursor: 'pointer',
+                    'font-size': '40px'
+                },
+                onclick: () =>
+                    data.select(n()),
+                onselect: e =>
+                    e.target.style.color = 'limegreen',
+                ondeselect: e =>
+                    e.target.style.color = 'black'
             },
             n()
     )
