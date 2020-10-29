@@ -103,7 +103,7 @@ export const fnstate = ( initialValue, mapKey ) => {
      * @param attribute A function that returns an attribute value
      * @returns {function(): *} A function that calls the passed function, with some extra metadata
      */
-    ctx.state.bindAttrSelect = attribute => doBindAttrSelect( ctx, attribute )
+    ctx.state.bindSelectAttr = attribute => doBindSelectAttr( ctx, attribute )
 
     /**
      * Mark the element with the given key as selected. This causes the bound select functions to be executed.
@@ -152,7 +152,7 @@ const subscribeSelect = ( ctx, callback ) => {
  */
 export const isNode = ( el ) => el instanceof Node
 
-let doBindAttrSelect = function( ctx, attribute ) {
+let doBindSelectAttr = function( ctx, attribute ) {
     let boundAttr = createBoundAttr( attribute )
     boundAttr.init = ( attrName, element ) =>
         subscribeSelect( ctx, () => setAttribute( attrName, attribute(), element ) )

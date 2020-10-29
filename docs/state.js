@@ -125,14 +125,14 @@ data.bindValues(
                                        )
                                    )
                                ) ),
-                    span( 'If you only need to change attributes of the element, you can use the function ', code( 'state.bindAttrSelect' ), '.' ),
+                    span( 'If you only need to change attributes of the element, you can use the function ', code( 'state.bindSelectAttr' ), '.' ),
                     'It works the same as bindAttr, except it can be used to bind elements or text. ',
                     prismCode( `let data = fnstate( [ 1, 2, 3, 4 ], v => v )
 data.bindValues(
    div(),
    value => span(
        {
-           style: value.bindAttrSelect(
+           style: value.bindSelectAttr(
                () => ( {
                    color: data.selected() === value()
                     ? 'limegreen' : 'darkgrey',
@@ -151,7 +151,7 @@ data.bindValues(
                                    div(),
                                    value => span(
                                        {
-                                           style: value.bindAttrSelect(
+                                           style: value.bindSelectAttr(
                                                () => ( {
                                                    color: data.selected() === value()
                                                           ? 'limegreen' : 'darkgrey',
