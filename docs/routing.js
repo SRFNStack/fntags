@@ -11,13 +11,21 @@ export default div(
         'To require that the currentRoute matches the path exactly, set absolute: true on the attributes object',
         prismCode( 'route( { path: \'/\', absolute: true })' ),
         'Children of route elements can be functions. This is useful for re-loading dynamic content on route change.',
-        prismCode( 'route( { path: \'/\', absolute: true }, ()=>new Date().toString())' ),
+        prismCode( `route(
+    { path: \'/\', absolute: true },
+    ()=>new Date().toString()
+)` ),
     ),
     contentSection(
         'Navigating',
         'To navigate within the app, either create an fnlink element or import and call the goTo function.',
         'fnlink has a single required attribute, \'to\' that is the route to navigate to. You can additionally provide a context property that can be accessed from the pathState.',
-        prismCode( 'fnlink({to: \'/home\', context: {key:\'this is handy\'}}, \'Home\')' ),
+        prismCode( `fnlink( {
+        to: \'/home\',
+        context: { key:\'this is handy\' }
+    },
+    \'Home\'
+)` ),
         'goTo takes the route to navigate to and optionally a context as the second.',
         prismCode( 'goTo(\'/home\', {\'some\':\'datazzz\')' )
     ),

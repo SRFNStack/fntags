@@ -17,58 +17,154 @@ export default div(
         span( 'Call ',
               code( 'state.subscribe' ),
               ' on the created state with a callback to be notified whenever there is a state change. This callback receives no arguments.' ),
-        prismCode( 'count.subscribe( () => alert( `Current count: ${count()}` ) )' ),
+        prismCode( `count.subscribe( 
+    () => alert( \`Current count: \${count()}\` )
+)` ),
         span( 'Call ',
               code( 'state.bindAs' ),
               ' to bind the state with an element' ),
-        prismCode( 'document.body.append( count.bindAs( () => `Current count: ${count()}` ) )' ),
+        prismCode( 'count.bindAs( () => `Current count: ${count()}` )' ),
         'When the state is changed, the passed function is executed, and the current element is replaced with the newly returned element.',
         span( 'Call ',
               code( 'state.bindValues' ),
               ' to bind the state with the values of array. This will make the set of elements reflect changes to position and any change to value.' ),
-        'When using bindValues, you must supply a keyMapper when creating the state, this is necessary to correctly match the array value to the corresponding element.',
-        prismCode( 'const peeps = fnstate(["greg","jerry"])\n' +
-                   'document.body.append( peeps.bindValues( (peep) => `Hello ${peep}` ) )' ),
+        'When using bindValues, you must supply a mapKey function when creating the state, this is necessary to correctly match the array value to the corresponding element.',
+        prismCode( 'const peeps = fnstate(["greg","jerry"], peep => peep)\n' +
+                   'peeps.bindValues( (peep) => `Hello ${peep}` )' ),
         'The bind function receives the value wrapped as an fnstate, not the raw value. This allows binding to value changes.',
         'This is more efficient than re-setting the entire array as that will require re-creating each element in the array. ',
         'A promise can be returned from either bind function to allow for asynchronous element creation. The promise should resolve to either an element, a function that returns an element, or another promise.'
     ),
+    contentSection( 'Binding Attributes',
+                    span( 'If you only want to change the attributes of an element, you can bind state updates to single attributes using the ',
+                          code( 'state.bindAttr' ),
+                          ' function.' ),
+                    prismCode( `const color = fnstate( 'pink' )
+
+return div(
+   {
+       style: color.bindAttr(
+           () => \`color: \${color()}\`
+       )
+   },
+   input(
+       {
+           type: 'text',
+           value: color(),
+           onkeyup: ( e ) => color( e.target.value )
+       }
+   ),
+   span(
+       { style: { 'font-size': '40px' } },
+       'Ooo pretty color!'
+   )
+)`,
+                               function() {
+                                   const color = fnstate( 'pink' )
+
+                                   return div(
+                                       {
+                                           style: color.bindAttr(
+                                               () => `color: ${color()}`
+                                           )
+                                       },
+                                       div('Type your favorite color'),
+                                       input(
+                                           {
+                                               type: 'text',
+                                               value: color(),
+                                               onkeyup: ( e ) => color( e.target.value )
+                                           }
+                                       ),
+                                       div(
+                                           { style: { 'font-size': '40px' } },
+                                           'Ooo pretty color!'
+                                       )
+                                   )
+                               }()
+                    )
+    ),
     contentSection( 'Selecting Children',
-                    'If using bindValues you can handle selecting and deselecting elements of the row by adding an onselect and ondeselect handler to the element you return for the value in the array.',
-                    prismCode(
-                        `let data = fnstate([1,2,3,4], v=>v)
+                    'If using bindValues, you can mark values in the array as selected and get notified via events that the element was selected or deselected.',
+                    span( 'The currently selected key can be accessed using', code( 'state.selected()' ), '. The bound function receives the bound element as the only argument.' ),
+                    prismCode( `let data = fnstate( [ 1, 2, 3, 4 ], v => v )
 data.bindValues(
-        div(),
-        n=>
-            span( {
-                style: {
-                    padding: '5px',
-                    cursor: 'pointer',
-                    'font-size': '40px'
-                },
-                onclick: () =>
-                    data.select(n()),
-                onselect: e =>
-                    e.target.style.color = 'limegreen',
-                ondeselect: e =>
-                    e.target.style.color = 'black'
-            },
-            n()
-    )
+   div(),
+   value => span(
+       {
+           style: {
+               padding: '10px',
+               cursor: 'pointer',
+               'font-size': '40px',
+           },
+           onclick: () => data.select( value() )
+       },
+       value.bindSelect(
+           () =>
+               data.selected() === value()
+                ? \`*\${value()}*\` : value()
+       )
+   )
 )
 `,
-                        data.bindValues(
-                            div(),
-                            n => span( {
-                                           style: { padding: '5px', cursor: 'pointer', 'font-size': '40px' },
-                                           onclick: () => data.select( n() ),
-                                           onselect: e => e.target.style.color = 'limegreen',
-                                           ondeselect: e => e.target.style.color = 'black'
+                               data.bindValues(
+                                   div(),
+                                   value => span(
+                                       {
+                                           style: {
+                                               padding: '10px',
+                                               cursor: 'pointer',
+                                               'font-size': '40px',
+                                           },
+                                           onclick: () => data.select( value() )
                                        },
-                                       n()
-                            )
-                        )
-                    )
+                                       value.bindSelect(
+                                           () =>
+                                               data.selected() === value()
+                                               ? `*${value()}*` : value()
+                                       )
+                                   )
+                               ) ),
+                    span( 'If you only need to change attributes of the element, you can use the function ', code( 'state.bindAttrSelect' ), '.' ),
+                    'It works the same as bindAttr, except it can be used to bind elements or text. ',
+                    prismCode( `let data = fnstate( [ 1, 2, 3, 4 ], v => v )
+data.bindValues(
+   div(),
+   value => span(
+       {
+           style: value.bindAttrSelect(
+               () => ( {
+                   color: data.selected() === value()
+                    ? 'limegreen' : 'darkgrey',
+                   padding: '10px',
+                   cursor: 'pointer',
+                   'font-size': '40px'
+               } )
+           ),
+           onclick: () => data.select( value() )
+       },
+       value()
+   )
+)
+`,
+                               data.bindValues(
+                                   div(),
+                                   value => span(
+                                       {
+                                           style: value.bindAttrSelect(
+                                               () => ( {
+                                                   color: data.selected() === value()
+                                                          ? 'limegreen' : 'darkgrey',
+                                                   padding: '10px',
+                                                   cursor: 'pointer',
+                                                   'font-size': '40px'
+                                               } )
+                                           ),
+                                           onclick: () => data.select( value() )
+                                       },
+                                       value()
+                                   )
+                               ) )
     ),
     contentSection( 'Patching State',
                     'The function returned by fnstate has a patch function property that can be used to apply a patch to the existing state using Object.assign.',
@@ -121,11 +217,11 @@ const myElement = = ()=> {
     const count = fnstate(0)
     return div(
         count.bindAs(
-            ()=> \`Current count: \${count()}\`
+            () => \`Current count: \${ count() }\`
         ),
         button(
             {onclick: 
-                ()=> count(state.count() + 1)
+                () => count( state.count() + 1 )
             },
             "+1"
         )
@@ -152,13 +248,14 @@ const myElement = = ()=> {
     const a = fnstate(0)
     const b = fnstate(0)
     return div(
-        'a: ',a.bindAs( ()=>a()), 'b: ', b.bindAs( () => b() ),
+        'a: ',a.bindAs( () => a() ),
+        'b: ', b.bindAs( () => b() ),
         button(
-            {onclick: ()=> a(a() + 1)},
+            {onclick: () => a( a() + 1 )},
             "a+1"
         ),
         button(
-            {onclick: ()=> b(b() + 1)},
+            {onclick: () => b( b() + 1 )},
             "b+1"
         )
     )

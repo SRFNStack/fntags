@@ -35,7 +35,7 @@ export default div(
             '(name) => div("Aloha ", span(\`\${name}!\`))\n',
             ( ( name ) => div( 'Aloha, ', span( `${name}!` ) ) )( 'Jerry' ) ),
         'This function can now be exported to be used as a shared and reusable component.',
-        prismCode( 'export const yo = (name) => div("What up, ", \`\${name}!\`)' ),
+        prismCode( 'export const yo = (name) => div("What up,",\`\${name}!\`)'),
         'A rest parameter is recommended for including children in the parameters.',
 
         prismCode( '(name, ...children) =>\n' +
