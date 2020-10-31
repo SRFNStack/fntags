@@ -84,6 +84,38 @@ return div(
                                }()
                     )
     ),
+    contentSection( 'Two Way Binding (MVVM if you\'re fancy)',
+                    span( 'The preferred way to perform two way binding with an input is to use the ', code( 'state.bindAttr' ), ' function.' ),
+                    prismCode( `const name = fnstate( 'Jerry' )
+return div(
+   'Hello ', name.bindAs(
+       () => name()
+   ), br(),
+   input( {
+              value: name.bindAttr(
+                  () => name()
+              ),
+              oninput:
+                  ( e ) => name( e.target.value )
+          } )
+)`,
+                               ( () => {
+                                   const name = fnstate( 'Jerry' )
+                                   return div(
+                                       'Hello ', name.bindAs(
+                                           () => name()
+                                       ),br(),
+                                       input( {
+                                                  value: name.bindAttr(
+                                                      () => name()
+                                                  ),
+                                                  oninput:
+                                                      ( e ) => name( e.target.value )
+                                              } )
+                                   )
+                               } )()
+                    )
+    ),
     contentSection( 'Selecting Children',
                     'If using bindValues, you can mark values in the array as selected and get notified via events that the element was selected or deselected.',
                     span( 'The currently selected key can be accessed using', code( 'state.selected()' ), '. The bound function receives the bound element as the only argument.' ),
@@ -239,15 +271,15 @@ const myElement = = ()=> {
                     )
                 )
             } )()
-    , ( () => {
-                       const a = fnstate( 0 )
-                       const b = fnstate( 0 )
-                       return div(
-                           `a: `, a.bindAs( () => a() ), 'b: ', b.bindAs( () => b() ),
-                           button( { onclick: () => a( a() + 1 ) }, 'a+1' ),
-                           button( { onclick: () => b( b() + 1 ) }, 'b+1' )
-                       )
-                   } )()
+            , ( () => {
+                const a = fnstate( 0 )
+                const b = fnstate( 0 )
+                return div(
+                    `a: `, a.bindAs( () => a() ), 'b: ', b.bindAs( () => b() ),
+                    button( { onclick: () => a( a() + 1 ) }, 'a+1' ),
+                    button( { onclick: () => b( b() + 1 ) }, 'b+1' )
+                )
+            } )()
         )
     ),
 
@@ -299,7 +331,7 @@ return div(
                                    'This input has a 500ms debounce',
                                    br(),
                                    input( {
-                                              value: appState.bindAttr(()=> appState().userName || ''),
+                                              value: appState.bindAttr( () => appState().userName || '' ),
                                               oninput: ( e ) => {
                                                   if( !triggered ) {
                                                       triggered = true
