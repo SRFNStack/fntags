@@ -51,7 +51,7 @@ export const fnstate = ( initialValue, mapKey ) => {
         selectObservers: {},
         mapKey,
         state( newState ) {
-            if( arguments.length === 0 ) {
+            if( arguments.length === 0 || arguments.length === 1 && arguments[0] === ctx.state ) {
                 return ctx.currentValue
             } else {
                 ctx.currentValue = newState
@@ -220,7 +220,7 @@ let doBind = function( ctx, element, update, handleUpdate, handleReplace ) {
         handleUpdate( boundElement )
         return boundElement
     } else {
-        let current = setKey( ctx, renderNode( element( ctx.currentValue ) ) )
+        let current = setKey( ctx,renderNode( evaluateElement( element, ctx.currentValue ) ) )
         handleReplace( current )
         return current
     }
@@ -235,7 +235,7 @@ const doBindSelect = ( ctx, element, update ) =>
                 subscribeSelect(
                     ctx,
                     () => {
-                        let newElement = renderNode( element( ctx.currentValue ) )
+                        let newElement = renderNode( evaluateElement( element, ctx.currentValue ) )
                         newElement.key = key
                         current.replaceWith( newElement )
                         current = newElement
@@ -250,7 +250,7 @@ const doBindAs = ( ctx, element, update ) =>
             },
             ( current ) => {
                 ctx.state.subscribe( () => {
-                    let newElement = setKey( ctx, renderNode( element( ctx.currentValue ) ) )
+                    let newElement = setKey( ctx, renderNode( evaluateElement( element, ctx.currentValue ) ) )
                     if( newElement ) {
                         if( !newElement.key || newElement.key !== current.key ) {
                             current.replaceWith( newElement )
@@ -317,11 +317,19 @@ function arrangeElements( ctx, bindContext ) {
             if( !parent.lastChild || parent.lastChild.key !== current.key ) parent.append( current )
         } else {
             if( !prev.previousSibling ) {
-                prev.insertAdjacentElement( 'beforeBegin', current )
+                //insertAdjacentElement is faster, but some nodes don't have it (lookin' at you text)
+                if(prev.insertAdjacentElement)
+                    prev.insertAdjacentElement( 'beforeBegin', current )
+                else
+                    parent.insertBefore(current, prev)
             } else if( prev.previousSibling.key !== current.key ) {
                 //if it's a new key, always insert it
                 if( isNew )
-                    prev.insertAdjacentElement( 'beforeBegin', current )
+                    //insertAdjacentElement is faster, but some nodes don't have it (lookin' at you text)
+                    if(prev.insertAdjacentElement)
+                        prev.insertAdjacentElement( 'beforeBegin', current )
+                    else
+                        parent.insertBefore(current, prev)
                 //if it's an existing key, replace the current object with the correct object
                 else
                     prev.previousSibling.replaceWith( current )
@@ -339,7 +347,10 @@ function arrangeElements( ctx, bindContext ) {
     }
 }
 
-const evaluateElement = ( element, value ) => typeof element === 'function' ? element( value ) : element
+const evaluateElement = ( element, value ) => {
+    if(element.isFnState) return element()
+    else return typeof element === 'function' ? element( value ) : element
+}
 
 /**
  * Convert non objects (objects are assumed to be nodes) to text nodes and allow promises to resolve to nodes

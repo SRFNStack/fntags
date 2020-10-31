@@ -294,8 +294,8 @@ return div(
    greeting.bindAs( greeting ), ' ', appState.bindAs( () => appState().userName ), '!',
    div(
        input( {
-                  value: greeting.bindAttr( () => greeting() ),
-                  oninput: ( e ) => {greeting( e.target.value )}
+                  value: greeting.bindAttr( greeting ),
+                  oninput: ( e ) => greeting( e.target.value )
               } )
        ,
        br(),
@@ -324,7 +324,7 @@ return div(
                                div(
                                    input( {
                                               value: greeting.bindAttr( greeting ),
-                                              oninput: ( e ) => {greeting( e.target.value )}
+                                              oninput: ( e ) => greeting( e.target.value )
                                           } )
                                    ,
                                    br(),
