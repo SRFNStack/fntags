@@ -94,11 +94,11 @@ return div(
    br(),
    input( 
        {
-       value: name.bindAttr(
-            () => name()
-       ),
-       oninput:
-           ( e ) => name( e.target.value )
+           value: name.bindAttr(
+                () => name()
+           ),
+           oninput:
+               ( e ) => name( e.target.value )
        }
    )
 )`,
