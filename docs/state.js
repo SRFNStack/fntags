@@ -68,7 +68,7 @@ return div(
                                                () => `color: ${color()}`
                                            )
                                        },
-                                       div('Type your favorite color'),
+                                       div( 'Type your favorite color' ),
                                        input(
                                            {
                                                type: 'text',
@@ -114,7 +114,7 @@ data.bindValues(
                                            style: {
                                                padding: '10px',
                                                cursor: 'pointer',
-                                               'font-size': '40px',
+                                               'font-size': '40px'
                                            },
                                            onclick: () => data.select( value() )
                                        },
@@ -173,11 +173,11 @@ data.bindValues(
                         'userData.patch({name:"Jerry"})' )
     ),
     contentSection(
-        'Updating Instead of Replacing',
-        'To prevent replacing an element, to maintain focus or cache a reference, pass the element and a function to update it with. ' +
-        'This function will be executed whenever the value changes, or if the value is an array, whenever an array element is removed, added, or replaced.',
+        'Custom Handling',
+        'If you want to do some extra shenanigans, you can get a handle on the element by passing an update function. This disables the normal handling of replacing the' +
+        ' element when it changes.',
         prismCode(
-            ` name.bindAs(
+            `name.bindAs(
    input(
        {
            value: name(),
@@ -238,29 +238,8 @@ const myElement = = ()=> {
                         '+1'
                     )
                 )
-            } )() )
-    ),
-    contentSection(
-        'Granular Binding',
-        'To be as efficient as possible you can bind single small values and update nothing else on the page',
-        prismCode( `
-()=> {
-    const a = fnstate(0)
-    const b = fnstate(0)
-    return div(
-        'a: ',a.bindAs( () => a() ),
-        'b: ', b.bindAs( () => b() ),
-        button(
-            {onclick: () => a( a() + 1 )},
-            "a+1"
-        ),
-        button(
-            {onclick: () => b( b() + 1 )},
-            "b+1"
-        )
-    )
-}
-`, ( () => {
+            } )()
+    , ( () => {
                        const a = fnstate( 0 )
                        const b = fnstate( 0 )
                        return div(
@@ -277,70 +256,60 @@ const myElement = = ()=> {
         'As long as you have a handle on the state object you can bind to it. This means that states can be imported, used as global vars, or set on window.',
         prismCode( `
 const appState = fnstate({userName: 'Jerry'}) 
-() => {
 const greeting = fnstate( 'Hello' )
 let triggered = false
 return div(
-   greeting.bindAs(() => greeting()), appState.bindAs( () => appState().userName),'!',
+   greeting.bindAs( () => greeting() ), ' ', appState.bindAs( () => appState().userName ), '!',
    div(
-        greeting.bindAs(
-           input( {
-                      value: greeting(),
-                      oninput: ( e ) => {greeting( e.target.value )}
-                  } ),
-           ( el ) => el.value = greeting()
-        ),
-        'This input has a 500ms debounce',
-         appState.bindAs(
-           input( {
-                value: appState().userName || '',
-                oninput: ( e ) => {
-                  if( !triggered ) {
-                      triggered = true
-                      setTimeout( () => {
-                          appState.patch({userName: e.target.value})
-                          triggered = false
-                      }, 500 )
+       input( {
+                  value: greeting.bindAttr( () => greeting() ),
+                  oninput: ( e ) => {greeting( e.target.value )}
+              } )
+       ,
+       br(),
+       'This input has a 500ms debounce',
+       br(),
+       input( {
+                  value: appState.bindAttr(()=> appState().userName || ''),
+                  oninput: ( e ) => {
+                      if( !triggered ) {
+                          triggered = true
+                          setTimeout( () => {
+                              appState.patch( { userName: e.target.value } )
+                              triggered = false
+                          }, 500 )
+                      }
                   }
-                }
-                }
-           ),
-           ( el => {el.value = appState().userName}
-        )
+              }
+       )
    )
 )
-}
 `, ( () => {
                            const greeting = fnstate( 'Hello' )
                            let triggered = false
                            return div(
                                greeting.bindAs( () => greeting() ), ' ', appState.bindAs( () => appState().userName ), '!',
                                div(
-                                   greeting.bindAs(
-                                       input( {
-                                                  value: greeting(),
-                                                  oninput: ( e ) => {greeting( e.target.value )}
-                                              } ),
-                                       ( el ) => el.value = greeting()
-                                   ),
+                                   input( {
+                                              value: greeting.bindAttr( () => greeting() ),
+                                              oninput: ( e ) => {greeting( e.target.value )}
+                                          } )
+                                   ,
                                    br(),
                                    'This input has a 500ms debounce',
                                    br(),
-                                   appState.bindAs(
-                                       input( {
-                                                  value: appState().userName || '',
-                                                  oninput: ( e ) => {
-                                                      if( !triggered ) {
-                                                          triggered = true
-                                                          setTimeout( () => {
-                                                              appState.patch( { userName: e.target.value } )
-                                                              triggered = false
-                                                          }, 500 )
-                                                      }
+                                   input( {
+                                              value: appState.bindAttr(()=> appState().userName || ''),
+                                              oninput: ( e ) => {
+                                                  if( !triggered ) {
+                                                      triggered = true
+                                                      setTimeout( () => {
+                                                          appState.patch( { userName: e.target.value } )
+                                                          triggered = false
+                                                      }, 500 )
                                                   }
                                               }
-                                       ),
-                                       ( el ) => {el.value = appState().userName}
+                                          }
                                    )
                                )
                            )
