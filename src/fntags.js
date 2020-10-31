@@ -317,11 +317,19 @@ function arrangeElements( ctx, bindContext ) {
             if( !parent.lastChild || parent.lastChild.key !== current.key ) parent.append( current )
         } else {
             if( !prev.previousSibling ) {
-                prev.insertAdjacentElement( 'beforeBegin', current )
+                //insertAdjacentElement is faster, but some nodes don't have it (lookin' at you text)
+                if(prev.insertAdjacentElement)
+                    prev.insertAdjacentElement( 'beforeBegin', current )
+                else
+                    parent.insertBefore(current, prev)
             } else if( prev.previousSibling.key !== current.key ) {
                 //if it's a new key, always insert it
                 if( isNew )
-                    prev.insertAdjacentElement( 'beforeBegin', current )
+                    //insertAdjacentElement is faster, but some nodes don't have it (lookin' at you text)
+                    if(prev.insertAdjacentElement)
+                        prev.insertAdjacentElement( 'beforeBegin', current )
+                    else
+                        parent.insertBefore(current, prev)
                 //if it's an existing key, replace the current object with the correct object
                 else
                     prev.previousSibling.replaceWith( current )
