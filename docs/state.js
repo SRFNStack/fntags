@@ -36,7 +36,7 @@ export default div(
         'A promise can be returned from either bind function to allow for asynchronous element creation. The promise should resolve to either an element, a function that returns an element, or another promise.'
     ),
     contentSection( 'Binding Attributes',
-                    span( 'If you only want to change the attributes of an element, you can bind state updates to single attributes using the ',
+                    span( 'If you only want to change the attributes of an element based on an fnstate, you can bind updates to individual attributes using the ',
                           code( 'state.bindAttr' ),
                           ' function.' ),
                     prismCode( `const color = fnstate( 'pink' )
@@ -85,18 +85,16 @@ return div(
                     )
     ),
     contentSection( 'Two Way Binding',
-                    span( 'Also known as MVVM if you\'re fancy. The preferred way to perform two way binding with an input is to use the ', code( 'state.bindAttr' ), ' function.' ),
+                    span( 'The easiest way to do two way binding on an input is via the ',
+                          code( 'state.bindAttr' ),
+                          ' function.' ),
                     prismCode( `const name = fnstate( 'Jerry' )
 return div(
-   'Hello ', name.bindAs(
-       () => name()
-   ),
+   'Hello ', name.bindAs( name ),
    br(),
-   input( 
+   input(
        {
-           value: name.bindAttr(
-                () => name()
-           ),
+           value: name.bindAttr( name ),
            oninput:
                ( e ) => name( e.target.value )
        }
@@ -105,15 +103,11 @@ return div(
                                ( () => {
                                    const name = fnstate( 'Jerry' )
                                    return div(
-                                       'Hello ', name.bindAs(
-                                           () => name()
-                                       ),
+                                       'Hello ', name.bindAs( name ),
                                        br(),
                                        input(
                                            {
-                                               value: name.bindAttr(
-                                                   () => name()
-                                               ),
+                                               value: name.bindAttr( name ),
                                                oninput:
                                                    ( e ) => name( e.target.value )
                                            }
@@ -297,7 +291,7 @@ const appState = fnstate({userName: 'Jerry'})
 const greeting = fnstate( 'Hello' )
 let triggered = false
 return div(
-   greeting.bindAs( () => greeting() ), ' ', appState.bindAs( () => appState().userName ), '!',
+   greeting.bindAs( greeting ), ' ', appState.bindAs( () => appState().userName ), '!',
    div(
        input( {
                   value: greeting.bindAttr( () => greeting() ),
@@ -326,10 +320,10 @@ return div(
                            const greeting = fnstate( 'Hello' )
                            let triggered = false
                            return div(
-                               greeting.bindAs( () => greeting() ), ' ', appState.bindAs( () => appState().userName ), '!',
+                               greeting.bindAs( greeting ), ' ', appState.bindAs( () => appState().userName ), '!',
                                div(
                                    input( {
-                                              value: greeting.bindAttr( () => greeting() ),
+                                              value: greeting.bindAttr( greeting ),
                                               oninput: ( e ) => {greeting( e.target.value )}
                                           } )
                                    ,
