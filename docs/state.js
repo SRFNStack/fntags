@@ -84,8 +84,8 @@ return div(
                                }()
                     )
     ),
-    contentSection( 'Two Way Binding (MVVM if you\'re fancy)',
-                    span( 'The preferred way to perform two way binding with an input is to use the ', code( 'state.bindAttr' ), ' function.' ),
+    contentSection( 'Two Way Binding',
+                    span( 'Also known as MVVM if you\'re fancy. The preferred way to perform two way binding with an input is to use the ', code( 'state.bindAttr' ), ' function.' ),
                     prismCode( `const name = fnstate( 'Jerry' )
 return div(
    'Hello ', name.bindAs(
