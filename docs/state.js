@@ -90,28 +90,34 @@ return div(
 return div(
    'Hello ', name.bindAs(
        () => name()
-   ), br(),
-   input( {
-              value: name.bindAttr(
-                  () => name()
-              ),
-              oninput:
-                  ( e ) => name( e.target.value )
-          } )
+   ),
+   br(),
+   input( 
+       {
+       value: name.bindAttr(
+            () => name()
+       ),
+       oninput:
+           ( e ) => name( e.target.value )
+       }
+   )
 )`,
                                ( () => {
                                    const name = fnstate( 'Jerry' )
                                    return div(
                                        'Hello ', name.bindAs(
                                            () => name()
-                                       ),br(),
-                                       input( {
-                                                  value: name.bindAttr(
-                                                      () => name()
-                                                  ),
-                                                  oninput:
-                                                      ( e ) => name( e.target.value )
-                                              } )
+                                       ),
+                                       br(),
+                                       input(
+                                           {
+                                               value: name.bindAttr(
+                                                   () => name()
+                                               ),
+                                               oninput:
+                                                   ( e ) => name( e.target.value )
+                                           }
+                                       )
                                    )
                                } )()
                     )
