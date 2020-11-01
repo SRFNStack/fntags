@@ -7,13 +7,14 @@ const odd = ( text ) => p({style: 'margin-left: 15px; text-align: left; padding:
 export default ()=>div( { class: 'flex-center', style: 'flex-direction: column; font-size: 16px;' },
                     div(
                         ...[
-                            span(a({href: 'https://github.com/hyperhype/hyperscript'}, 'Hyperscript'), ' Style Templates'),
-                            'Create reusable elements',
-                            'Global State using exports',
-                            'Bind any state to any element',
-                            'Bind to more than one state',
-                            'Routing for single page apps',
-                            'Only a few KB min+gzip'
+                            span(a({href: 'https://github.com/hyperhype/hyperscript'}, 'Hyperscript'), ' Style Markup'),
+                            'Reusable Components',
+                            'Shared State via Export',
+                            'State to Element Binding',
+                            'Debuggable Templates',
+                            'Single Page App Routing',
+                            'Only a few KB min+gzip',
+                            'No Build Process Necessary'
                         ].map( ( txt, i ) => i % 2 === 0 ? even( txt ) : odd( txt ) )
                     ),
                     hr(),

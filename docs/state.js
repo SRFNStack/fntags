@@ -5,15 +5,26 @@ import contentSection from './contentSection.js'
 
 const appState = fnstate( { userName: 'Jerry' } )
 let data = fnstate( [1, 2, 3, 4], v => v )
+const peeps = fnstate(
+    [
+        { name: 'Greg', crashes: 0 },
+        { name: 'Jerry', crashes: 9001 },
+        { name: 'Jim', crashes: 0 },
+        { name: 'Larry', crashes: 0 }
+    ],
+    peep => peep.name
+)
 
 export default div(
     contentSection(
         'Binding State',
-        'fntags uses an observer pattern to react to changes and update elements. ' +
-        'To create a state, call the fnstate function with the initial value, it returns a function. ' +
-        'To access the current value of the function, call it with no arguments. ' +
-        'To change the state, pass the new value to the function.',
-        prismCode( 'const count = fnstate(0)' ),
+        'fntags uses an observer pattern to react to changes and update elements.',
+        'To create a state, call the fnstate function with the initial value, it returns a function.',
+        prismCode( 'const count = fnstate( 0 )' ),
+        'To access the current value of the state, call it with no arguments.',
+        prismCode( 'count() === 0' ),
+        'To change the state, pass a new value to the state.',
+        prismCode( 'count( count() + 1 )' ),
         span( 'Call ',
               code( 'state.subscribe' ),
               ' on the created state with a callback to be notified whenever there is a state change. This callback receives no arguments.' ),
@@ -24,16 +35,190 @@ export default div(
               code( 'state.bindAs' ),
               ' to bind the state with an element' ),
         prismCode( 'count.bindAs( () => `Current count: ${count()}` )' ),
-        'When the state is changed, the passed function is executed, and the current element is replaced with the newly returned element.',
-        span( 'Call ',
-              code( 'state.bindValues' ),
-              ' to bind the state with the values of array. This will make the set of elements reflect changes to position and any change to value.' ),
-        'When using bindValues, you must supply a mapKey function when creating the state, this is necessary to correctly match the array value to the corresponding element.',
-        prismCode( 'const peeps = fnstate(["greg","jerry"], peep => peep)\n' +
-                   'peeps.bindValues( (peep) => `Hello ${peep}` )' ),
-        'The bind function receives the value wrapped as an fnstate, not the raw value. This allows binding to value changes.',
-        'This is more efficient than re-setting the entire array as that will require re-creating each element in the array. ',
-        'A promise can be returned from either bind function to allow for asynchronous element creation. The promise should resolve to either an element, a function that returns an element, or another promise.'
+        'When the state is changed, the passed function is executed, and the current element is replaced with the newly returned element.'
+    ),
+    contentSection( 'Two Way Binding',
+                    span( 'The easiest way to do two way binding on an input is via the ',
+                          code( 'state.bindAttr' ),
+                          ' function.' ),
+                    prismCode( `const name = fnstate( 'Jerry' )
+return div(
+   'Hello ', name.bindAs( name ),
+   br(),
+   input(
+       {
+           value: name.bindAttr( name ),
+           oninput:
+               ( e ) => name( e.target.value )
+       }
+   )
+)`,
+                               ( () => {
+                                   const name = fnstate( 'Jerry' )
+                                   return div(
+                                       'Hello ', name.bindAs( name ),
+                                       br(),
+                                       input(
+                                           {
+                                               value: name.bindAttr( name ),
+                                               oninput:
+                                                   ( e ) => name( e.target.value )
+                                           }
+                                       )
+                                   )
+                               } )()
+                    )
+    ),
+    contentSection( 'Binding Lists',
+                    span( 'Call ',
+                          code( 'state.bindValues' ),
+                          ' to bind the state with the values of array. This will allow binding the position and value of the elements to reflect the current state of the array.' ),
+                    'When using bindValues, you must supply a mapKey function when creating the state, this is necessary to correctly match the array value to the corresponding element.',
+                    'For the following examples, peeps is ',
+                    prismCode( `const peeps = fnstate(
+    [
+        { name: 'Greg', crashes: 0 },
+        { name: 'Jerry', crashes: 9001 },
+        { name: 'Jim', crashes: 0 },
+        { name: 'Larry', crashes: 0 }
+    ],
+    peep => peep.name
+)` ),
+                    prismCode(
+                        `peeps.bindValues(
+    div(),
+    peep =>
+        div(
+            peep.bindAs(
+                () =>
+                    peep().name + ' crashed ' +
+                    peep().crashes + ' times'
+            )
+        )
+    )
+)`,
+                        peeps.bindValues(
+                            div(),
+                            peep =>
+                                div(
+                                    peep.bindAs(
+                                        () =>
+                                            peep().name + ' crashed ' +
+                                            peep().crashes + ' times'
+                                    )
+                                )
+                        )
+                    ),
+                    'The bind function receives the value wrapped as an fnstate, not the raw value. This allows efficient binding to value changes on each row.',
+                    prismCode( `peeps.bindValues(
+   div( {
+            style: {
+                display: 'flex',
+                'flex-direction': 'column'
+            }
+        } ),
+   peep =>
+       div(
+           div(
+               peep.bindAs(
+                   () =>
+                       peep().name + ' crashed ' +
+                       peep().crashes + ' times'
+               )
+           ),
+           button(
+               {
+                   onclick: () =>
+                       peep.patch(
+                           {
+                               crashes:
+                                   peep().crashes + 1
+                           }
+                       )
+               },
+               \`Crash \${peep().name}\`
+           )
+       )
+)`,
+                               peeps.bindValues(
+                                   div( {
+                                            style: {
+                                                display: 'flex',
+                                                'flex-direction': 'column'
+                                            }
+                                        } ),
+                                   peep =>
+                                       div(
+                                           div(
+                                               peep.bindAs(
+                                                   () =>
+                                                       peep().name + ' crashed ' +
+                                                       peep().crashes + ' times'
+                                               )
+                                           ),
+                                           button(
+                                               {
+                                                   onclick: () =>
+                                                       peep.patch(
+                                                           {
+                                                               crashes:
+                                                                   peep().crashes + 1
+                                                           }
+                                                       )
+                                               },
+                                               `Crash ${peep().name}`
+                                           )
+                                       )
+                               )
+                    ),
+                    'To reorder the elements, re-order the array',
+                    prismCode( `div(
+   peeps.bindValues(
+       div(),
+       peep =>
+           div(
+               peep.bindAs(
+                   () =>
+                       peep().name + ' crashed ' +
+                       peep().crashes + ' times'
+               )
+           )
+   ),
+   button(
+       {
+           onclick: () => {
+               let p = peeps()
+               p.push( p.shift() )
+               peeps( p )
+           }
+       },
+       'Rotate'
+   )
+)`,
+                               div(
+                                   peeps.bindValues(
+                                       div(),
+                                       peep =>
+                                           div(
+                                               peep.bindAs(
+                                                   () =>
+                                                       peep().name + ' crashed ' +
+                                                       peep().crashes + ' times'
+                                               )
+                                           )
+                                   ),
+                                   button(
+                                       {
+                                           onclick: () => {
+                                               let p = peeps()
+                                               p.push( p.shift() )
+                                               peeps( p )
+                                           }
+                                       },
+                                       'Rotate'
+                                   )
+                               )
+                    )
     ),
     contentSection( 'Binding Attributes',
                     span( 'If you only want to change the attributes of an element based on an fnstate, you can bind updates to individual attributes using the ',
@@ -84,41 +269,11 @@ return div(
                                }()
                     )
     ),
-    contentSection( 'Two Way Binding',
-                    span( 'The easiest way to do two way binding on an input is via the ',
-                          code( 'state.bindAttr' ),
-                          ' function.' ),
-                    prismCode( `const name = fnstate( 'Jerry' )
-return div(
-   'Hello ', name.bindAs( name ),
-   br(),
-   input(
-       {
-           value: name.bindAttr( name ),
-           oninput:
-               ( e ) => name( e.target.value )
-       }
-   )
-)`,
-                               ( () => {
-                                   const name = fnstate( 'Jerry' )
-                                   return div(
-                                       'Hello ', name.bindAs( name ),
-                                       br(),
-                                       input(
-                                           {
-                                               value: name.bindAttr( name ),
-                                               oninput:
-                                                   ( e ) => name( e.target.value )
-                                           }
-                                       )
-                                   )
-                               } )()
-                    )
-    ),
     contentSection( 'Selecting Children',
-                    'If using bindValues, you can mark values in the array as selected and get notified via events that the element was selected or deselected.',
-                    span( 'The currently selected key can be accessed using', code( 'state.selected()' ), '. The bound function receives the bound element as the only argument.' ),
+                    'If using bindValues, you can mark values in the array as selected and bind elements or attrs to the selected state.',
+                    span( 'The currently selected key can be accessed using',
+                          code( 'state.selected()' ),
+                          '. The bound function receives the bound element as the only argument.' ),
                     prismCode( `let data = fnstate( [ 1, 2, 3, 4 ], v => v )
 data.bindValues(
    div(),
@@ -157,8 +312,7 @@ data.bindValues(
                                        )
                                    )
                                ) ),
-                    span( 'If you only need to change attributes of the element, you can use the function ', code( 'state.bindSelectAttr' ), '.' ),
-                    'It works the same as bindAttr, except it can be used to bind elements or text. ',
+                    span( 'To bind attributes to selection changes, use the function ', code( 'state.bindSelectAttr' ), '.' ),
                     prismCode( `let data = fnstate( [ 1, 2, 3, 4 ], v => v )
 data.bindValues(
    div(),
@@ -199,14 +353,14 @@ data.bindValues(
                                ) )
     ),
     contentSection( 'Patching State',
-                    'The function returned by fnstate has a patch function property that can be used to apply a patch to the existing state using Object.assign.',
+                    'The function returned by fnstate has a patch function for applying updates to the state using Object.assign.',
                     prismCode(
                         'const userData = fnstate({name: "bob"})\n' +
                         'userData.patch({name:"Jerry"})' )
     ),
     contentSection(
         'Custom Handling',
-        'If you want to do some extra shenanigans, you can get a handle on the element by passing an update function. This disables the normal handling of replacing the' +
+        'If you want to perform extra shenanigans, you can get a handle on the element by passing an update function. This disables the normal handling of replacing the' +
         ' element when it changes.',
         prismCode(
             `name.bindAs(
@@ -240,48 +394,7 @@ data.bindValues(
             )
         )
     ),
-    contentSection(
-        'Modifying State',
-        'To modify the state, call the state function with the new state.',
-        prismCode(
-            `
-const myElement = = ()=> {
-    const count = fnstate(0)
-    return div(
-        count.bindAs(
-            () => \`Current count: \${ count() }\`
-        ),
-        button(
-            {onclick: 
-                () => count( state.count() + 1 )
-            },
-            "+1"
-        )
-    )
-}
-`, ( () => {
-                const count = fnstate( 0 )
-                return div(
-                    count.bindAs(
-                        () => `Current count: ${count()}`
-                    ),
-                    button(
-                        { onclick: () => count( count() + 1 ) },
-                        '+1'
-                    )
-                )
-            } )()
-            , ( () => {
-                const a = fnstate( 0 )
-                const b = fnstate( 0 )
-                return div(
-                    `a: `, a.bindAs( () => a() ), 'b: ', b.bindAs( () => b() ),
-                    button( { onclick: () => a( a() + 1 ) }, 'a+1' ),
-                    button( { onclick: () => b( b() + 1 ) }, 'b+1' )
-                )
-            } )()
-        )
-    ),
+
 
     contentSection(
         'Binding State at Any Scope',

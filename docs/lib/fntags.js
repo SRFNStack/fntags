@@ -51,7 +51,7 @@ export const fnstate = ( initialValue, mapKey ) => {
         selectObservers: {},
         mapKey,
         state( newState ) {
-            if( arguments.length === 0 || arguments.length === 1 && arguments[0] === ctx.state ) {
+            if( arguments.length === 0 || arguments.length === 1 && arguments[ 0 ] === ctx.state ) {
                 return ctx.currentValue
             } else {
                 ctx.currentValue = newState
@@ -220,7 +220,7 @@ let doBind = function( ctx, element, update, handleUpdate, handleReplace ) {
         handleUpdate( boundElement )
         return boundElement
     } else {
-        let current = setKey( ctx,renderNode( evaluateElement( element, ctx.currentValue ) ) )
+        let current = setKey( ctx, renderNode( evaluateElement( element, ctx.currentValue ) ) )
         handleReplace( current )
         return current
     }
@@ -318,18 +318,18 @@ function arrangeElements( ctx, bindContext ) {
         } else {
             if( !prev.previousSibling ) {
                 //insertAdjacentElement is faster, but some nodes don't have it (lookin' at you text)
-                if(prev.insertAdjacentElement)
+                if( prev.insertAdjacentElement )
                     prev.insertAdjacentElement( 'beforeBegin', current )
                 else
-                    parent.insertBefore(current, prev)
+                    parent.insertBefore( current, prev )
             } else if( prev.previousSibling.key !== current.key ) {
                 //if it's a new key, always insert it
                 if( isNew )
                     //insertAdjacentElement is faster, but some nodes don't have it (lookin' at you text)
-                    if(prev.insertAdjacentElement)
+                    if( prev.insertAdjacentElement )
                         prev.insertAdjacentElement( 'beforeBegin', current )
                     else
-                        parent.insertBefore(current, prev)
+                        parent.insertBefore( current, prev )
                 //if it's an existing key, replace the current object with the correct object
                 else
                     prev.previousSibling.replaceWith( current )
@@ -348,7 +348,7 @@ function arrangeElements( ctx, bindContext ) {
 }
 
 const evaluateElement = ( element, value ) => {
-    if(element.isFnState) return element()
+    if( element.isFnState ) return element()
     else return typeof element === 'function' ? element( value ) : element
 }
 
@@ -359,9 +359,9 @@ export const renderNode = ( node ) => {
     if( typeof node === 'object' && node.then === undefined ) {
         return node
     } else if( node && typeof node.then === 'function' ) {
-        const node = marker()
-        node.then( el => node.replaceWith( renderNode( el ) ) ).catch( e => console.error( 'Caught failed node promise.', e ) )
-        return node
+        const temp = marker()
+        node.then( el => temp.replaceWith( renderNode( el ) ) ).catch( e => console.error( 'Caught failed node promise.', e ) )
+        return temp
     } else {
         return document.createTextNode( node + '' )
     }
@@ -386,9 +386,9 @@ let setAttribute = function( attrName, attr, element ) {
     }
 }
 
-export const isAttrs = ( val ) => val && typeof val === 'object' && !Array.isArray( val ) && !isNode( val )
-/**
- * Aggregates all attribute objects from a list of children
+export const isAttrs = ( val ) => val && typeof val === 'object' && !Array.isArray( val ) && typeof val.then !== 'function' && !isNode( val )
+/**of children
+ * Aggregates all attribute objects from a list
  * @param children
  * @returns {{}} A single object containing all of the aggregated attribute objects
  */

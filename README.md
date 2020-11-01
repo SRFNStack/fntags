@@ -2,27 +2,30 @@
 
 > less fluff, more stuff
 
-### [Documentiaton](https://narcolepticsnowman.github.io/fntags)
+### [Documentation](https://narcolepticsnowman.github.io/fntags)
 
-- No set up and no build process
-- Create re-usable elements
-- Bind state changes to elements
-- Routing for single page apps
+Check the docs to get started, or copy and paste the following example into a html file and load it in your browser!
 
 ```html
 <html><body>
 <script type="module">
-    import {fnstate} from './fntags.js'
-    import {div, p, h1} from './fnelements.js'
+    import {fnstate} from 'https://cdn.jsdelivr.net/npm/fntags@0.4.2/src/fntags.min.js'
+    import {div, br, h1, input} from 'https://cdn.jsdelivr.net/npm/fntags@0.4.2/src/fnelements.min.js'
     
-    const welcome = fnstate('Welcome')
-
+    const name = fnstate( 'fntags' )
 
     document.body.append(
-        div(
-            welcome.bindAs(()=>h1(welcome())),
-            p("to fntags")
-        )
+      div(
+          h1('Hello ', name.bindAs( name )),
+          br(),
+          input(
+              {
+                  value: name.bindAttr( name ),
+                  oninput:
+                      ( e ) => name( e.target.value )
+              }
+          )
+      )
     ) 
 </script>
 </body></html>

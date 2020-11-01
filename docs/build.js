@@ -1,5 +1,4 @@
-import { h } from './lib/fntags.js'
-import { a, b, div, h1, h4, p, span, strong } from './lib/fnelements.js'
+import { a, b, div, h4, p, span, strong } from './lib/fnelements.js'
 import contentSection from './contentSection.js'
 import prismCode from './prismCode.js'
 import { secondaryColor } from './constants.js'
@@ -17,17 +16,17 @@ export default div(
         h('div',
             h1("Internets go here.")
         )
-    ) 
+    )
 </script>`
         )
     ),
     contentSection(
-        'Creating Templates Using the h() function',
+        'Components',
         p( 'fntags provides a ',
            a( { style: { color: secondaryColor, 'text-decoration': 'underline' }, href: 'https://github.com/hyperhype/hyperscript' }, 'hyperscript' ),
            ' style function called h that is used for creating HTMLElements. This replaces using html, meaning everything is written in js.' ),
         prismCode( 'h(\'div\', \'hello world\')' ),
-        'h takes a tag and a rest parameter of child elements. Children can be a string or a dom node.' +
+        'h takes a tag and a rest parameter of child elements. Children can be a string, a dom node, or a promise that returns either of those.',
         'Other types will be coerced to a string. If a child is an array, each element of the array will be appended.',
         prismCode( 'h(\'div\', h(\'span\', {class: \'hello\'}, \'hello world\'))' ),
         'To parameterize your element, declare your element as a function with parameters.',
@@ -35,7 +34,7 @@ export default div(
             '(name) => div("Aloha ", span(\`\${name}!\`))\n',
             ( ( name ) => div( 'Aloha, ', span( `${name}!` ) ) )( 'Jerry' ) ),
         'This function can now be exported to be used as a shared and reusable component.',
-        prismCode( 'export const yo = (name) => div("What up,",\`\${name}!\`)'),
+        prismCode( 'export const yo = (name) => div("What up,",\`\${name}!\`)' ),
         'A rest parameter is recommended for including children in the parameters.',
 
         prismCode( '(name, ...children) =>\n' +
@@ -63,7 +62,7 @@ export default div(
         )
     ),
     contentSection(
-        'Pretty tags instead of h()',
+        'Pretty Tags Instead of h()',
         'To create a more html like template, you can also import all of the default html tags from either the index or fnelements.js directly.',
         'All non deprecated html elements and marquee(support and opinion varies) are exported as functions from fnelements.js.',
         prismCode(
@@ -74,5 +73,26 @@ export default div(
             ')',
             div( { style: 'font-size: 20px;' }, 'hello!', span( { style: 'color: green' }, ' world!' ) )
         )
+    ),
+    contentSection( 'Async Rendering',
+                    'A promise can be passed to h or any fnelement function and fntags will place the element on the page when the promise resolves.',
+                    'The promise should resolve to any valid input to h. Promises will continue to be resolved until a non promise is returned.',
+                    prismCode( `div(
+   fetch(
+       'https://icanhazdadjoke.com/',
+       { headers: { accept: 'text/plain' } }
+   )
+       .then( res => res.text() )
+       .then( div )
+)`,
+                               div(
+                                   fetch(
+                                       'https://icanhazdadjoke.com/',
+                                       { headers: { accept: 'text/plain' } }
+                                   )
+                                       .then( res => res.text() )
+                                       .then( joke => div( joke ) )
+                               )
+                    )
     )
 )
