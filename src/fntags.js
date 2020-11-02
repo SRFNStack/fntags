@@ -16,9 +16,9 @@ export const h = ( tag, ...children ) => {
     let element = document.createElement( tag )
     if( isAttrs( children[ 0 ] ) ) {
         let attrs = children.shift()
-        for( let a in attrs ) {
+        for( let a of Object.keys( attrs ) ) {
             let attr = attrs[ a ]
-            if( attr && attr.isBoundAttribute ) {
+            if( typeof attr === 'function' && attr.isBoundAttribute ) {
                 attr.init( a, element )
                 attr = attr()
             }
@@ -139,18 +139,10 @@ export const fnstate = ( initialValue, mapKey ) => {
 const subscribeSelect = ( ctx, callback ) => {
     let parentCtx = ctx.state.parentCtx
     let key = keyMapper( parentCtx.mapKey, ctx.currentValue )
-    if( parentCtx ) {
-        if( !parentCtx.selectObservers[ key ] )
-            parentCtx.selectObservers[ key ] = []
-        parentCtx.selectObservers[ key ].push( callback )
-    }
+    if( parentCtx.selectObservers[ key ] === undefined )
+        parentCtx.selectObservers[ key ] = []
+    parentCtx.selectObservers[ key ].push( callback )
 }
-/**
- * Check if a value is an dom node
- * @param el
- * @returns {boolean}
- */
-export const isNode = ( el ) => el instanceof Node
 
 let doBindSelectAttr = function( ctx, attribute ) {
     let boundAttr = createBoundAttr( attribute )
@@ -182,16 +174,16 @@ function doReset( ctx, reInit, initialValue ) {
 function doSelect( ctx, key ) {
     let currentSelected = ctx.selected
     ctx.selected = key
-    if( ctx.selectObservers[ currentSelected ] ) ctx.selectObservers[ currentSelected ].forEach( obs => obs() )
-    if( ctx.selectObservers[ ctx.selected ] ) ctx.selectObservers[ ctx.selected ].forEach( obs => obs() )
+    if( ctx.selectObservers[ currentSelected ] !== undefined ) ctx.selectObservers[ currentSelected ].forEach( obs => obs() )
+    if( ctx.selectObservers[ ctx.selected ] !== undefined ) ctx.selectObservers[ ctx.selected ].forEach( obs => obs() )
 }
 
 function doBindValues( ctx, parent, element, update ) {
     parent = renderNode( parent )
-    if( !parent ) throw new Error( 'You must provide a parent element to bind the children to. aka Need Bukkit.' )
-    if( typeof element !== 'function' && !update )
+    if( parent === undefined ) throw new Error( 'You must provide a parent element to bind the children to. aka Need Bukkit.' )
+    if( typeof element !== 'function' && typeof update !== 'function' )
         throw new Error( 'You must pass an update function when passing a non function element' )
-    if( !ctx.mapKey ) {
+    if( typeof ctx.mapKey !== 'function') {
         console.warn( 'Using value index as key, may not work correctly when moving items...' )
         ctx.mapKey = ( o, i ) => i
     }
@@ -213,9 +205,9 @@ function doBindValues( ctx, parent, element, update ) {
 }
 
 let doBind = function( ctx, element, update, handleUpdate, handleReplace ) {
-    if( typeof element !== 'function' && !update )
+    if( typeof element !== 'function' && typeof update !== 'function' )
         throw new Error( 'You must pass an update function when passing a non function element' )
-    if( update ) {
+    if( typeof update === 'function' ) {
         let boundElement = renderNode( evaluateElement( element, ctx.currentValue ) )
         handleUpdate( boundElement )
         return boundElement
@@ -251,8 +243,8 @@ const doBindAs = ( ctx, element, update ) =>
             ( current ) => {
                 ctx.state.subscribe( () => {
                     let newElement = setKey( ctx, renderNode( evaluateElement( element, ctx.currentValue ) ) )
-                    if( newElement ) {
-                        if( !newElement.key || newElement.key !== current.key ) {
+                    if( newElement !== undefined ) {
+                        if( newElement.key === undefined || newElement.key !== current.key ) {
                             current.replaceWith( newElement )
                             current = newElement
                         }
@@ -265,20 +257,20 @@ const doBindAs = ( ctx, element, update ) =>
  */
 function reconcile( ctx ) {
     for( let bindContext of ctx.bindContexts ) {
-        if( !bindContext.boundElementByKey ) bindContext.boundElementByKey = {}
+        if( bindContext.boundElementByKey === undefined) bindContext.boundElementByKey = {}
         arrangeElements( ctx, bindContext )
     }
 }
 
 function setKey( ctx, element ) {
-    if( !element.key && ctx.mapKey ) element.key = keyMapper( ctx.mapKey, ctx.currentValue )
+    if( element.key === undefined  && ctx.mapKey !== undefined  ) element.key = keyMapper( ctx.mapKey, ctx.currentValue )
     return element
 }
 
 function keyMapper( mapKey, value ) {
     if( typeof value !== 'object' )
         return value
-    else if( !mapKey ) {
+    else if( typeof mapKey !== 'function' ) {
         return 0
     } else
         return mapKey( value )
@@ -290,15 +282,14 @@ function arrangeElements( ctx, bindContext ) {
         bindContext.boundElementByKey = {}
         return
     }
-    let remainingElements = Object.keys( bindContext.boundElementByKey )
-                                  .reduce( ( keys, key ) => ( keys[ key ] = true ) && keys, {} )
+
+    let seenKeys = {}
     let prev = null
     let parent = bindContext.parent
-    let seenKeys = {}
 
     for( let i = ctx.currentValue.length - 1; i >= 0; i-- ) {
         let valueState = ctx.currentValue[ i ]
-        if( !valueState || !valueState.isFnState )
+        if( valueState === null || valueState === undefined || !valueState.isFnState )
             valueState = ctx.currentValue[ i ] = fnstate( valueState )
         let key = keyMapper( ctx.mapKey, valueState() )
         if( seenKeys[ key ] ) throw new Error( 'Duplicate keys in a bound array are not allowed.' )
@@ -306,19 +297,19 @@ function arrangeElements( ctx, bindContext ) {
         let current = bindContext.boundElementByKey[ key ]
         let isNew = false
         //ensure the parent state is always set and can be accessed by the child states to lsiten to the selection change and such
-        if( !valueState.parentCtx ) valueState.parentCtx = ctx
-        if( !current ) {
+        if( valueState.parentCtx === undefined ) valueState.parentCtx = ctx
+        if( current === undefined ) {
             isNew = true
             current = bindContext.boundElementByKey[ key ] = renderNode( evaluateElement( bindContext.element, valueState ) )
             current.key = key
         }
         //place the element in the parent
-        if( !prev ) {
+        if( prev == null ) {
             if( !parent.lastChild || parent.lastChild.key !== current.key ) parent.append( current )
         } else {
-            if( !prev.previousSibling ) {
+            if( prev.previousSibling === null ) {
                 //insertAdjacentElement is faster, but some nodes don't have it (lookin' at you text)
-                if( prev.insertAdjacentElement )
+                if( prev.insertAdjacentElement !== undefined )
                     prev.insertAdjacentElement( 'beforeBegin', current )
                 else
                     parent.insertBefore( current, prev )
@@ -326,7 +317,7 @@ function arrangeElements( ctx, bindContext ) {
                 //if it's a new key, always insert it
                 if( isNew )
                     //insertAdjacentElement is faster, but some nodes don't have it (lookin' at you text)
-                    if( prev.insertAdjacentElement )
+                    if( prev.insertAdjacentElement !== undefined )
                         prev.insertAdjacentElement( 'beforeBegin', current )
                     else
                         parent.insertBefore( current, prev )
@@ -336,14 +327,14 @@ function arrangeElements( ctx, bindContext ) {
             }
         }
         prev = current
-
-        delete remainingElements[ key ]
     }
-    //deleted keys
-    for( let key of Object.keys( remainingElements ) ) {
-        if( ctx.selected === key ) ctx.selected = null
-        bindContext.boundElementByKey[ key ].remove()
-        delete bindContext.boundElementByKey[ key ]
+
+    //remove keys
+    for( let key of Object.keys( bindContext.boundElementByKey ) ) {
+        if( !seenKeys[ key ] ) {
+            bindContext.boundElementByKey[ key ].remove()
+            delete bindContext.boundElementByKey[ key ]
+        }
     }
 }
 
@@ -358,7 +349,9 @@ const evaluateElement = ( element, value ) => {
 export const renderNode = ( node ) => {
     if( typeof node === 'object' && node.then === undefined ) {
         return node
-    } else if( node && typeof node.then === 'function' ) {
+    } else if( typeof node === 'string' || typeof node === 'number' ) {
+        return document.createTextNode( node )
+    } else if( typeof node === 'object' && typeof node.then === 'function' ) {
         const temp = marker()
         node.then( el => temp.replaceWith( renderNode( el ) ) ).catch( e => console.error( 'Caught failed node promise.', e ) )
         return temp
@@ -368,25 +361,26 @@ export const renderNode = ( node ) => {
 }
 
 let setAttribute = function( attrName, attr, element ) {
-    if( typeof attr === 'string' || attrName === 'value' ) {
-        //value is always an attribute because setting it as a property causes problems
+    //shortcut for most common cases
+    if( typeof attr === 'string' || typeof attr === 'number' ) {
         element.setAttribute( attrName, attr )
     } else if( attrName === 'style' && typeof attr === 'object' ) {
         for( let style in attr ) {
-            let match = attr[ style ].toString().match( /(.*)\W+!important\W*$/ )
-            if( match )
-                element.style.setProperty( style, match[ 1 ], 'important' )
+            let st = attr[ style ].toString()
+            let impt = st.lastIndexOf( '!important')
+            if( impt > -1)
+                element.style.setProperty( style, st.substring(0, impt), st.substring(impt) )
             else
                 element.style.setProperty( style, attr[ style ] )
         }
-    } else if( attrName.startsWith( 'on' ) && typeof attr === 'function' ) {
+    } else if( typeof attr === 'function' && attrName.startsWith( 'on' ) ) {
         element.addEventListener( attrName.substring( 2 ), attr )
     } else {
-        element[ attrName ] = attr
+        element.setAttribute( attrName, attr )
     }
 }
 
-export const isAttrs = ( val ) => val && typeof val === 'object' && !Array.isArray( val ) && typeof val.then !== 'function' && !isNode( val )
+export const isAttrs = ( val ) => typeof val === 'object' && val.nodeType === undefined
 /**of children
  * Aggregates all attribute objects from a list
  * @param children

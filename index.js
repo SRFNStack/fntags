@@ -1,5 +1,5 @@
 export {
-    isNode, fnstate, renderNode, h, getAttrs
+    fnstate, h
 } from './src/fntags.js'
 export {
     route, fnlink, goTo, routeSwitch, pathParameters, pathState, setRootPath
