@@ -249,6 +249,7 @@ const doBindAs = ( ctx, element, update ) =>
                             current = newElement
                         }
                     }
+                    newElement = null
                 } )
             } )
 
@@ -280,6 +281,7 @@ function arrangeElements( ctx, bindContext ) {
     if( ctx.currentValue.length === 0 ) {
         bindContext.parent.textContent = ''
         bindContext.boundElementByKey = {}
+        ctx.selectObservers = {}
         return
     }
 
@@ -333,7 +335,9 @@ function arrangeElements( ctx, bindContext ) {
     for( let key of Object.keys( bindContext.boundElementByKey ) ) {
         if( !seenKeys[ key ] ) {
             bindContext.boundElementByKey[ key ].remove()
-            delete bindContext.boundElementByKey[ key ]
+            bindContext.boundElementByKey[ key ] = undefined
+            if( ctx.selectObservers[ key ] !== undefined )
+                ctx.selectObservers[ key ] = undefined
         }
     }
 }
