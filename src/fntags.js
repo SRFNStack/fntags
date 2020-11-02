@@ -249,7 +249,6 @@ const doBindAs = ( ctx, element, update ) =>
                             current = newElement
                         }
                     }
-                    newElement = null
                 } )
             } )
 
@@ -335,9 +334,9 @@ function arrangeElements( ctx, bindContext ) {
     for( let key of Object.keys( bindContext.boundElementByKey ) ) {
         if( !seenKeys[ key ] ) {
             bindContext.boundElementByKey[ key ].remove()
-            bindContext.boundElementByKey[ key ] = undefined
+            delete bindContext.boundElementByKey[ key ]
             if( ctx.selectObservers[ key ] !== undefined )
-                ctx.selectObservers[ key ] = undefined
+                delete ctx.selectObservers[ key ]
         }
     }
 }
