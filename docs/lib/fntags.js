@@ -49,6 +49,7 @@ export const fnstate = ( initialValue, mapKey ) => {
         observers: [],
         bindContexts: [],
         selectObservers: {},
+        nextId: 0,
         mapKey,
         state( newState ) {
             if( arguments.length === 0 || arguments.length === 1 && arguments[ 0 ] === ctx.state ) {
@@ -56,7 +57,7 @@ export const fnstate = ( initialValue, mapKey ) => {
             } else {
                 ctx.currentValue = newState
                 for( let observer of ctx.observers ) {
-                    observer( newState )
+                    observer.fn( newState )
                 }
             }
             return newState
@@ -88,7 +89,7 @@ export const fnstate = ( initialValue, mapKey ) => {
      * @param attribute A function that returns an attribute value
      * @returns {function(): *} A function that calls the passed function, with some extra metadata
      */
-    ctx.state.bindAttr = attribute => doBindAttr( ctx.state, attribute )
+    ctx.state.bindAttr = ( attribute ) => doBindAttr( ctx.state, attribute )
 
     /**
      * Bind select and deselect to an element
@@ -103,7 +104,7 @@ export const fnstate = ( initialValue, mapKey ) => {
      * @param attribute A function that returns an attribute value
      * @returns {function(): *} A function that calls the passed function, with some extra metadata
      */
-    ctx.state.bindSelectAttr = attribute => doBindSelectAttr( ctx, attribute )
+    ctx.state.bindSelectAttr = ( attribute ) => doBindSelectAttr( ctx, attribute )
 
     /**
      * Mark the element with the given key as selected. This causes the bound select functions to be executed.
@@ -125,8 +126,9 @@ export const fnstate = ( initialValue, mapKey ) => {
 
     /**
      * Register a callback that will be executed whenever the state is changed
+     * @return a function to stop the subscription
      */
-    ctx.state.subscribe = ( callback ) => ctx.observers.push( callback )
+    ctx.state.subscribe = ( callback ) => doSubscribe( ctx, ctx.observers, callback )
 
     /**
      * Remove all of the observers and optionally reset the value to it's initial value
@@ -134,6 +136,15 @@ export const fnstate = ( initialValue, mapKey ) => {
     ctx.state.reset = ( reInit ) => doReset( ctx, reInit, initialValue )
 
     return ctx.state
+}
+
+function doSubscribe( ctx, list, listener ) {
+    let id = ctx.nextId++
+    list.push( { id, fn: listener } )
+    return () => {
+        list.splice( list.findIndex( l => l.id === id ), 1 )
+        list = null
+    }
 }
 
 const subscribeSelect = ( ctx, callback ) => {
@@ -212,9 +223,26 @@ let doBind = function( ctx, element, update, handleUpdate, handleReplace ) {
         handleUpdate( boundElement )
         return boundElement
     } else {
-        let current = setKey( ctx, renderNode( evaluateElement( element, ctx.currentValue ) ) )
+        let current = renderNode( evaluateElement( element, ctx.currentValue ) )
         handleReplace( current )
         return current
+    }
+}
+
+const updateReplacer = ( ctx, element, current ) => () => {
+    let newElement = renderNode( evaluateElement( element, ctx.currentValue ) )
+    if( newElement !== undefined ) {
+        if( current.key !== undefined ) {
+            newElement.key = current.key
+        }
+        if( ctx.parentCtx ) {
+            for( let bindContext of ctx.parentCtx.bindContexts ) {
+                bindContext.boundElementByKey[ current.key ] = newElement
+            }
+        }
+        current.replaceWith( newElement )
+        current = newElement
+        newElement = null
     }
 }
 
@@ -222,35 +250,21 @@ const doBindSelect = ( ctx, element, update ) =>
     doBind( ctx, element, update,
             boundElement =>
                 subscribeSelect( ctx, () => update( boundElement ) ),
-            ( current ) => {
-                let key = keyMapper( ctx.state.parentCtx.mapKey, ctx.currentValue )
+            ( current ) =>
                 subscribeSelect(
                     ctx,
-                    () => {
-                        let newElement = renderNode( evaluateElement( element, ctx.currentValue ) )
-                        newElement.key = key
-                        current.replaceWith( newElement )
-                        current = newElement
-                    }
+                    updateReplacer( ctx, element, current )
                 )
-            } )
+    )
 
 const doBindAs = ( ctx, element, update ) =>
     doBind( ctx, element, update,
             boundElement => {
                 ctx.state.subscribe( () => update( boundElement ) )
             },
-            ( current ) => {
-                ctx.state.subscribe( () => {
-                    let newElement = setKey( ctx, renderNode( evaluateElement( element, ctx.currentValue ) ) )
-                    if( newElement !== undefined ) {
-                        if( newElement.key === undefined || newElement.key !== current.key ) {
-                            current.replaceWith( newElement )
-                            current = newElement
-                        }
-                    }
-                } )
-            } )
+            ( current ) =>
+                ctx.state.subscribe( updateReplacer( ctx, element, current ) )
+    )
 
 /**
  * Reconcile the state of the current array value with the state of the bound elements
@@ -260,11 +274,6 @@ function reconcile( ctx ) {
         if( bindContext.boundElementByKey === undefined ) bindContext.boundElementByKey = {}
         arrangeElements( ctx, bindContext )
     }
-}
-
-function setKey( ctx, element ) {
-    if( element.key === undefined && ctx.mapKey !== undefined ) element.key = keyMapper( ctx.mapKey, ctx.currentValue )
-    return element
 }
 
 function keyMapper( mapKey, value ) {
@@ -317,7 +326,7 @@ function arrangeElements( ctx, bindContext ) {
         } else {
             if( prev.previousSibling === null ) {
                 //insertAdjacentElement is faster, but some nodes don't have it (lookin' at you text)
-                if( prev.insertAdjacentElement !== undefined )
+                if( prev.insertAdjacentElement !== undefined && current.insertAdjacentElement !== undefined )
                     prev.insertAdjacentElement( 'beforeBegin', current )
                 else
                     parent.insertBefore( current, prev )
@@ -325,7 +334,7 @@ function arrangeElements( ctx, bindContext ) {
                 //the previous was deleted all together, so we will delete it and replace the element
                 if( keys[ prev.previousSibling.key ] === undefined ) {
                     delete bindContext.boundElementByKey[ prev.previousSibling.key ]
-                    if( ctx.selectObservers[ prev.previousSibling.key ] !== undefined )
+                    if( ctx.selectObservers[ prev.previousSibling.key ] !== undefined && current.insertAdjacentElement !== undefined )
                         delete ctx.selectObservers[ prev.previousSibling.key ]
                     prev.previousSibling.replaceWith( current )
                 } else if( isNew ) {
@@ -396,7 +405,7 @@ let setAttribute = function( attrName, attr, element ) {
     }
 }
 
-export const isAttrs = ( val ) => typeof val === 'object' && val.nodeType === undefined
+export const isAttrs = ( val ) => typeof val === 'object' && val.nodeType === undefined && !Array.isArray( val )
 /**of children
  * Aggregates all attribute objects from a list
  * @param children
