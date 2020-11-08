@@ -405,7 +405,7 @@ let setAttribute = function( attrName, attr, element ) {
     }
 }
 
-export const isAttrs = ( val ) => typeof val === 'object' && val.nodeType === undefined && !Array.isArray( val )
+export const isAttrs = ( val ) => typeof val === 'object' && val.nodeType === undefined && !Array.isArray( val ) && typeof val.then !== 'function'
 /**of children
  * Aggregates all attribute objects from a list
  * @param children
