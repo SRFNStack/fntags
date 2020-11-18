@@ -87,7 +87,7 @@ export const fnlink = ( ...children ) => {
     } )
     a.setAttribute(
         'href',
-        pathState().rootPath + ensureOnlyLeadingSlash( to )
+        makePath( to )
     )
     return a
 }
@@ -98,7 +98,7 @@ export const fnlink = ( ...children ) => {
  * @param context Data related to the route change
  */
 export const goTo = ( route, context ) => {
-    let newPath = window.location.origin + pathState().rootPath + ensureOnlyLeadingSlash( route )
+    let newPath = window.location.origin + makePath( route )
     history.pushState( {}, route, newPath )
     pathState.patch( {
                          currentRoute: route.split( /[#?]/ )[ 0 ],
@@ -141,7 +141,7 @@ export const routeSwitch = ( ...children ) => {
 
 const ensureOnlyLeadingSlash = ( part ) => {
     part = part.startsWith( '/' ) ? part : '/' + part
-    return part.endsWith( '/' ) ? part.slice( 0, -1 ) : part
+    return part.endsWith( '/' ) && part.length > 1 ? part.slice( 0, -1 ) : part
 }
 
 export const pathParameters = fnstate( {} )
@@ -159,19 +159,21 @@ export const pathState = fnstate(
 export const setRootPath = ( rootPath ) => pathState.patch(
     {
         rootPath: ensureOnlyLeadingSlash( rootPath ),
-        currentRoute: ensureOnlyLeadingSlash( window.location.pathname.replace( rootPath, '' ) ) || '/'
+        currentRoute: ensureOnlyLeadingSlash( window.location.pathname.replace( new RegExp( '^' + rootPath ), '' ) ) || '/'
     }
 )
 
 window.addEventListener( 'popstate', () =>
     pathState.patch( {
-                         currentRoute: ensureOnlyLeadingSlash( window.location.pathname.replace( pathState().rootPath, '' ) ) || '/'
+                         currentRoute: ensureOnlyLeadingSlash( window.location.pathname.replace( new RegExp( '^' + pathState().rootPath ), '' ) ) || '/'
                      }
     )
 )
 
+const makePath = path => ( pathState().rootPath === '/' ? '' : pathState().rootPath ) + ensureOnlyLeadingSlash( path )
+
 const shouldDisplayRoute = ( route, isAbsolute ) => {
-    let path = pathState().rootPath + ensureOnlyLeadingSlash( route )
+    let path = makePath( route )
     const currPath = window.location.pathname
     if( isAbsolute ) {
         return currPath === path || currPath === ( path + '/' )
