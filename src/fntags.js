@@ -387,8 +387,12 @@ export const renderNode = ( node ) => {
 
 let setAttribute = function( attrName, attr, element ) {
     //shortcut for most common cases
-    if(attrName === 'value'){
-        element.setAttribute('value', attr )
+    if( attr === undefined ) {
+        //if the attr is undefined, don't set it on the element
+        //this allows for a way to toggle attributes that don't require a value (i.e. disabled)
+        return
+    } else if( attrName === 'value' ) {
+        element.setAttribute( 'value', attr )
         //html5 nodes like range don't update unless the value property on the object is set
         element.value = attr
     } else if( typeof attr === 'string' || typeof attr === 'number' ) {
