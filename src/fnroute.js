@@ -96,10 +96,15 @@ export const fnlink = ( ...children ) => {
  * A function to navigate to the specified route
  * @param route The route to navigate to
  * @param context Data related to the route change
+ * @param replace Whether to replace the state or push it. pushState is used by default.
  */
-export const goTo = ( route, context ) => {
+export const goTo = ( route, context, replace = false ) => {
     let newPath = window.location.origin + makePath( route )
-    history.pushState( {}, route, newPath )
+    if(replace)
+        history.replaceState( {}, route, newPath )
+    else
+        history.pushState( {}, route, newPath )
+
     pathState.patch( {
                          currentRoute: route.split( /[#?]/ )[ 0 ],
                          context
