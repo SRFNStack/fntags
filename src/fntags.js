@@ -395,6 +395,8 @@ let setAttribute = function( attrName, attr, element ) {
         element.setAttribute( 'value', attr )
         //html5 nodes like range don't update unless the value property on the object is set
         element.value = attr
+    } else if( attrName === 'disabled' || attrName === 'checked' ) {
+        element.disabled = !!attr
     } else if( typeof attr === 'string' || typeof attr === 'number' ) {
         element.setAttribute( attrName, attr )
     } else if( attrName === 'style' && typeof attr === 'object' ) {
