@@ -428,3 +428,25 @@ export const getAttrs = ( children ) => isAttrs( children[ 0 ] ) ? children[ 0 ]
  * @returns {HTMLDivElement}
  */
 const marker = ( attrs ) => h( 'div', Object.assign( attrs || {}, { style: 'display:none' } ) )
+
+/**
+ * A function to create a component with a pre-defined style.
+ * For example, the flex* elements in fnelements.
+ *
+ * @param attrs
+ * @param tag
+ * @param children
+ * @return {*}
+ */
+export const styled = ( attrs, tag, children ) => {
+    let firstChild = children[ 0 ]
+    if( isAttrs( firstChild ) ) {
+        if( firstChild.style )
+            Object.assign( firstChild.style, attrs.style )
+        else
+            Object.assign( firstChild, attrs )
+    } else {
+        children.unshift( attrs )
+    }
+    return h( tag, ...children )
+}
