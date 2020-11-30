@@ -92,6 +92,13 @@ export const fnstate = ( initialValue, mapKey ) => {
     ctx.state.bindAttr = ( attribute ) => doBindAttr( ctx.state, attribute )
 
     /**
+     * Bind style values to state changes
+     * @param style A function that returns a style's value
+     * @returns {function(): *} A function that calls the passed function, with some extra metadata
+     */
+    ctx.state.bindStyle = ( style ) => doBindStyle( ctx.state, style )
+
+    /**
      * Bind select and deselect to an element
      * @param element The element to bind to. If not a function, an update function must be passed
      * @param update If passed this will be executed directly when the state changes with no other intervention
@@ -174,6 +181,15 @@ function doBindAttr( state, attribute ) {
     let boundAttr = createBoundAttr( attribute )
     boundAttr.init = ( attrName, element ) => state.subscribe( () => setAttribute( attrName, attribute(), element ) )
     return boundAttr
+}
+
+function doBindStyle( state, style ) {
+    if( typeof style !== 'function' )
+        throw new Error( 'You must pass a function to bindStyle' )
+    let boundStyle = () => style()
+    boundStyle.isBoundStyle = true
+    boundStyle.init = ( styleName, element ) => state.subscribe( () => element.style[ styleName ] = style() )
+    return boundStyle
 }
 
 function doReset( ctx, reInit, initialValue ) {
@@ -401,12 +417,11 @@ let setAttribute = function( attrName, attr, element ) {
         element.setAttribute( attrName, attr )
     } else if( attrName === 'style' && typeof attr === 'object' ) {
         for( let style in attr ) {
-            let st = attr[ style ].toString()
-            let impt = st.lastIndexOf( '!important' )
-            if( impt > -1 )
-                element.style.setProperty( style, st.substring( 0, impt ), st.substring( impt ) )
-            else
-                element.style.setProperty( style, attr[ style ] )
+            if( typeof attr[ style ] === 'function' && attr[ style ].isBoundStyle ) {
+                attr[ style ].init( style, element )
+                attr[ style ] = attr[ style ]()
+            }
+            element.style[ style ] = attr[ style ].toString()
         }
     } else if( typeof attr === 'function' && attrName.startsWith( 'on' ) ) {
         element.addEventListener( attrName.substring( 2 ), attr )
