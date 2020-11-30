@@ -269,6 +269,56 @@ return div(
                                }()
                     )
     ),
+    contentSection( 'Binding Style',
+                    span( 'To bind only a single style property, use the ',
+                          code( 'state.bindStyle' ),
+                          ' function.' ),
+                    prismCode( `const color = fnstate( 'purple' )
+
+return div(
+     {
+       style: {
+         color: color.bindStyle(() => color()) 
+     }
+   )
+   },
+   input(
+       {
+           type: 'text',
+           value: color(),
+           onkeyup: ( e ) => color( e.target.value )
+       }
+   ),
+   span(
+       { style: { 'font-size': '40px' } },
+       'Ooo even prettier colors!'
+   )
+)`,
+                               function() {
+                                   const color = fnstate( 'purple' )
+
+                                   return div(
+                                       {
+                                           style: {
+                                               color: color.bindStyle(() => color())
+                                           }
+                                       },
+                                       div( 'Type your favorite color' ),
+                                       input(
+                                           {
+                                               type: 'text',
+                                               value: color(),
+                                               onkeyup: ( e ) => color( e.target.value )
+                                           }
+                                       ),
+                                       div(
+                                           { style: { 'font-size': '40px' } },
+                                           'Ooo even prettier colors!'
+                                       )
+                                   )
+                               }()
+                    )
+    ),
     contentSection( 'Selecting Children',
                     'If using bindValues, you can mark values in the array as selected and bind elements or attrs to the selected state.',
                     span( 'The currently selected key can be accessed using',
