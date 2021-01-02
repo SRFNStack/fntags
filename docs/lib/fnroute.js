@@ -100,7 +100,7 @@ export const fnlink = ( ...children ) => {
  */
 export const goTo = ( route, context, replace = false ) => {
     let newPath = window.location.origin + makePath( route )
-    if(replace)
+    if( replace )
         history.replaceState( {}, route, newPath )
     else
         history.pushState( {}, route, newPath )
@@ -181,7 +181,7 @@ const shouldDisplayRoute = ( route, isAbsolute ) => {
     let path = makePath( route )
     const currPath = window.location.pathname
     if( isAbsolute ) {
-        return currPath === path || currPath === ( path + '/' )
+        return currPath === path || currPath === ( path + '/' ) || currPath.match( ( path ).replace( /\/\$[^/]+(\/?)/, '/[^/]+$1' ) + '$' )
     } else {
         const pattern = path.replace( /\/\$[^/]+(\/|$)/, '/[^/]+$1' ).replace( /^(.*)\/([^\/]*)$/, '$1/?$2([/?#]|$)' )
         return !!currPath.match( pattern )

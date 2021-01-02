@@ -538,7 +538,7 @@ export const sup = ( ...children) => h( 'sup', ...children)
 /**
  * @type {function(...[*]=): ( ...children) => h}
  */
-export const svg = ( ...children) => h( 'svg', ...children)
+export const svg = ( ...children) => h( 'ns=http://www.w3.org/2000/svg|svg', ...children)
 
 /**
  * @type {function(...[*]=): HTMLTableElement}
@@ -609,6 +609,11 @@ export const tt = ( ...children) => h( 'tt', ...children)
  * @type {function(...[*]=): HTMLUListElement}
  */
 export const ul = ( ...children) => h( 'ul', ...children)
+
+/**
+ * @type {function(...[*]=): ( ...children) => h}
+ */
+export const use = ( ...children) => h( 'ns=http://www.w3.org/2000/svg|use', ...children)
 
 /**
  * @type {function(...[*]=): ( ...children) => h}

@@ -13,7 +13,12 @@
 
  */
 export const h = ( tag, ...children ) => {
-    let element = document.createElement( tag )
+    let element
+    if( tag.startsWith( 'ns=' ) )
+        element = document.createElementNS( ...( tag.slice( 3 ).split( '|' ) ) )
+    else
+        element = document.createElement( tag )
+
     if( isAttrs( children[ 0 ] ) ) {
         let attrs = children.shift()
         for( let a of Object.keys( attrs ) ) {
@@ -130,6 +135,58 @@ export const fnstate = ( initialValue, mapKey ) => {
      * Perform an Object.assign on the current state using the provided update
      */
     ctx.state.patch = ( update ) => ctx.state( Object.assign( ctx.currentValue, update ) )
+
+    /**
+     * Get a value at the given property path, an error is thrown if the value is not an object
+     */
+    ctx.state.getPath = ( path ) => {
+        if( typeof path !== 'string' ) {
+            throw 'Invalid path'
+        }
+        if( typeof ctx.currentValue !== 'object' ) {
+            throw 'Value is not an object'
+        }
+        return path
+            .split( '\.' )
+            .reduce(
+                ( curr, part ) => {
+                    if( curr && curr.hasOwnProperty( part ) ) {
+                        return curr[ part ]
+                    } else {
+                        return undefined
+                    }
+                },
+                ctx.currentValue
+            )
+    }
+
+    /**
+     * Set a value at the given property path, an error is thrown if the value is not an object
+     * @param path The path of the value to set
+     * @param value The value to set the path to
+     * @param fillWithObjects Whether to non object values with new empty objects.
+     */
+    ctx.state.setPath = ( path, value, fillWithObjects = false ) => {
+        let s = path.split( '\.' )
+        let parent = s
+            .slice( 0, -1 )
+            .reduce(
+                ( current, part ) => {
+                    if( fillWithObjects && typeof current[ part ] !== 'object' ) {
+                        current[ part ] = {}
+                    }
+                    return current[ part ]
+                },
+                ctx.currentValue
+            )
+
+        if( parent && typeof parent === 'object' ) {
+            parent[ s.slice( -1 ) ] = value
+            ctx.state( ctx.currentValue )
+        } else {
+            throw `No object at path ${path}`
+        }
+    }
 
     /**
      * Register a callback that will be executed whenever the state is changed
@@ -412,9 +469,12 @@ let setAttribute = function( attrName, attr, element ) {
         //html5 nodes like range don't update unless the value property on the object is set
         element.value = attr
     } else if( attrName === 'disabled' || attrName === 'checked' ) {
-        element.disabled = !!attr
+        element[attrName] = !!attr
     } else if( typeof attr === 'string' || typeof attr === 'number' ) {
-        element.setAttribute( attrName, attr )
+        if( attrName.startsWith( 'ns=' ) )
+            element.setAttributeNS( ...( attrName.slice( 3 ).split( '|' ) ), attr )
+        else
+            element.setAttribute( attrName, attr )
     } else if( attrName === 'style' && typeof attr === 'object' ) {
         for( let style in attr ) {
             if( typeof attr[ style ] === 'function' && attr[ style ].isBoundStyle ) {
@@ -426,7 +486,10 @@ let setAttribute = function( attrName, attr, element ) {
     } else if( typeof attr === 'function' && attrName.startsWith( 'on' ) ) {
         element.addEventListener( attrName.substring( 2 ), attr )
     } else {
-        element.setAttribute( attrName, attr )
+        if( attrName.startsWith( 'ns=' ) )
+            element.setAttributeNS( ...( attrName.slice( 3 ).split( '|' ) ), attr )
+        else
+            element.setAttribute( attrName, attr )
     }
 }
 

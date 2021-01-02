@@ -1,5 +1,5 @@
 
-import { h } from './fntags.js'
+import { h, styled } from './fntags.js'
 
 /**
  * @type {function(...[*]=): HTMLAnchorElement}
@@ -185,6 +185,64 @@ export const figcaption = ( ...children) => h( 'figcaption', ...children)
  * @type {function(...[*]=): ( ...children) => h}
  */
 export const figure = ( ...children) => h( 'figure', ...children)
+
+/**
+ * @type {function(...[*]=): HTMLDivElement}
+ */
+export const flexCol = (...children) => styled(
+    {
+        style: {
+            display: 'flex',
+            'flex-direction': 'column'
+        }
+    },
+    'div',
+    children
+)
+
+/**
+ * @type {function(...[*]=): HTMLDivElement}
+ */
+export const flexCenteredCol = (...children) => styled(
+    {
+        style: {
+            display: 'flex',
+            'flex-direction': 'column',
+            'align-items': 'center'
+        }
+    },
+    'div',
+    children
+)
+
+/**
+ * @type {function(...[*]=): HTMLDivElement}
+ */
+export const flexRow = (...children) => styled(
+    {
+        style: {
+            display: 'flex',
+            'flex-direction': 'row'
+        }
+    },
+    'div',
+    children
+)
+
+/**
+ * @type {function(...[*]=): HTMLDivElement}
+ */
+export const flexCenteredRow = (...children) => styled(
+    {
+        style: {
+            display: 'flex',
+            'flex-direction': 'row',
+            'align-items': 'center'
+        }
+    },
+    'div',
+    children
+)
 
 /**
  * @type {function(...[*]=): ( ...children) => h}
@@ -480,7 +538,7 @@ export const sup = ( ...children) => h( 'sup', ...children)
 /**
  * @type {function(...[*]=): ( ...children) => h}
  */
-export const svg = ( ...children) => h( 'svg', ...children)
+export const svg = ( ...children) => h( 'ns=http://www.w3.org/2000/svg|svg', ...children)
 
 /**
  * @type {function(...[*]=): HTMLTableElement}
@@ -551,6 +609,11 @@ export const tt = ( ...children) => h( 'tt', ...children)
  * @type {function(...[*]=): HTMLUListElement}
  */
 export const ul = ( ...children) => h( 'ul', ...children)
+
+/**
+ * @type {function(...[*]=): ( ...children) => h}
+ */
+export const use = ( ...children) => h( 'ns=http://www.w3.org/2000/svg|use', ...children)
 
 /**
  * @type {function(...[*]=): ( ...children) => h}
