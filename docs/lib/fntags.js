@@ -468,7 +468,7 @@ let setAttribute = function( attrName, attr, element ) {
         element.setAttribute( 'value', attr )
         //html5 nodes like range don't update unless the value property on the object is set
         element.value = attr
-    } else if( attrName === 'disabled' || attrName === 'checked' ) {
+    } else if( attrName === 'disabled' || attrName === 'checked' || attrName === 'selected' ) {
         element[attrName] = !!attr
     } else if( typeof attr === 'string' || typeof attr === 'number' ) {
         if( attrName.startsWith( 'ns=' ) )
