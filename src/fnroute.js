@@ -83,6 +83,7 @@ export const fnlink = ( ...children ) => {
     }
     a.addEventListener( 'click', ( e ) => {
         e.preventDefault()
+        e.stopPropagation()
         goTo( to, context )
     } )
     a.setAttribute(
@@ -97,24 +98,47 @@ export const fnlink = ( ...children ) => {
  * @param route The route to navigate to
  * @param context Data related to the route change
  * @param replace Whether to replace the state or push it. pushState is used by default.
+ * @param silent Prevent route change events from being emitted for this route change
  */
-export const goTo = ( route, context, replace = false ) => {
+export const goTo = ( route, context, replace = false, silent = false ) => {
     let newPath = window.location.origin + makePath( route )
-    if( replace )
+
+    const patch = {
+        currentRoute: route.split( /[#?]/ )[ 0 ],
+        context
+    }
+
+    const oldPathState = pathState()
+    const newPathState = Object.assign( {}, oldPathState, patch )
+    if( !silent ) {
+        try {
+            emit( beforeRouteChange, newPathState, oldPathState )
+        } catch(e) {
+            console.log( 'Path change cancelled', e )
+            return
+        }
+    }
+    if( replace ) {
         history.replaceState( {}, route, newPath )
-    else
+    } else {
         history.pushState( {}, route, newPath )
+    }
 
     pathState.patch( {
                          currentRoute: route.split( /[#?]/ )[ 0 ],
                          context
                      } )
-
+    if( !silent ) {
+        emit( afterRouteChange, newPathState, oldPathState )
+    }
     if( newPath.indexOf( '#' ) > -1 ) {
         const el = document.getElementById( decodeURIComponent( newPath.split( '#' )[ 1 ] ) )
         el && el.scrollIntoView()
     } else {
         window.scrollTo( 0, 0 )
+    }
+    if( !silent ) {
+        emit( routeChangeComplete, newPathState, oldPathState )
     }
 }
 
@@ -158,21 +182,64 @@ export const pathState = fnstate(
         context: null
     } )
 
+export const beforeRouteChange = 'beforeRouteChange'
+export const afterRouteChange = 'afterRouteChange'
+export const routeChangeComplete = 'routeChangeComplete'
+const eventListeners = {
+    [ beforeRouteChange ]: [],
+    [ afterRouteChange ]: [],
+    [ routeChangeComplete ]: []
+}
+
+const emit = ( event, newPathState, oldPathState ) => {
+    eventListeners[ event ].forEach( fn => fn( newPathState, oldPathState ) )
+}
+
+/**
+ * Listen for routing events
+ * @param event a string event to listen for
+ * @param handler A function that will be called when the event occurs.
+ *                  The function receives the new and old pathState objects, in that order.
+ * @return {function()} a function to stop listening with the passed handler.
+ */
+export const listenFor = ( event, handler ) => {
+    if( !eventListeners[ event ] ) {
+        throw `Invalid event. Must be one of ${Object.keys( eventListeners )}`
+    }
+    eventListeners[ event ].push( handler )
+    return () => {
+        let i = eventListeners[ event ].indexOf( handler )
+        return eventListeners[ event ].splice( i, 1 )
+    }
+}
+
 /**
  * Set the root path of the app. This is necessary to make deep linking work in cases where the same html file is served from all paths.
  */
-export const setRootPath = ( rootPath ) => pathState.patch(
-    {
-        rootPath: ensureOnlyLeadingSlash( rootPath ),
-        currentRoute: ensureOnlyLeadingSlash( window.location.pathname.replace( new RegExp( '^' + rootPath ), '' ) ) || '/'
-    }
-)
-
-window.addEventListener( 'popstate', () =>
+export const setRootPath = ( rootPath ) =>
     pathState.patch( {
-                         currentRoute: ensureOnlyLeadingSlash( window.location.pathname.replace( new RegExp( '^' + pathState().rootPath ), '' ) ) || '/'
-                     }
-    )
+                         rootPath: ensureOnlyLeadingSlash( rootPath ),
+                         currentRoute: ensureOnlyLeadingSlash( window.location.pathname.replace( new RegExp( '^' + rootPath ), '' ) ) || '/'
+                     } )
+
+
+window.addEventListener( 'popstate', () => {
+                             const oldPathState = pathState()
+                             const patch = {
+                                 currentRoute: ensureOnlyLeadingSlash( window.location.pathname.replace( new RegExp( '^' + pathState().rootPath ), '' ) ) || '/'
+                             }
+                             const newPathState = Object.assign( {}, oldPathState, patch )
+                             try {
+                                 emit( beforeRouteChange, newPathState, oldPathState )
+                             } catch(e) {
+                                 console.trace( 'Path change cancelled', e )
+                                 goTo( oldPathState.currentRoute, oldPathState.context, true, true )
+                                 return
+                             }
+                             pathState.patch( patch )
+                             emit( afterRouteChange, newPathState, oldPathState )
+                             emit( routeChangeComplete, newPathState, oldPathState )
+                         }
 )
 
 const makePath = path => ( pathState().rootPath === '/' ? '' : pathState().rootPath ) + ensureOnlyLeadingSlash( path )
@@ -186,5 +253,4 @@ const shouldDisplayRoute = ( route, isAbsolute ) => {
         const pattern = path.replace( /\/\$[^/]+(\/|$)/, '/[^/]+$1' ).replace( /^(.*)\/([^\/]*)$/, '$1/?$2([/?#]|$)' )
         return !!currPath.match( pattern )
     }
-
 }
