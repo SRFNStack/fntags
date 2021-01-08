@@ -141,10 +141,10 @@ export const fnstate = ( initialValue, mapKey ) => {
      */
     ctx.state.getPath = ( path ) => {
         if( typeof path !== 'string' ) {
-            throw 'Invalid path'
+            throw new Error('Invalid path').stack
         }
         if( typeof ctx.currentValue !== 'object' ) {
-            throw 'Value is not an object'
+            throw new Error('Value is not an object').stack
         }
         return path
             .split( '\.' )
@@ -184,7 +184,7 @@ export const fnstate = ( initialValue, mapKey ) => {
             parent[ s.slice( -1 ) ] = value
             ctx.state( ctx.currentValue )
         } else {
-            throw `No object at path ${path}`
+            throw new Error(`No object at path ${path}`).stack
         }
     }
 
@@ -228,7 +228,7 @@ let doBindSelectAttr = function( ctx, attribute ) {
 
 function createBoundAttr( attr ) {
     if( typeof attr !== 'function' )
-        throw new Error( 'You must pass a function to bindAttr' )
+        throw new Error( 'You must pass a function to bindAttr' ).stack
     let boundAttr = () => attr()
     boundAttr.isBoundAttribute = true
     return boundAttr
@@ -242,7 +242,7 @@ function doBindAttr( state, attribute ) {
 
 function doBindStyle( state, style ) {
     if( typeof style !== 'function' )
-        throw new Error( 'You must pass a function to bindStyle' )
+        throw new Error( 'You must pass a function to bindStyle' ).stack
     let boundStyle = () => style()
     boundStyle.isBoundStyle = true
     boundStyle.init = ( styleName, element ) => state.subscribe( () => element.style[ styleName ] = style() )
@@ -264,9 +264,9 @@ function doSelect( ctx, key ) {
 
 function doBindValues( ctx, parent, element, update ) {
     parent = renderNode( parent )
-    if( parent === undefined ) throw new Error( 'You must provide a parent element to bind the children to. aka Need Bukkit.' )
+    if( parent === undefined ) throw new Error( 'You must provide a parent element to bind the children to. aka Need Bukkit.' ).stack
     if( typeof element !== 'function' && typeof update !== 'function' )
-        throw new Error( 'You must pass an update function when passing a non function element' )
+        throw new Error( 'You must pass an update function when passing a non function element' ).stack
     if( typeof ctx.mapKey !== 'function' ) {
         console.warn( 'Using value index as key, may not work correctly when moving items...' )
         ctx.mapKey = ( o, i ) => i
@@ -290,7 +290,7 @@ function doBindValues( ctx, parent, element, update ) {
 
 let doBind = function( ctx, element, update, handleUpdate, handleReplace ) {
     if( typeof element !== 'function' && typeof update !== 'function' )
-        throw new Error( 'You must pass an update function when passing a non function element' )
+        throw new Error( 'You must pass an update function when passing a non function element' ).stack
     if( typeof update === 'function' ) {
         let boundElement = renderNode( evaluateElement( element, ctx.currentValue ) )
         handleUpdate( boundElement )
@@ -373,7 +373,7 @@ function arrangeElements( ctx, bindContext ) {
         if( valueState === null || valueState === undefined || !valueState.isFnState )
             valueState = ctx.currentValue[ i ] = fnstate( valueState )
         let key = keyMapper( ctx.mapKey, valueState() )
-        if( keys[ key ] ) throw new Error( 'Duplicate keys in a bound array are not allowed.' )
+        if( keys[ key ] ) throw new Error( 'Duplicate keys in a bound array are not allowed.' ).stack
         keys[ key ] = i
         keysArr[ i ] = key
     }

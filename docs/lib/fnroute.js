@@ -223,23 +223,25 @@ export const setRootPath = ( rootPath ) =>
                      } )
 
 
-window.addEventListener( 'popstate', () => {
-                             const oldPathState = pathState()
-                             const patch = {
-                                 currentRoute: ensureOnlyLeadingSlash( window.location.pathname.replace( new RegExp( '^' + pathState().rootPath ), '' ) ) || '/'
-                             }
-                             const newPathState = Object.assign( {}, oldPathState, patch )
-                             try {
-                                 emit( beforeRouteChange, newPathState, oldPathState )
-                             } catch(e) {
-                                 console.trace( 'Path change cancelled', e )
-                                 goTo( oldPathState.currentRoute, oldPathState.context, true, true )
-                                 return
-                             }
-                             pathState.patch( patch )
-                             emit( afterRouteChange, newPathState, oldPathState )
-                             emit( routeChangeComplete, newPathState, oldPathState )
-                         }
+window.addEventListener(
+    'popstate',
+    () => {
+        const oldPathState = pathState()
+        const patch = {
+            currentRoute: ensureOnlyLeadingSlash( window.location.pathname.replace( new RegExp( '^' + pathState().rootPath ), '' ) ) || '/'
+        }
+        const newPathState = Object.assign( {}, oldPathState, patch )
+        try {
+            emit( beforeRouteChange, newPathState, oldPathState )
+        } catch(e) {
+            console.trace( 'Path change cancelled', e )
+            goTo( oldPathState.currentRoute, oldPathState.context, true, true )
+            return
+        }
+        pathState.patch( patch )
+        emit( afterRouteChange, newPathState, oldPathState )
+        emit( routeChangeComplete, newPathState, oldPathState )
+    }
 )
 
 const makePath = path => ( pathState().rootPath === '/' ? '' : pathState().rootPath ) + ensureOnlyLeadingSlash( path )
