@@ -445,11 +445,11 @@ const evaluateElement = ( element, value ) => {
  * Convert non objects (objects are assumed to be nodes) to text nodes and allow promises to resolve to nodes
  */
 export const renderNode = ( node ) => {
-    if( typeof node === 'object' && node.then === undefined ) {
+    if( node && typeof node === 'object' && node.then === undefined ) {
         return node
     } else if( typeof node === 'string' || typeof node === 'number' ) {
         return document.createTextNode( node )
-    } else if( typeof node === 'object' && typeof node.then === 'function' ) {
+    } else if( node && typeof node === 'object' && typeof node.then === 'function' ) {
         const temp = marker()
         node.then( el => temp.replaceWith( renderNode( el ) ) ).catch( e => console.error( 'Caught failed node promise.', e ) )
         return temp
