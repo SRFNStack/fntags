@@ -313,9 +313,12 @@ const updateReplacer = ( ctx, element, current ) => () => {
                 bindContext.boundElementByKey[ current.key ] = newElement
             }
         }
-        current.replaceWith( newElement )
-        current = newElement
-        newElement = null
+        //Perform this action on the next event loop to give the parent a chance to render
+        setTimeout(()=>{
+            current.replaceWith( newElement )
+            current = newElement
+            newElement = null
+        }, 0)
     }
 }
 
