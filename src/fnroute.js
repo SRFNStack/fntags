@@ -39,7 +39,6 @@ export const route = ( ...children ) => {
     }
     const update = () => {
         if( shouldDisplayRoute( path, absolute ) ) {
-            pathParameters( extractPathParameters( path ) )
             while( routeEl.firstChild ) {
                 routeEl.removeChild( routeEl.firstChild )
             }
@@ -157,8 +156,10 @@ export const routeSwitch = ( ...children ) => {
             }
             for( let child of children ) {
                 const rendered = renderNode( child )
-                if( rendered.getAttribute( 'path' ) ) {
-                    if( shouldDisplayRoute( rendered.getAttribute( 'path' ), !!rendered.absolute || rendered.getAttribute( 'absolute' ) === 'true' ) ) {
+                const path = rendered.getAttribute( 'path' )
+                pathParameters( extractPathParameters( path ) )
+                if( path ) {
+                    if( shouldDisplayRoute( path, !!rendered.absolute || rendered.getAttribute( 'absolute' ) === 'true' ) ) {
                         sw.append( rendered )
                         return sw
                     }
