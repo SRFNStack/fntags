@@ -33,25 +33,49 @@ export const route = ( ...children ) => {
     const routeEl = h( 'div', attrs )
     const display = routeEl.style.display
     let path = routeEl.getAttribute( 'path' )
-    let absolute = !!routeEl.absolute || routeEl.getAttribute( 'absolute' ) === 'true'
     if( !path ) {
         throw new Error( 'route must have a string path attribute' ).stack
     }
-    const update = () => {
-        if( shouldDisplayRoute( path, absolute ) ) {
-            pathParameters( extractPathParameters( path ) )
-            while( routeEl.firstChild ) {
-                routeEl.removeChild( routeEl.firstChild )
-            }
-            //this forces a re-render on route change
-            routeEl.append( ...children.map( c => renderNode( typeof c === 'function' ? c() : c ) ) )
-            routeEl.style.display = display
-        } else {
-            routeEl.style.display = 'none'
+    routeEl.updateRoute = () => {
+        while( routeEl.firstChild ) {
+            routeEl.removeChild( routeEl.firstChild )
         }
+        //this forces a re-render on route change
+        routeEl.append( ...children.map( c => renderNode( typeof c === 'function' ? c() : c ) ) )
+        routeEl.style.display = display
+
     }
-    update()
-    return pathState.bindAs( routeEl, update )
+    return routeEl
+}
+
+/**
+ * An element that only renders the first route that matches and updates when the route is changed
+ * The primary purpose of this element is to provide catchall routes for not found pages and path variables
+ * @param children
+ */
+export const routeSwitch = ( ...children ) => {
+    const sw = h( 'div', getAttrs( children ) )
+
+    return pathState.bindAs(
+        () => {
+            while( sw.firstChild ) {
+                sw.removeChild( sw.firstChild )
+            }
+            for( let child of children ) {
+                const path = child.getAttribute( 'path')
+                if( path ) {
+                    const shouldDisplay = shouldDisplayRoute( path, !!child.absolute || child.getAttribute( 'absolute' ) === 'true' )
+                    if( shouldDisplay ) {
+                        //Set the actual current path parameters
+                        pathParameters( extractPathParameters( path ) )
+                        child.updateRoute(true)
+                        sw.append( child )
+                        return sw
+                    }
+                }
+            }
+        }
+    )
 }
 
 function extractPathParameters( path ) {
@@ -140,32 +164,6 @@ export const goTo = ( route, context, replace = false, silent = false ) => {
     if( !silent ) {
         emit( routeChangeComplete, newPathState, oldPathState )
     }
-}
-
-/**
- * An element that only renders the first route that matches and updates when the route is changed
- * The primary purpose of this element is to provide catchall routes for not found pages and path variables
- * @param children
- */
-export const routeSwitch = ( ...children ) => {
-    const sw = h( 'div', getAttrs( children ) )
-
-    return pathState.bindAs(
-        () => {
-            while( sw.firstChild ) {
-                sw.removeChild( sw.firstChild )
-            }
-            for( let child of children ) {
-                const rendered = renderNode( child )
-                if( rendered.getAttribute( 'path' ) ) {
-                    if( shouldDisplayRoute( rendered.getAttribute( 'path' ), !!rendered.absolute || rendered.getAttribute( 'absolute' ) === 'true' ) ) {
-                        sw.append( rendered )
-                        return sw
-                    }
-                }
-            }
-        }
-    )
 }
 
 const ensureOnlyLeadingSlash = ( part ) => {
