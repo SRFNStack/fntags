@@ -14,10 +14,11 @@
  */
 export const h = ( tag, ...children ) => {
     let element
-    if( tag.startsWith( 'ns=' ) )
+    if( tag.startsWith( 'ns=' ) ) {
         element = document.createElementNS( ...( tag.slice( 3 ).split( '|' ) ) )
-    else
+    } else {
         element = document.createElement( tag )
+    }
 
     if( isAttrs( children[ 0 ] ) ) {
         let attrs = children.shift()
@@ -31,12 +32,13 @@ export const h = ( tag, ...children ) => {
         }
     }
     for( let child of children ) {
-        if( Array.isArray( child ) )
+        if( Array.isArray( child ) ) {
             for( let c of child ) {
                 element.append( renderNode( c ) )
             }
-        else
+        } else {
             element.append( renderNode( child ) )
+        }
     }
     return element
 }
@@ -141,10 +143,10 @@ export const fnstate = ( initialValue, mapKey ) => {
      */
     ctx.state.getPath = ( path ) => {
         if( typeof path !== 'string' ) {
-            throw new Error('Invalid path').stack
+            throw new Error( 'Invalid path' ).stack
         }
         if( typeof ctx.currentValue !== 'object' ) {
-            throw new Error('Value is not an object').stack
+            throw new Error( 'Value is not an object' ).stack
         }
         return path
             .split( '\.' )
@@ -184,7 +186,7 @@ export const fnstate = ( initialValue, mapKey ) => {
             parent[ s.slice( -1 ) ] = value
             ctx.state( ctx.currentValue )
         } else {
-            throw new Error(`No object at path ${path}`).stack
+            throw new Error( `No object at path ${path}` ).stack
         }
     }
 
@@ -214,8 +216,9 @@ function doSubscribe( ctx, list, listener ) {
 const subscribeSelect = ( ctx, callback ) => {
     let parentCtx = ctx.state.parentCtx
     let key = keyMapper( parentCtx.mapKey, ctx.currentValue )
-    if( parentCtx.selectObservers[ key ] === undefined )
+    if( parentCtx.selectObservers[ key ] === undefined ) {
         parentCtx.selectObservers[ key ] = []
+    }
     parentCtx.selectObservers[ key ].push( callback )
 }
 
@@ -227,8 +230,9 @@ let doBindSelectAttr = function( ctx, attribute ) {
 }
 
 function createBoundAttr( attr ) {
-    if( typeof attr !== 'function' )
+    if( typeof attr !== 'function' ) {
         throw new Error( 'You must pass a function to bindAttr' ).stack
+    }
     let boundAttr = () => attr()
     boundAttr.isBoundAttribute = true
     return boundAttr
@@ -241,8 +245,9 @@ function doBindAttr( state, attribute ) {
 }
 
 function doBindStyle( state, style ) {
-    if( typeof style !== 'function' )
+    if( typeof style !== 'function' ) {
         throw new Error( 'You must pass a function to bindStyle' ).stack
+    }
     let boundStyle = () => style()
     boundStyle.isBoundStyle = true
     boundStyle.init = ( styleName, element ) => state.subscribe( () => element.style[ styleName ] = style() )
@@ -252,21 +257,30 @@ function doBindStyle( state, style ) {
 function doReset( ctx, reInit, initialValue ) {
     ctx.observers = []
     ctx.selectObservers = {}
-    if( reInit ) ctx.currentValue = initialValue
+    if( reInit ) {
+        ctx.currentValue = initialValue
+    }
 }
 
 function doSelect( ctx, key ) {
     let currentSelected = ctx.selected
     ctx.selected = key
-    if( ctx.selectObservers[ currentSelected ] !== undefined ) ctx.selectObservers[ currentSelected ].forEach( obs => obs() )
-    if( ctx.selectObservers[ ctx.selected ] !== undefined ) ctx.selectObservers[ ctx.selected ].forEach( obs => obs() )
+    if( ctx.selectObservers[ currentSelected ] !== undefined ) {
+        ctx.selectObservers[ currentSelected ].forEach( obs => obs() )
+    }
+    if( ctx.selectObservers[ ctx.selected ] !== undefined ) {
+        ctx.selectObservers[ ctx.selected ].forEach( obs => obs() )
+    }
 }
 
 function doBindValues( ctx, parent, element, update ) {
     parent = renderNode( parent )
-    if( parent === undefined ) throw new Error( 'You must provide a parent element to bind the children to. aka Need Bukkit.' ).stack
-    if( typeof element !== 'function' && typeof update !== 'function' )
+    if( parent === undefined ) {
+        throw new Error( 'You must provide a parent element to bind the children to. aka Need Bukkit.' ).stack
+    }
+    if( typeof element !== 'function' && typeof update !== 'function' ) {
         throw new Error( 'You must pass an update function when passing a non function element' ).stack
+    }
     if( typeof ctx.mapKey !== 'function' ) {
         console.warn( 'Using value index as key, may not work correctly when moving items...' )
         ctx.mapKey = ( o, i ) => i
@@ -281,44 +295,46 @@ function doBindValues( ctx, parent, element, update ) {
         if( !Array.isArray( ctx.currentValue ) ) {
             console.warn( 'A state used with bindValues was updated to a non array value. This will be converted to an array of 1 and the state will be updated.' )
             setTimeout( () => ctx.state( [ctx.currentValue] ), 1 )
-        } else
+        } else {
             reconcile( ctx )
+        }
     } )
     reconcile( ctx )
     return parent
 }
 
 let doBind = function( ctx, element, update, handleUpdate, handleReplace ) {
-    if( typeof element !== 'function' && typeof update !== 'function' )
+    if( typeof element !== 'function' && typeof update !== 'function' ) {
         throw new Error( 'You must pass an update function when passing a non function element' ).stack
+    }
     if( typeof update === 'function' ) {
         let boundElement = renderNode( evaluateElement( element, ctx.currentValue ) )
         handleUpdate( boundElement )
         return boundElement
     } else {
-        let current = renderNode( evaluateElement( element, ctx.currentValue ) )
-        handleReplace( current )
-        return current
+        let elCtx = { current: renderNode( evaluateElement( element, ctx.currentValue ) ) }
+        handleReplace( elCtx )
+        return () => elCtx.current
     }
 }
 
-const updateReplacer = ( ctx, element, current ) => () => {
+const updateReplacer = ( ctx, element, elCtx ) => () => {
     let newElement = renderNode( evaluateElement( element, ctx.currentValue ) )
     if( newElement !== undefined ) {
-        if( current.key !== undefined ) {
-            newElement.key = current.key
+        if( elCtx.current.key !== undefined ) {
+            newElement.current.key = elCtx.current.key
         }
         if( ctx.parentCtx ) {
             for( let bindContext of ctx.parentCtx.bindContexts ) {
-                bindContext.boundElementByKey[ current.key ] = newElement
+                bindContext.boundElementByKey[ elCtx.current.key ] = newElement
             }
         }
         //Perform this action on the next event loop to give the parent a chance to render
-        setTimeout(()=>{
-            current.replaceWith( newElement )
-            current = newElement
+        setTimeout( () => {
+            elCtx.current.replaceWith( newElement )
+            elCtx.current = newElement
             newElement = null
-        }, 0)
+        }, 0 )
     }
 }
 
@@ -326,10 +342,10 @@ const doBindSelect = ( ctx, element, update ) =>
     doBind( ctx, element, update,
             boundElement =>
                 subscribeSelect( ctx, () => update( boundElement ) ),
-            ( current ) =>
+            ( elCtx ) =>
                 subscribeSelect(
                     ctx,
-                    updateReplacer( ctx, element, current )
+                    updateReplacer( ctx, element, elCtx )
                 )
     )
 
@@ -338,8 +354,8 @@ const doBindAs = ( ctx, element, update ) =>
             boundElement => {
                 ctx.state.subscribe( () => update( boundElement ) )
             },
-            ( current ) =>
-                ctx.state.subscribe( updateReplacer( ctx, element, current ) )
+            ( elCtx ) =>
+                ctx.state.subscribe( updateReplacer( ctx, element, elCtx ) )
     )
 
 /**
@@ -347,18 +363,21 @@ const doBindAs = ( ctx, element, update ) =>
  */
 function reconcile( ctx ) {
     for( let bindContext of ctx.bindContexts ) {
-        if( bindContext.boundElementByKey === undefined ) bindContext.boundElementByKey = {}
+        if( bindContext.boundElementByKey === undefined ) {
+            bindContext.boundElementByKey = {}
+        }
         arrangeElements( ctx, bindContext )
     }
 }
 
 function keyMapper( mapKey, value ) {
-    if( typeof value !== 'object' )
+    if( typeof value !== 'object' ) {
         return value
-    else if( typeof mapKey !== 'function' ) {
+    } else if( typeof mapKey !== 'function' ) {
         return 0
-    } else
+    } else {
         return mapKey( value )
+    }
 }
 
 function arrangeElements( ctx, bindContext ) {
@@ -373,10 +392,13 @@ function arrangeElements( ctx, bindContext ) {
     let keysArr = []
     for( let i in ctx.currentValue ) {
         let valueState = ctx.currentValue[ i ]
-        if( valueState === null || valueState === undefined || !valueState.isFnState )
+        if( valueState === null || valueState === undefined || !valueState.isFnState ) {
             valueState = ctx.currentValue[ i ] = fnstate( valueState )
+        }
         let key = keyMapper( ctx.mapKey, valueState() )
-        if( keys[ key ] ) throw new Error( 'Duplicate keys in a bound array are not allowed.' ).stack
+        if( keys[ key ] ) {
+            throw new Error( 'Duplicate keys in a bound array are not allowed.' ).stack
+        }
         keys[ key ] = i
         keysArr[ i ] = key
     }
@@ -390,7 +412,9 @@ function arrangeElements( ctx, bindContext ) {
         let current = bindContext.boundElementByKey[ key ]
         let isNew = false
         //ensure the parent state is always set and can be accessed by the child states to lsiten to the selection change and such
-        if( valueState.parentCtx === undefined ) valueState.parentCtx = ctx
+        if( valueState.parentCtx === undefined ) {
+            valueState.parentCtx = ctx
+        }
         if( current === undefined ) {
             isNew = true
             current = bindContext.boundElementByKey[ key ] = renderNode( evaluateElement( bindContext.element, valueState ) )
@@ -398,31 +422,37 @@ function arrangeElements( ctx, bindContext ) {
         }
         //place the element in the parent
         if( prev == null ) {
-            if( !parent.lastChild || parent.lastChild.key !== current.key ) parent.append( current )
+            if( !parent.lastChild || parent.lastChild.key !== current.key ) {
+                parent.append( current )
+            }
         } else {
             if( prev.previousSibling === null ) {
                 //insertAdjacentElement is faster, but some nodes don't have it (lookin' at you text)
-                if( prev.insertAdjacentElement !== undefined && current.insertAdjacentElement !== undefined )
+                if( prev.insertAdjacentElement !== undefined && current.insertAdjacentElement !== undefined ) {
                     prev.insertAdjacentElement( 'beforeBegin', current )
-                else
+                } else {
                     parent.insertBefore( current, prev )
+                }
             } else if( prev.previousSibling.key !== current.key ) {
                 //the previous was deleted all together, so we will delete it and replace the element
                 if( keys[ prev.previousSibling.key ] === undefined ) {
                     delete bindContext.boundElementByKey[ prev.previousSibling.key ]
-                    if( ctx.selectObservers[ prev.previousSibling.key ] !== undefined && current.insertAdjacentElement !== undefined )
+                    if( ctx.selectObservers[ prev.previousSibling.key ] !== undefined && current.insertAdjacentElement !== undefined ) {
                         delete ctx.selectObservers[ prev.previousSibling.key ]
+                    }
                     prev.previousSibling.replaceWith( current )
                 } else if( isNew ) {
                     //insertAdjacentElement is faster, but some nodes don't have it (lookin' at you text)
-                    if( prev.insertAdjacentElement !== undefined )
+                    if( prev.insertAdjacentElement !== undefined ) {
                         prev.insertAdjacentElement( 'beforeBegin', current )
-                    else
+                    } else {
                         parent.insertBefore( current, prev )
+                    }
                 }
                 //if it's an existing key, replace the current object with the correct object
-                else
+                else {
                     prev.previousSibling.replaceWith( current )
+                }
             }
         }
         prev = current
@@ -433,15 +463,19 @@ function arrangeElements( ctx, bindContext ) {
         if( keys[ key ] === undefined ) {
             bindContext.boundElementByKey[ key ].remove()
             delete bindContext.boundElementByKey[ key ]
-            if( ctx.selectObservers[ key ] !== undefined )
+            if( ctx.selectObservers[ key ] !== undefined ) {
                 delete ctx.selectObservers[ key ]
+            }
         }
     }
 }
 
 const evaluateElement = ( element, value ) => {
-    if( element.isFnState ) return element()
-    else return typeof element === 'function' ? element( value ) : element
+    if( element.isFnState ) {
+        return element()
+    } else {
+        return typeof element === 'function' ? element( value ) : element
+    }
 }
 
 /**
@@ -456,6 +490,8 @@ export const renderNode = ( node ) => {
         const temp = marker()
         node.then( el => temp.replaceWith( renderNode( el ) ) ).catch( e => console.error( 'Caught failed node promise.', e ) )
         return temp
+    } else if( typeof node === 'function' ) {
+        return renderNode( node() )
     } else {
         return document.createTextNode( node + '' )
     }
@@ -472,12 +508,13 @@ let setAttribute = function( attrName, attr, element ) {
         //html5 nodes like range don't update unless the value property on the object is set
         element.value = attr
     } else if( attrName === 'disabled' || attrName === 'checked' || attrName === 'selected' ) {
-        element[attrName] = !!attr
+        element[ attrName ] = !!attr
     } else if( typeof attr === 'string' || typeof attr === 'number' ) {
-        if( attrName.startsWith( 'ns=' ) )
+        if( attrName.startsWith( 'ns=' ) ) {
             element.setAttributeNS( ...( attrName.slice( 3 ).split( '|' ) ), attr )
-        else
+        } else {
             element.setAttribute( attrName, attr )
+        }
     } else if( attrName === 'style' && typeof attr === 'object' ) {
         for( let style in attr ) {
             if( typeof attr[ style ] === 'function' && attr[ style ].isBoundStyle ) {
@@ -489,10 +526,11 @@ let setAttribute = function( attrName, attr, element ) {
     } else if( typeof attr === 'function' && attrName.startsWith( 'on' ) ) {
         element.addEventListener( attrName.substring( 2 ), attr )
     } else {
-        if( attrName.startsWith( 'ns=' ) )
+        if( attrName.startsWith( 'ns=' ) ) {
             element.setAttributeNS( ...( attrName.slice( 3 ).split( '|' ) ), attr )
-        else
+        } else {
             element.setAttribute( attrName, attr )
+        }
     }
 }
 
@@ -522,10 +560,11 @@ const marker = ( attrs ) => h( 'div', Object.assign( attrs || {}, { style: 'disp
 export const styled = ( attrs, tag, children ) => {
     let firstChild = children[ 0 ]
     if( isAttrs( firstChild ) ) {
-        if( firstChild.style )
+        if( firstChild.style ) {
             Object.assign( firstChild.style, attrs.style )
-        else
+        } else {
             Object.assign( firstChild, attrs )
+        }
     } else {
         children.unshift( attrs )
     }
