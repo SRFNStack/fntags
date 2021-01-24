@@ -62,13 +62,13 @@ export const routeSwitch = ( ...children ) => {
                 sw.removeChild( sw.firstChild )
             }
             for( let child of children ) {
-                const path = child.getAttribute( 'path')
+                const path = child.getAttribute( 'path' )
                 if( path ) {
                     const shouldDisplay = shouldDisplayRoute( path, !!child.absolute || child.getAttribute( 'absolute' ) === 'true' )
                     if( shouldDisplay ) {
                         //Set the actual current path parameters
                         pathParameters( extractPathParameters( path ) )
-                        child.updateRoute(true)
+                        child.updateRoute( true )
                         sw.append( child )
                         return sw
                     }
@@ -148,22 +148,25 @@ export const goTo = ( route, context, replace = false, silent = false ) => {
         history.pushState( {}, route, newPath )
     }
 
-    pathState.patch( {
-                         currentRoute: route.split( /[#?]/ )[ 0 ],
-                         context
-                     } )
-    if( !silent ) {
-        emit( afterRouteChange, newPathState, oldPathState )
-    }
-    if( newPath.indexOf( '#' ) > -1 ) {
-        const el = document.getElementById( decodeURIComponent( newPath.split( '#' )[ 1 ] ) )
-        el && el.scrollIntoView()
-    } else {
-        window.scrollTo( 0, 0 )
-    }
-    if( !silent ) {
-        emit( routeChangeComplete, newPathState, oldPathState )
-    }
+    setTimeout( () => {
+        pathState.patch( {
+                             currentRoute: route.split( /[#?]/ )[ 0 ],
+                             context
+                         } )
+        if( !silent ) {
+            emit( afterRouteChange, newPathState, oldPathState )
+        }
+        if( newPath.indexOf( '#' ) > -1 ) {
+            const el = document.getElementById( decodeURIComponent( newPath.split( '#' )[ 1 ] ) )
+            el && el.scrollIntoView()
+        } else {
+            window.scrollTo( 0, 0 )
+        }
+        if( !silent ) {
+            emit( routeChangeComplete, newPathState, oldPathState )
+        }
+    } )
+
 }
 
 const ensureOnlyLeadingSlash = ( part ) => {
