@@ -163,8 +163,8 @@ export const fnstate = ( initialValue, mapKey ) => {
     }
 
     /**
-     * Set a value at the given property path, an error is thrown if the value is not an object
-     * @param path The path of the value to set
+     * Set a value at the given property path
+     * @param path The JSON path of the value to set
      * @param value The value to set the path to
      * @param fillWithObjects Whether to non object values with new empty objects.
      */
@@ -294,7 +294,7 @@ function doBindValues( ctx, parent, element, update ) {
     ctx.state.subscribe( () => {
         if( !Array.isArray( ctx.currentValue ) ) {
             console.warn( 'A state used with bindValues was updated to a non array value. This will be converted to an array of 1 and the state will be updated.' )
-            setTimeout( () => ctx.state( [ctx.currentValue] ), 1 )
+            setTimeout( () => ctx.state( [ctx.currentValue] ), 0 )
         } else {
             reconcile( ctx )
         }

@@ -2,7 +2,7 @@
 
 > less fluff, more stuff
 
-### [Documentation](https://narcolepticsnowman.github.io/fntags)
+### [Documentation](https://srfnstack.github.io/fntags)
 
 Check the docs to get started, or copy and paste the following example into a html file and load it in your browser!
 
