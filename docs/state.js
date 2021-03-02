@@ -129,7 +129,7 @@ return div(
            button(
                {
                    onclick: () =>
-                       peep.patch(
+                       peep.assign(
                            {
                                crashes:
                                    peep().crashes + 1
@@ -159,7 +159,7 @@ return div(
                                            button(
                                                {
                                                    onclick: () =>
-                                                       peep.patch(
+                                                       peep.assign(
                                                            {
                                                                crashes:
                                                                    peep().crashes + 1
@@ -402,11 +402,11 @@ data.bindValues(
                                    )
                                ) )
     ),
-    contentSection( 'Patching State',
-                    'The function returned by fnstate has a patch function for applying updates to the state using Object.assign.',
+    contentSection( 'Assigning State',
+                    'The function returned by fnstate has an assign function for applying updates to the state using Object.assign.',
                     prismCode(
                         'const userData = fnstate({name: "bob"})\n' +
-                        'userData.patch({name:"Jerry"})' )
+                        'userData.assign({name:"Jerry"})' )
     ),
     contentSection(
         'Custom Handling',
@@ -470,7 +470,7 @@ return div(
                       if( !triggered ) {
                           triggered = true
                           setTimeout( () => {
-                              appState.patch( { userName: e.target.value } )
+                              appState.assign( { userName: e.target.value } )
                               triggered = false
                           }, 500 )
                       }
@@ -499,7 +499,7 @@ return div(
                                                   if( !triggered ) {
                                                       triggered = true
                                                       setTimeout( () => {
-                                                          appState.patch( { userName: e.target.value } )
+                                                          appState.assign( { userName: e.target.value } )
                                                           triggered = false
                                                       }, 500 )
                                                   }

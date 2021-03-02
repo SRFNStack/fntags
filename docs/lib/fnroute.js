@@ -149,7 +149,7 @@ export const goTo = ( route, context, replace = false, silent = false ) => {
     }
 
     setTimeout( () => {
-        pathState.patch( {
+        pathState.assign( {
                              currentRoute: route.split( /[#?]/ )[ 0 ],
                              context
                          } )
@@ -218,7 +218,7 @@ export const listenFor = ( event, handler ) => {
  * Set the root path of the app. This is necessary to make deep linking work in cases where the same html file is served from all paths.
  */
 export const setRootPath = ( rootPath ) =>
-    pathState.patch( {
+    pathState.assign( {
                          rootPath: ensureOnlyLeadingSlash( rootPath ),
                          currentRoute: ensureOnlyLeadingSlash( window.location.pathname.replace( new RegExp( '^' + rootPath ), '' ) ) || '/'
                      } )
@@ -239,7 +239,7 @@ window.addEventListener(
             goTo( oldPathState.currentRoute, oldPathState.context, true, true )
             return
         }
-        pathState.patch( patch )
+        pathState.assign( patch )
         emit( afterRouteChange, newPathState, oldPathState )
         emit( routeChangeComplete, newPathState, oldPathState )
     }

@@ -136,7 +136,7 @@ export const fnstate = ( initialValue, mapKey ) => {
     /**
      * Perform an Object.assign on the current state using the provided update
      */
-    ctx.state.patch = ( update ) => ctx.state( Object.assign( ctx.currentValue, update ) )
+    ctx.state.assign = ( update ) => ctx.state( Object.assign( ctx.currentValue, update ) )
 
     /**
      * Get a value at the given property path, an error is thrown if the value is not an object
