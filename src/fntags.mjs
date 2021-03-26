@@ -484,8 +484,6 @@ const evaluateElement = ( element, value ) => {
 export const renderNode = ( node ) => {
     if( node && typeof node === 'object' && node.then === undefined ) {
         return node
-    } else if( typeof node === 'string' || typeof node === 'number' ) {
-        return document.createTextNode( node )
     } else if( node && typeof node === 'object' && typeof node.then === 'function' ) {
         const temp = marker()
         node.then( el => temp.replaceWith( renderNode( el ) ) ).catch( e => console.error( 'Caught failed node promise.', e ) )
@@ -516,7 +514,7 @@ let setAttribute = function( attrName, attr, element ) {
                 attr[ style ].init( style, element )
                 attr[ style ] = attr[ style ]()
             }
-            element.style[ style ] = attr[style] && attr[ style ].toString()
+            element.style[ style ] = attr[ style ] && attr[ style ].toString()
         }
     } else if( typeof attr === 'function' && attrName.startsWith( 'on' ) ) {
         element.addEventListener( attrName.substring( 2 ), attr )
@@ -530,12 +528,10 @@ let setAttribute = function( attrName, attr, element ) {
 }
 
 export const isAttrs = ( val ) => val !== null && typeof val === 'object' && val.nodeType === undefined && !Array.isArray( val ) && typeof val.then !== 'function'
-/**of children
- * Aggregates all attribute objects from a list
- * @param children
- * @returns {{}} A single object containing all of the aggregated attribute objects
+/**
+ * helper to get the attr object
  */
-export const getAttrs = ( children ) => isAttrs( children[ 0 ] ) ? children[ 0 ] : {}
+export const getAttrs = ( children ) => Array.isArray( children ) && isAttrs( children[ 0 ] ) ? children[ 0 ] : {}
 
 /**
  * A hidden div node to mark your place in the dom
@@ -547,21 +543,17 @@ const marker = ( attrs ) => h( 'div', Object.assign( attrs || {}, { style: 'disp
  * A function to create a component with a pre-defined style.
  * For example, the flex* elements in fnelements.
  *
- * @param attrs
+ * @param style
  * @param tag
  * @param children
  * @return {*}
  */
-export const styled = ( attrs, tag, children ) => {
+export const styled = ( style, tag, children ) => {
     let firstChild = children[ 0 ]
     if( isAttrs( firstChild ) ) {
-        if( firstChild.style ) {
-            Object.assign( firstChild.style, attrs.style )
-        } else {
-            Object.assign( firstChild, attrs )
-        }
+        children[0].style = Object.assign( style, firstChild.style)
     } else {
-        children.unshift( attrs )
+        children.unshift( { style } )
     }
     return h( tag, ...children )
 }
