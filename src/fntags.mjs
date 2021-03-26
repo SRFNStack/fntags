@@ -498,12 +498,7 @@ export const renderNode = ( node ) => {
 }
 
 let setAttribute = function( attrName, attr, element ) {
-    //shortcut for most common cases
-    if( attr === undefined ) {
-        //if the attr is undefined, don't set it on the element
-        //this allows for a way to toggle attributes that don't require a value (i.e. disabled)
-        return
-    } else if( attrName === 'value' ) {
+    if( attrName === 'value' ) {
         element.setAttribute( 'value', attr )
         //html5 nodes like range don't update unless the value property on the object is set
         element.value = attr
@@ -521,7 +516,7 @@ let setAttribute = function( attrName, attr, element ) {
                 attr[ style ].init( style, element )
                 attr[ style ] = attr[ style ]()
             }
-            element.style[ style ] = attr[ style ].toString()
+            element.style[ style ] = attr[style] && attr[ style ].toString()
         }
     } else if( typeof attr === 'function' && attrName.startsWith( 'on' ) ) {
         element.addEventListener( attrName.substring( 2 ), attr )
@@ -534,7 +529,7 @@ let setAttribute = function( attrName, attr, element ) {
     }
 }
 
-export const isAttrs = ( val ) => typeof val === 'object' && val.nodeType === undefined && !Array.isArray( val ) && typeof val.then !== 'function'
+export const isAttrs = ( val ) => val !== null && typeof val === 'object' && val.nodeType === undefined && !Array.isArray( val ) && typeof val.then !== 'function'
 /**of children
  * Aggregates all attribute objects from a list
  * @param children
