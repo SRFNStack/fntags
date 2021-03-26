@@ -1,4 +1,4 @@
-import { a, b, div, h4, p, span, strong } from './lib/fnelements.js'
+import { a, b, div, h4, p, span, strong } from './lib/fnelements.mjs'
 import contentSection from './contentSection.js'
 import prismCode from './prismCode.js'
 import { secondaryColor } from './constants.js'
@@ -10,8 +10,8 @@ export default div(
         'Create elements using h and directly append them to the dom.',
         prismCode(
             `<script type="module">
-    import {h} from './fntags.js'
-    import {h1} from './fnelements.js'
+    import {h} from './fntags.mjs'
+    import {h1} from './fnelements.mjs'
     document.body.append(
         h('div',
             h1("Internets go here.")
@@ -63,8 +63,8 @@ export default div(
     ),
     contentSection(
         'Pretty Tags Instead of h()',
-        'To create a more html like template, you can also import all of the default html tags from either the index or fnelements.js directly.',
-        'All non deprecated html elements and marquee(support and opinion varies) are exported as functions from fnelements.js.',
+        'To create a more html like template, you can also import all of the default html tags from either the index or fnelements.mjs directly.',
+        'All non deprecated html elements and marquee(support and opinion varies) are exported as functions from fnelements.mjs.',
         prismCode(
             'div({style:\'font-size: 20px;\'},\n' +
             '    \'hello!\',\n' +

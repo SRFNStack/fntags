@@ -1,5 +1,5 @@
-import { goTo, pathState } from './lib/fnroute.js'
-import { h3, hr, p, section, span } from './lib/fnelements.js'
+import { goTo, pathState } from './lib/fnroute.mjs'
+import { h3, hr, p, section, span } from './lib/fnelements.mjs'
 
 export default ( title, ...content ) => section(
     h3( { id: title }, title,

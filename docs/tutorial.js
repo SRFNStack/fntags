@@ -1,7 +1,7 @@
-import { a, div, h4, strong } from './lib/fnelements.js'
+import { a, div, h4, strong } from './lib/fnelements.mjs'
 import contentSection from './contentSection.js'
 import prismCode from './prismCode.js'
-import { code } from '../src/fnelements.js'
+import { code } from '../src/fnelements.mjs'
 
 export default div(
     contentSection(
@@ -57,8 +57,8 @@ export default div(
 </html>
 `, undefined, '100%' ),
         div( 'Now create an ', strong( 'app.js' ), ' file that will contain the root of the app.' ),
-        prismCode( `import { route, routeSwitch, setRootPath, fnlink } from './fnroute.js'
-import { div, ul, li } from './fnelements.js'
+        prismCode( `import { route, routeSwitch, setRootPath, fnlink } from './fnroute.mjs'
+import { div, ul, li } from './fnelements.mjs'
 
 //Set the root path to make deep linking work correctly
 setRootPath('/')
@@ -104,8 +104,8 @@ const footer = div( { class: 'footer' }, 'myFnFooter' )
         'A component is any html element, or any function that returns an html element.',
         'The easiest way to share components is to export them from a module.',
         div( 'Create a file called ', strong( 'todo.js' ), ' with the following content' ),
-        prismCode( `import { route, routeSwitch } from './fnroute.js'
-import { form, input, li, ul, div } from './fnelements.js'
+        prismCode( `import { route, routeSwitch } from './fnroute.mjs'
+import { form, input, li, ul, div } from './fnelements.mjs'
 
 //The storage for the list of todos
 const todos = []
@@ -151,9 +151,9 @@ export default div(
         'To get our ui to automatically update when a todo is added, we will use the fnstate and bindAs functions to turn our todo storage into a bindable state object.',
         div( 'Change the contents of ', strong( 'todo.js' ), ' to the following.' ),
         'The key changes are the fnstate import, the change of todos type and being passed to fnstate, and the way the new todo is added in the onsubmit function.',
-        prismCode( `import { route, routeSwitch } from './fnroute.js'
-        import { fnstate } from './fntags.js'
-import { form, input, li, ul, div } from './fnelements.js'
+        prismCode( `import { route, routeSwitch } from './fnroute.mjs'
+        import { fnstate } from './fntags.mjs'
+import { form, input, li, ul, div } from './fnelements.mjs'
 
 //This is now a state object that can be bound to by other components
 //and shared throughout the app 

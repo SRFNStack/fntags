@@ -1,4 +1,4 @@
-import { code, div, p } from './lib/fnelements.js'
+import { code, div, p } from './lib/fnelements.mjs'
 import contentSection from './contentSection.js'
 import prismCode from './prismCode.js'
 
@@ -32,7 +32,7 @@ export default div(
     contentSection(
         'Path State',
         'pathState can be imported and bound to in order to listen to path changes.',
-        prismCode( 'import { pathState } from \'./fntags.js\'' ),
+        prismCode( 'import { pathState } from \'./fntags.mjs\'' ),
         'pathState is a state function that contains information about the path',
         prismCode(
             'pathState() ~== {\n' +
@@ -41,7 +41,7 @@ export default div(
             '    context: \'secret data\'\n' +
             '}'
         ),
-        'rootPath is the path the app is served from. The default is the current window path when fntags.js is loaded.',
+        'rootPath is the path the app is served from. The default is the current window path when fntags.mjs is loaded.',
         'currentRoute is the route the user is currently at. More precisely, it\'s the remainder of the current path after removing the root path prefix.',
         'context is the data passed as the context to fnlink or goto verbatim'
     ),
@@ -61,7 +61,7 @@ export default div(
         'Deep linking will not work correctly in cases where the same html file is served from every path.',
         p( 'For instance, when using ', code( 'try_files $uri index.html' ), ' in nginx.' ),
         'To fix this, import and call setRootPath with the appropriate root path.',
-        prismCode( 'import { setRootPath ] from \'./fntags.js\'\nsetRootPath(\'/\')' )
+        prismCode( 'import { setRootPath ] from \'./fntags.mjs\'\nsetRootPath(\'/\')' )
     ),
     contentSection(
         'Route Switch Element',

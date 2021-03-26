@@ -1,5 +1,5 @@
 
-import { h, styled } from './fntags.js'
+import { h, styled } from './fntags.mjs'
 
 /**
  * @type {function(...[*]=): HTMLAnchorElement}
