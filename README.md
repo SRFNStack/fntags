@@ -9,8 +9,8 @@ Check the docs to get started, or copy and paste the following example into a ht
 ```html
 <html><body>
 <script type="module">
-    import {fnstate} from 'https://cdn.jsdelivr.net/npm/fntags@0.4.2/src/fntags.min.js'
-    import {div, br, h1, input} from 'https://cdn.jsdelivr.net/npm/fntags@0.4.2/src/fnelements.min.js'
+    import {fnstate} from 'https://cdn.jsdelivr.net/npm/fntags@0.4.2/src/fntags.min.mjs'
+    import {div, br, h1, input} from 'https://cdn.jsdelivr.net/npm/fntags@0.4.2/src/fnelements.min.mjs'
     
     const name = fnstate( 'fntags' )
 
