@@ -1,5 +1,5 @@
-import { fnstate } from './lib/fntags.js'
-import { br, button, code, div, input, span } from './lib/fnelements.js'
+import { fnstate } from './lib/fntags.mjs'
+import { br, button, code, div, input, span } from './lib/fnelements.mjs'
 import prismCode from './prismCode.js'
 import contentSection from './contentSection.js'
 

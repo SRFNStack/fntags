@@ -1,9 +1,9 @@
 export {
     fnstate, h
-} from './src/fntags.js'
+} from './src/fntags.mjs'
 export {
     route, fnlink, goTo, routeSwitch, pathParameters, pathState, setRootPath
-} from './src/fnroute.js'
+} from './src/fnroute.mjs'
 export {
     a,
     abbr,
@@ -119,4 +119,4 @@ export {
     _var,
     video,
     wbr
-} from './src/fnelements.js'
+} from './src/fnelements.mjs'

@@ -1,4 +1,4 @@
-import { fnstate, getAttrs, h, isAttrs, renderNode } from './fntags.js'
+import { fnstate, getAttrs, h, isAttrs, renderNode } from './fntags.mjs'
 
 /**
  * An element that is displayed only if the the current route starts with elements path attribute.

@@ -30,6 +30,9 @@
     "state-management"
   ],
   "devDependencies": {
-    "jest": "^26.6.3"
+    "cypress": "^6.8.0"
+  },
+  "scripts": {
+    "test": "cypress run --headless -b chrome"
   }
 }
