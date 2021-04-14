@@ -540,7 +540,7 @@ export const getAttrs = ( children ) => Array.isArray( children ) && isAttrs( ch
 const marker = ( attrs ) => h( 'div', Object.assign( attrs || {}, { style: 'display:none' } ) )
 
 /**
- * A function to create a component with a pre-defined style.
+ * A function to create an element with a pre-defined style.
  * For example, the flex* elements in fnelements.
  *
  * @param style
