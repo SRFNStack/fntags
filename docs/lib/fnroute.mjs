@@ -66,8 +66,7 @@ export const routeSwitch = ( ...children ) => {
                 if( path ) {
                     const shouldDisplay = shouldDisplayRoute( path, !!child.absolute || child.getAttribute( 'absolute' ) === 'true' )
                     if( shouldDisplay ) {
-                        //Set the actual current path parameters
-                        pathParameters( extractPathParameters( path ) )
+                        updatePathParameters()
                         child.updateRoute( true )
                         sw.append( child )
                         return sw
@@ -78,20 +77,90 @@ export const routeSwitch = ( ...children ) => {
     )
 }
 
-function extractPathParameters( path ) {
+function stripParameterNames( currentRoute ) {
+    return removeTrailingSlash(currentRoute.substr(1)).split( '/' ).reduce( ( res, part ) => {
+        const paramStart = part.indexOf( ':' )
+        let value = part
+        if( paramStart > -1 ) {
+            value = part.substr( paramStart + 1 )
+        }
+        return `${res}/${value}`
+    }, '' )
+}
+
+export const modRouter = ( { routePath, attrs, onerror, frame, sendRawPath } ) => {
+    const container = h( 'div', attrs || {} )
+    if( !routePath ) {
+        throw 'You must provide a root url for modRouter. Routes in the ui will be looked up relative to this url.'
+    }
+    let loadRoute = ( newPathState ) => {
+        let path = newPathState.currentRoute
+        if(!sendRawPath){
+            path = stripParameterNames( newPathState.currentRoute )
+        }
+        let filePath = path ? routePath + ensureOnlyLeadingSlash( path ) : routePath
+
+        import(filePath)
+            .then( module => {
+                let route = module.default
+                if( route ) {
+                    while( container.firstChild ) {
+                        container.removeChild( container.firstChild )
+                    }
+                    let node = renderNode( route )
+                    if( typeof frame === 'function' ) {
+                        node = frame( node, module )
+                    }
+                    if( node ) {
+                        container.append( node )
+                    }
+                }
+            } )
+            .catch( err => {
+                while( container.firstChild ) {
+                    container.removeChild( container.firstChild )
+                }
+                if( typeof onerror === 'function' ) {
+                    err = onerror( err, newPathState )
+                    if(err){
+                        container.append(err)
+                    }
+                } else {
+                    console.error( 'Failed to load route: ', err )
+                    container.append("Failed to load route.")
+                }
+            } )
+    }
+    listenFor( afterRouteChange, loadRoute )
+    updatePathParameters()
+    loadRoute( pathState() )
+    return container
+}
+
+function updatePathParameters() {
+    let path = pathState().currentRoute
     let pathParts = path.split( '/' )
-    let currentParts = pathState().currentRoute.split( '/' )
-    let parameters = {}
+
+    let parameters = {
+        idx: []
+    }
     for( let i = 0; i < pathParts.length; i++ ) {
-        if( pathParts[ i ].startsWith( '$' ) ) {
-            parameters[ pathParts[ i ].substr( 1 ) ] = currentParts[ i ]
+        let part = pathParts[ i ]
+        let paramStart = part.indexOf( ':' )
+        if( paramStart > -1 ) {
+            let paramName = part.substr( 0, paramStart )
+            let paramValue = part.substr( paramStart + 1 )
+            parameters.idx.push( paramValue )
+            if( paramName ) {
+                parameters[ paramName ] = paramValue
+            }
         }
     }
-    return parameters
+    pathParameters(parameters)
 }
 
 /**
- * A link component that is a link to another route in this single page app
+ * A link element that is a link to another route in this single page app
  * @param children The attributes of the anchor element and any children
  */
 export const fnlink = ( ...children ) => {
@@ -150,9 +219,10 @@ export const goTo = ( route, context, replace = false, silent = false ) => {
 
     setTimeout( () => {
         pathState.assign( {
-                             currentRoute: route.split( /[#?]/ )[ 0 ],
-                             context
-                         } )
+                              currentRoute: route.split( /[#?]/ )[ 0 ],
+                              context
+                          } )
+        updatePathParameters()
         if( !silent ) {
             emit( afterRouteChange, newPathState, oldPathState )
         }
@@ -169,10 +239,9 @@ export const goTo = ( route, context, replace = false, silent = false ) => {
 
 }
 
-const ensureOnlyLeadingSlash = ( part ) => {
-    part = part.startsWith( '/' ) ? part : '/' + part
-    return part.endsWith( '/' ) && part.length > 1 ? part.slice( 0, -1 ) : part
-}
+const ensureOnlyLeadingSlash = ( part ) => removeTrailingSlash( part.startsWith( '/' ) ? part : '/' + part )
+
+const removeTrailingSlash = part => part.endsWith( '/' ) && part.length > 1 ? part.slice( 0, -1 ) : part
 
 export const pathParameters = fnstate( {} )
 
@@ -219,9 +288,9 @@ export const listenFor = ( event, handler ) => {
  */
 export const setRootPath = ( rootPath ) =>
     pathState.assign( {
-                         rootPath: ensureOnlyLeadingSlash( rootPath ),
-                         currentRoute: ensureOnlyLeadingSlash( window.location.pathname.replace( new RegExp( '^' + rootPath ), '' ) ) || '/'
-                     } )
+                          rootPath: ensureOnlyLeadingSlash( rootPath ),
+                          currentRoute: ensureOnlyLeadingSlash( window.location.pathname.replace( new RegExp( '^' + rootPath ), '' ) ) || '/'
+                      } )
 
 
 window.addEventListener(
@@ -240,6 +309,7 @@ window.addEventListener(
             return
         }
         pathState.assign( patch )
+        updatePathParameters()
         emit( afterRouteChange, newPathState, oldPathState )
         emit( routeChangeComplete, newPathState, oldPathState )
     }
