@@ -411,7 +411,7 @@ function arrangeElements( ctx, bindContext ) {
         let valueState = ctx.currentValue[ i ]
         let current = bindContext.boundElementByKey[ key ]
         let isNew = false
-        //ensure the parent state is always set and can be accessed by the child states to lsiten to the selection change and such
+        //ensure the parent state is always set and can be accessed by the child states to listen to the selection change and such
         if( valueState.parentCtx === undefined ) {
             valueState.parentCtx = ctx
         }
