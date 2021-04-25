@@ -48,7 +48,12 @@ export const h = ( tag, ...children ) => {
  * Create a state object that can be bound to.
  * @param initialValue The initial state
  * @param mapKey A map function to extract a key from an element in the array. Receives the array value to extract the key from.
- * @returns function A function that can be used to get and set the state
+ * @returns function A function that can be used to get and set the state.
+ * When getting the state, you get the actual reference to the underlying value. If you perform modifications to the object, be sure to set the value
+ * when you're done or the changes won't be reflected correctly.
+ *
+ * SideNote: this _could_ be implemented such that it returned a clone, however that would add a great deal of overhead, and a lot of code. Thus, the decision
+ * was made that it's up to the caller to ensure that the fnstate is called whenever there are modifications.
  */
 export const fnstate = ( initialValue, mapKey ) => {
     let ctx = {
@@ -140,6 +145,9 @@ export const fnstate = ( initialValue, mapKey ) => {
 
     /**
      * Get a value at the given property path, an error is thrown if the value is not an object
+     *
+     * This returns a reference to the real current value. If you perform any modifications to the object, be sure to call setPath after you're done or the changes
+     * will not be reflected correctly.
      */
     ctx.state.getPath = ( path ) => {
         if( typeof path !== 'string' ) {
