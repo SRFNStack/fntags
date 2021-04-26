@@ -9,7 +9,7 @@ export default div(
         ' This means it\'s un-necessary to define routes, as they are resolved to paths on the server instead.',
         'To use modRouter, first, set the root path of your app to the appropriate root. This will ensure that paths resolve correctly, though is not strictly necessary.',
         prismCode( `
-import { modRouter, setRootPath } from './lib/fnroute.js'
+import { modRouter, setRootPath } from './lib/fnroute.mjs'
 
 setRootPath('/')
 ` ),
@@ -19,19 +19,20 @@ setRootPath('/')
         'For example, if the application\'s rootPath is set to "/" and modRouter\'s routePath is set to "/ui", ' +
         'when the user navigates to /foo/bar, the module located at /ui/foo/bar will be imported and loaded.',
         hr(),
-        'The route file returned by the server must export an html element as the default export in order for the route to load correctly.',
+        'The route module\'s default export must be an html element, or a function that returns one in order for the route to load.',
         'For example serving the following file at /ui/hello:',
         prismCode( `
-import {div} from '../lib/fnelements.js'
+import {div} from '../lib/fnelements.mjs'
 export default div('hello world')
 ` ),
         'would cause the default hello world div to be loaded when a user navigates to /hello.',
         hr(),
-        'To make the route re-build each time it\'s navigated to (this is usually what you want), export a function that returns an element',
+        'Usually you want the route be rebuilt each time time it\'s navigated to, to do this make the default export a function.',
         prismCode( `
-import {div} from '../lib/fnelements.js'
+import {div} from '../lib/fnelements.mjs'
 export default ()=>div('hello world')
 ` ),
+        hr(),
         'When using ',a({href:'#Path%20Parameters'},'path parameters'), 'only the value of the parameter is used in the path by default. For example:',
         prismCode( '/app/user/id:1234' ),
         'gets imported from the backed using the following path',

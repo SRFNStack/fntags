@@ -1,4 +1,4 @@
-import { fnstate, getAttrs, h, isAttrs, renderNode } from './fntags.mjs'
+import { fnstate, getAttrs, h, isAttrs, renderNode } from '/lib/fntags.mjs'
 
 /**
  * An element that is displayed only if the the current route starts with elements path attribute.
@@ -90,7 +90,7 @@ function stripParameterNames( currentRoute ) {
 
 const moduleCache = {}
 
-export const modRouter = ( { routePath, attrs, onerror, frame, sendRawPath } ) => {
+export const modRouter = ( { routePath, attrs, onerror, frame, sendRawPath, disableCache } ) => {
     const container = h( 'div', attrs || {} )
     if( !routePath ) {
         throw 'You must provide a root url for modRouter. Routes in the ui will be looked up relative to this url.'

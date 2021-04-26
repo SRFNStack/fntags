@@ -1,4 +1,4 @@
-import { fnstate, getAttrs, h, isAttrs, renderNode } from './fntags.mjs'
+import { fnstate, getAttrs, h, isAttrs, renderNode } from '/lib/fntags.mjs'
 
 /**
  * An element that is displayed only if the the current route starts with elements path attribute.
@@ -88,6 +88,8 @@ function stripParameterNames( currentRoute ) {
     }, '' )
 }
 
+const moduleCache = {}
+
 export const modRouter = ( { routePath, attrs, onerror, frame, sendRawPath } ) => {
     const container = h( 'div', attrs || {} )
     if( !routePath ) {
@@ -100,36 +102,37 @@ export const modRouter = ( { routePath, attrs, onerror, frame, sendRawPath } ) =
         }
         let filePath = path ? routePath + ensureOnlyLeadingSlash( path ) : routePath
 
-        import(filePath)
-            .then( module => {
-                let route = module.default
-                if( route ) {
-                    while( container.firstChild ) {
-                        container.removeChild( container.firstChild )
-                    }
-                    let node = renderNode( route )
-                    if( typeof frame === 'function' ) {
-                        node = frame( node, module )
-                    }
-                    if( node ) {
-                        container.append( node )
-                    }
-                }
-            } )
-            .catch( err => {
-                while( container.firstChild ) {
-                    container.removeChild( container.firstChild )
-                }
-                if( typeof onerror === 'function' ) {
-                    err = onerror( err, newPathState )
-                    if(err){
-                        container.append(err)
-                    }
-                } else {
-                    console.error( 'Failed to load route: ', err )
-                    container.append("Failed to load route.")
-                }
-            } )
+        let p = moduleCache[filePath] ? Promise.resolve(moduleCache[filePath]) : import(filePath).then(m=>moduleCache[filePath]=m)
+
+        p.then( module => {
+             let route = module.default
+             if( route ) {
+                 while( container.firstChild ) {
+                     container.removeChild( container.firstChild )
+                 }
+                 let node = renderNode( route )
+                 if( typeof frame === 'function' ) {
+                     node = renderNode(frame( node, module ))
+                 }
+                 if( node ) {
+                     container.append( node )
+                 }
+             }
+         } )
+         .catch( err => {
+             while( container.firstChild ) {
+                 container.removeChild( container.firstChild )
+             }
+             if( typeof onerror === 'function' ) {
+                 err = onerror( err, newPathState )
+                 if(err){
+                     container.append(err)
+                 }
+             } else {
+                 console.error( 'Failed to load route: ', err )
+                 container.append("Failed to load route.")
+             }
+         } )
     }
     listenFor( afterRouteChange, loadRoute )
     updatePathParameters()
