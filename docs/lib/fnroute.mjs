@@ -78,7 +78,7 @@ export const routeSwitch = ( ...children ) => {
 }
 
 function stripParameterNames( currentRoute ) {
-    return removeTrailingSlash(currentRoute.substr(1)).split( '/' ).reduce( ( res, part ) => {
+    return removeTrailingSlash( currentRoute.substr( 1 ) ).split( '/' ).reduce( ( res, part ) => {
         const paramStart = part.indexOf( ':' )
         let value = part
         if( paramStart > -1 ) {
@@ -90,19 +90,19 @@ function stripParameterNames( currentRoute ) {
 
 const moduleCache = {}
 
-export const modRouter = ( { routePath, attrs, onerror, frame, sendRawPath, disableCache } ) => {
+export const modRouter = ( { routePath, attrs, onerror, frame, sendRawPath } ) => {
     const container = h( 'div', attrs || {} )
     if( !routePath ) {
         throw 'You must provide a root url for modRouter. Routes in the ui will be looked up relative to this url.'
     }
     let loadRoute = ( newPathState ) => {
         let path = newPathState.currentRoute
-        if(!sendRawPath){
+        if( !sendRawPath ) {
             path = stripParameterNames( newPathState.currentRoute )
         }
         let filePath = path ? routePath + ensureOnlyLeadingSlash( path ) : routePath
 
-        let p = moduleCache[filePath] ? Promise.resolve(moduleCache[filePath]) : import(filePath).then(m=>moduleCache[filePath]=m)
+        let p = moduleCache[ filePath ] ? Promise.resolve( moduleCache[ filePath ] ) : import(filePath).then( m => moduleCache[ filePath ] = m )
 
         p.then( module => {
              let route = module.default
@@ -112,7 +112,7 @@ export const modRouter = ( { routePath, attrs, onerror, frame, sendRawPath, disa
                  }
                  let node = renderNode( route )
                  if( typeof frame === 'function' ) {
-                     node = renderNode(frame( node, module ))
+                     node = renderNode( frame( node, module ) )
                  }
                  if( node ) {
                      container.append( node )
@@ -125,12 +125,12 @@ export const modRouter = ( { routePath, attrs, onerror, frame, sendRawPath, disa
              }
              if( typeof onerror === 'function' ) {
                  err = onerror( err, newPathState )
-                 if(err){
-                     container.append(err)
+                 if( err ) {
+                     container.append( err )
                  }
              } else {
                  console.error( 'Failed to load route: ', err )
-                 container.append("Failed to load route.")
+                 container.append( 'Failed to load route.' )
              }
          } )
     }
@@ -159,7 +159,7 @@ function updatePathParameters() {
             }
         }
     }
-    pathParameters(parameters)
+    pathParameters( parameters )
 }
 
 /**
@@ -282,7 +282,9 @@ export const listenFor = ( event, handler ) => {
     eventListeners[ event ].push( handler )
     return () => {
         let i = eventListeners[ event ].indexOf( handler )
-        return eventListeners[ event ].splice( i, 1 )
+        if( i > -1 ) {
+            return eventListeners[ event ].splice( i, 1 )
+        }
     }
 }
 
