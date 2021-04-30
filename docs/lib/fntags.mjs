@@ -538,12 +538,6 @@ let setAttribute = function( attrName, attr, element ) {
         element.value = attr
     } else if( booleanAttributes[attrName] ) {
         element[ attrName ] = !!attr
-    } else if( typeof attr === 'string' || typeof attr === 'number' ) {
-        if( attrName.startsWith( 'ns=' ) ) {
-            element.setAttributeNS( ...( attrName.slice( 3 ).split( '|' ) ), attr )
-        } else {
-            element.setAttribute( attrName, attr )
-        }
     } else if( attrName === 'style' && typeof attr === 'object' ) {
         for( let style in attr ) {
             if( typeof attr[ style ] === 'function' && attr[ style ].isBoundStyle ) {
