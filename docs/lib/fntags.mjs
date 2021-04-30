@@ -503,12 +503,40 @@ export const renderNode = ( node ) => {
     }
 }
 
+const booleanAttributes = {
+    allowfullscreen: true,
+    allowpaymentrequest: true,
+    async: true,
+    autofocus: true,
+    autoplay: true,
+    checked: true,
+    controls: true,
+    default: true,
+    disabled: true,
+    formnovalidate: true,
+    hidden: true,
+    ismap: true,
+    itemscope: true,
+    loop: true,
+    multiple: true,
+    muted: true,
+    nomodule: true,
+    novalidate: true,
+    open: true,
+    playsinline: true,
+    readonly: true,
+    required: true,
+    reversed: true,
+    selected: true,
+    truespeed: true
+}
+
 let setAttribute = function( attrName, attr, element ) {
     if( attrName === 'value' ) {
         element.setAttribute( 'value', attr )
         //html5 nodes like range don't update unless the value property on the object is set
         element.value = attr
-    } else if( attrName === 'disabled' || attrName === 'checked' || attrName === 'selected' ) {
+    } else if( booleanAttributes[attrName] ) {
         element[ attrName ] = !!attr
     } else if( typeof attr === 'string' || typeof attr === 'number' ) {
         if( attrName.startsWith( 'ns=' ) ) {
