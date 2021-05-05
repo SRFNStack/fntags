@@ -77,12 +77,12 @@ export const routeSwitch = ( ...children ) => {
     )
 }
 
-function stripParameterNames( currentRoute ) {
-    return removeTrailingSlash( currentRoute.substr( 1 ) ).split( '/' ).reduce( ( res, part ) => {
+function stripParameterValues( currentRoute ) {
+    return removeTrailingSlash(currentRoute.substr(1)).split( '/' ).reduce( ( res, part ) => {
         const paramStart = part.indexOf( ':' )
         let value = part
         if( paramStart > -1 ) {
-            value = part.substr( paramStart + 1 )
+            value = part.substr( 0, paramStart )
         }
         return `${res}/${value}`
     }, '' )
@@ -97,42 +97,42 @@ export const modRouter = ( { routePath, attrs, onerror, frame, sendRawPath } ) =
     }
     let loadRoute = ( newPathState ) => {
         let path = newPathState.currentRoute
-        if( !sendRawPath ) {
-            path = stripParameterNames( newPathState.currentRoute )
+        if(!sendRawPath){
+            path = stripParameterValues( newPathState.currentRoute )
         }
         let filePath = path ? routePath + ensureOnlyLeadingSlash( path ) : routePath
 
-        let p = moduleCache[ filePath ] ? Promise.resolve( moduleCache[ filePath ] ) : import(filePath).then( m => moduleCache[ filePath ] = m )
+        let p = moduleCache[filePath] ? Promise.resolve(moduleCache[filePath]) : import(filePath).then(m=>moduleCache[filePath]=m)
 
         p.then( module => {
-             let route = module.default
-             if( route ) {
-                 while( container.firstChild ) {
-                     container.removeChild( container.firstChild )
-                 }
-                 let node = renderNode( route )
-                 if( typeof frame === 'function' ) {
-                     node = renderNode( frame( node, module ) )
-                 }
-                 if( node ) {
-                     container.append( node )
-                 }
-             }
-         } )
-         .catch( err => {
-             while( container.firstChild ) {
-                 container.removeChild( container.firstChild )
-             }
-             if( typeof onerror === 'function' ) {
-                 err = onerror( err, newPathState )
-                 if( err ) {
-                     container.append( err )
-                 }
-             } else {
-                 console.error( 'Failed to load route: ', err )
-                 container.append( 'Failed to load route.' )
-             }
-         } )
+            let route = module.default
+            if( route ) {
+                while( container.firstChild ) {
+                    container.removeChild( container.firstChild )
+                }
+                let node = renderNode( route )
+                if( typeof frame === 'function' ) {
+                    node = renderNode(frame( node, module ))
+                }
+                if( node ) {
+                    container.append( node )
+                }
+            }
+        } )
+            .catch( err => {
+                while( container.firstChild ) {
+                    container.removeChild( container.firstChild )
+                }
+                if( typeof onerror === 'function' ) {
+                    err = onerror( err, newPathState )
+                    if(err){
+                        container.append(err)
+                    }
+                } else {
+                    console.error( 'Failed to load route: ', err )
+                    container.append("Failed to load route.")
+                }
+            } )
     }
     listenFor( afterRouteChange, loadRoute )
     updatePathParameters()
@@ -159,7 +159,7 @@ function updatePathParameters() {
             }
         }
     }
-    pathParameters( parameters )
+    pathParameters(parameters)
 }
 
 /**
@@ -222,9 +222,9 @@ export const goTo = ( route, context, replace = false, silent = false ) => {
 
     setTimeout( () => {
         pathState.assign( {
-                              currentRoute: route.split( /[#?]/ )[ 0 ],
-                              context
-                          } )
+            currentRoute: route.split( /[#?]/ )[ 0 ],
+            context
+        } )
         updatePathParameters()
         if( !silent ) {
             emit( afterRouteChange, newPathState, oldPathState )
@@ -282,7 +282,7 @@ export const listenFor = ( event, handler ) => {
     eventListeners[ event ].push( handler )
     return () => {
         let i = eventListeners[ event ].indexOf( handler )
-        if( i > -1 ) {
+        if(i>-1){
             return eventListeners[ event ].splice( i, 1 )
         }
     }
@@ -293,9 +293,9 @@ export const listenFor = ( event, handler ) => {
  */
 export const setRootPath = ( rootPath ) =>
     pathState.assign( {
-                          rootPath: ensureOnlyLeadingSlash( rootPath ),
-                          currentRoute: ensureOnlyLeadingSlash( window.location.pathname.replace( new RegExp( '^' + rootPath ), '' ) ) || '/'
-                      } )
+        rootPath: ensureOnlyLeadingSlash( rootPath ),
+        currentRoute: ensureOnlyLeadingSlash( window.location.pathname.replace( new RegExp( '^' + rootPath ), '' ) ) || '/'
+    } )
 
 
 window.addEventListener(
