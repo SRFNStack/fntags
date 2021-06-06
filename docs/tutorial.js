@@ -18,7 +18,7 @@ export default div(
              ', refreshing the page will load any code changes that have been made.' ),
         'Now we need to get fntags',
         div( 'The first option is to download the source files directly from ',
-             a( { href: 'https://github.com/narcolepticsnowman/fntags/tree/master/src' }, 'GitHub' ),
+             a( { href: 'https://github.com/srfnstack/fntags/tree/master/src' }, 'GitHub' ),
              ' and include them with your source.' ),
         'The second is to include it using a package manager like npm or yarn.',
         h4( 'Manually Downloading' ),

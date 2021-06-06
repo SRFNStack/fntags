@@ -17,25 +17,25 @@ describe( 'fntags', () => {
             const e = fntags.h( 'div', { id: 'jerry' } )
             expect( e.id ).eq( 'jerry' )
         } )
-        it( 'should use not use null as attributes', () => {
+        it( 'should not use null as attributes', () => {
             const e = fntags.h( 'div', null )
             expect( e.id ).eq( '' )
         } )
-        it( 'should use not use undefined as attributes', () => {
+        it( 'should not use undefined as attributes', () => {
             const e = fntags.h( 'div', undefined )
             expect( e.id ).eq( '' )
         } )
-        it( 'should use not use arrays as attributes', () => {
+        it( 'should not use arrays as attributes', () => {
             const e = fntags.h( 'div', [{ id: 'jerry' }] )
             expect( e.id ).eq( '' )
         } )
-        it( 'should use not use promises as attributes', () => {
+        it( 'should not use promises as attributes', () => {
             const p = Promise.resolve()
             p.id = 'jerry'
             const e = fntags.h( 'div', p )
             expect( e.id ).eq( '' )
         } )
-        it( 'should use not use dom nodes as attributes', () => {
+        it( 'should not use dom nodes as attributes', () => {
             const e = fntags.h( 'div', fntags.h( 'div', { id: 'jerry' } ) )
             expect( e.id ).eq( '' )
         } )
@@ -58,12 +58,12 @@ describe( 'fntags', () => {
 
         it( 'should append all the children passed and expand arrays', () => {
             const el = fntags.h( 'div',
-                                 fntags.h( 'div' ),
-                                 [fntags.h( 'div' ), fntags.h( 'div' ), fntags.h( 'div' )],
-                                 fntags.h( 'div' ),
-                                 fntags.h( 'div' ),
-                                 [fntags.h( 'div' ), fntags.h( 'div' ), fntags.h( 'div' )],
-                                 fntags.h( 'div' ) )
+                fntags.h( 'div' ),
+                [fntags.h( 'div' ), fntags.h( 'div' ), fntags.h( 'div' )],
+                fntags.h( 'div' ),
+                fntags.h( 'div' ),
+                [fntags.h( 'div' ), fntags.h( 'div' ), fntags.h( 'div' )],
+                fntags.h( 'div' ) )
             expect( el.children.length ).eq( 10 )
         } )
         it( 'should convert bad data to text and include any strings', () => {
@@ -98,7 +98,7 @@ describe( 'fntags', () => {
                 style: 'color: blue; font-size:50px; border:2px;'
             }, 'weee' )
             expect( el.style.color ).eq( 'blue' )
-            expect( el.style[ 'font-size' ] ).eq( '50px' )
+            expect( el.style['font-size'] ).eq( '50px' )
             expect( el.style.border ).eq( '2px' )
         } )
 
@@ -111,7 +111,7 @@ describe( 'fntags', () => {
                 }
             }, 'weee' )
             expect( el.style.color ).eq( 'blue' )
-            expect( el.style[ 'font-size' ] ).eq( '50px' )
+            expect( el.style['font-size'] ).eq( '50px' )
             expect( el.style.border ).eq( '2px' )
         } )
 
@@ -132,7 +132,7 @@ describe( 'fntags', () => {
                 }
             }, 'weee' )
             expect( el.style.color ).eq( 'blue' )
-            expect( el.style[ 'font-size' ] ).eq( '50px' )
+            expect( el.style['font-size'] ).eq( '50px' )
             expect( el.style.border ).eq( '2px' )
         } )
 
@@ -178,7 +178,7 @@ describe( 'fntags', () => {
             expect( i.wholeText ).eq( '1' )
         } )
 
-        it( 'resolves promise results into a node', async() => {
+        it( 'resolves promise results into a node', async () => {
             let el = renderNode( Promise.resolve( 'hi' ) )
             expect( el.tagName ).eq( 'DIV' )
             expect( el.style.display ).eq( 'none' )
@@ -216,7 +216,8 @@ describe( 'fntags', () => {
             expect( getAttrs( null ) ).empty
             expect( getAttrs( undefined ) ).empty
             expect( getAttrs( {} ) ).empty
-            expect( getAttrs( () => {} ) ).empty
+            expect( getAttrs( () => {
+            } ) ).empty
             expect( getAttrs( 0 ) ).empty
             expect( getAttrs( NaN ) ).empty
             expect( getAttrs( Infinity ) ).empty
@@ -226,16 +227,16 @@ describe( 'fntags', () => {
     describe( 'styled', () => {
         it( 'adds the style to the element', () => {
             let s = fntags.styled( { color: 'blue' }, 'div', [] )
-            expect(s.style.color).eq('blue')
+            expect( s.style.color ).eq( 'blue' )
         } )
         it( 'adds the style to an element with an existing style', () => {
-            let s = fntags.styled( { color: 'blue' }, 'div', [{style: {'font-size':'10px'}}] )
-            expect(s.style.color).eq('blue')
-            expect(s.style['font-size']).eq('10px')
+            let s = fntags.styled( { color: 'blue' }, 'div', [{ style: { 'font-size': '10px' } }] )
+            expect( s.style.color ).eq( 'blue' )
+            expect( s.style['font-size'] ).eq( '10px' )
         } )
         it( 'allows overwriting the style', () => {
-            let s = fntags.styled( { color: 'blue' }, 'div', [{style: {color:'purple'}}] )
-            expect(s.style.color).eq('purple')
+            let s = fntags.styled( { color: 'blue' }, 'div', [{ style: { color: 'purple' } }] )
+            expect( s.style.color ).eq( 'purple' )
         } )
     } )
 } )

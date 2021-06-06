@@ -1,9 +1,9 @@
 {
   "name": "@srfnstack/fntags",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "author": "Robert Kempton <r@snow87.com>",
   "private": false,
-  "homepage": "https://github.com/narcolepticsnowman/fntags",
+  "homepage": "https://github.com/srfnstack/fntags",
   "license": "MIT",
   "files": [
     "src/*",
@@ -14,7 +14,7 @@
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "git@github.com:narcolepticsnowman/fntags.git"
+    "url": "git@github.com:srfnstack/fntags.git"
   },
   "keywords": [
     "html",
@@ -33,6 +33,7 @@
     "cypress": "^6.8.0"
   },
   "scripts": {
-    "test": "cypress run --headless -b chrome"
+    "test": "cypress run --headless -b chrome",
+    "cypress": "cypress run -b chrome"
   }
 }
