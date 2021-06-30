@@ -90,7 +90,7 @@ function stripParameterValues( currentRoute ) {
 
 const moduleCache = {}
 
-export const modRouter = ( { routePath, attrs, onerror, frame, sendRawPath } ) => {
+export const modRouter = ( { routePath, attrs, onerror, frame, sendRawPath, formatPath } ) => {
     const container = h( 'div', attrs || {} )
     if( !routePath ) {
         throw 'You must provide a root url for modRouter. Routes in the ui will be looked up relative to this url.'
@@ -99,6 +99,9 @@ export const modRouter = ( { routePath, attrs, onerror, frame, sendRawPath } ) =
         let path = newPathState.currentRoute
         if(!sendRawPath){
             path = stripParameterValues( newPathState.currentRoute )
+        }
+        if(typeof formatPath === 'function') {
+            path = formatPath(path)
         }
         let filePath = path ? routePath + ensureOnlyLeadingSlash( path ) : routePath
 
