@@ -1,7 +1,7 @@
 import { fnstate } from './lib/fntags.mjs'
 import { button, code, div, pre } from './lib/fnelements.mjs'
 
-export default ( sourceCode, demo ) => {
+export default ( sourceCode, demo, width = '450px' ) => {
     const isDemo = fnstate( false )
 
     const src = pre( { class: 'language-js', style: `font-size: 14px; width: 100%; box-sizing: border-box; box-shadow: 0px 0px 3px 0px rgba(0,0,0,0.75);` },
@@ -27,7 +27,7 @@ export default ( sourceCode, demo ) => {
                 } )
         } )
     obs.observe( src )
-    return div( { style: `margin: auto; display: flex; flex-direction: column; padding-bottom: 15px;width: 100%; max-width: 90vw;` },
+    return div( { style: `margin: auto; display: flex; flex-direction: column; align-items: flex-end; padding-bottom: 15px;width: ${width}; max-width: 94vw;` },
                 demo &&
                 button( { onclick: () => isDemo( !isDemo() ), style: 'width: 65px; padding: 3px 0;' },
                         isDemo.bindAs(() => isDemo() ? 'Code' : 'Demo' )
