@@ -9,15 +9,31 @@ export default div(
         ' This means it\'s un-necessary to define routes, as they are resolved to paths on the server instead.',
         'To use modRouter, first, set the root path of your app to the appropriate root. This will ensure that paths resolve correctly, though is not strictly necessary.',
         prismCode( `
-import { modRouter, setRootPath } from './lib/fnroute.mjs'
+import { modRouter, setRootPath } 
+    from './lib/fnroute.mjs'
 
 setRootPath('/')
 ` ),
         'Then, create a mod router and place it wherever you would normally place an html element.',
-        prismCode( `document.body.append( modRouter( { routePath: '/ui' } ) )` ),
+        prismCode( `document.body.append(
+    modRouter( { routePath: '/ui' } )
+)` ),
         'The routePath is used to resolve modules for the route. When the location changes, the current route is appended to the routePath and dynamically imported. ' +
         'For example, if the application\'s rootPath is set to "/" and modRouter\'s routePath is set to "/ui", ' +
         'when the user navigates to /foo/bar, the module located at /ui/foo/bar will be imported and loaded.',
+        hr(),
+        'If you need to modify the path in any way (i.e. add a .js suffix), set a formatPath function. The function gets ' +
+        'the path and should return the formatted path. ',
+        prismCode(
+            `document.body.append(
+    modRouter( {
+        routePath: '/ui',
+        formatPath: path => path + '.js'
+    } )
+)` ),
+        div('This will cause issues if you use index.js files as default files. To get around this, either use a backend that supports ' +
+        'resolving files without their extensions (i.e. ',a({href: 'https://srfnstack.github.io/spliffy'}, 'spliffy'),
+        ') or move your index.js files up a directory and name them after the directory. For example, user/index.js -> user.js'),
         hr(),
         'The route module\'s default export must be an html element, or a function that returns one in order for the route to load.',
         'For example serving the following file at /ui/hello:',
@@ -42,26 +58,49 @@ export default ()=>div('hello world')
         hr(),
         'To wrap the route with common elements like navigation, set the frame option to a function.',
         'The frame function receives the rendered element as the first argument, and the module object as the second. This function must return an element, or function that returns an element.',
-        prismCode( `modRouter({routePath: '/ui', frame: (route, module)=> div('menu', route, module.extraElements)})` ),
+        prismCode( `modRouter({
+    routePath: '/ui',
+    frame: ( route, module ) => div(
+        'menu', 
+        route,
+        module.extraElements
+    )
+})` ),
         'For authentication, it\'s recommended that the route modules export a const like requiresAuth and an array for roles or other identifying information. This allows you to ' +
         'redirect or display an error if needed during the frame execution. An example implementation might look this:',
         prismCode( `
 modRouter({
     routePath: '/ui',
     frame: (route, module) => {
-        if(!authenticated() && pathState().currentRoute !== '/login' && module.requiresAuth) {
+        if( !authenticated() 
+            && pathState().currentRoute !== '/login' 
+            && module.requiresAuth
+        ) {
             redirectToLogin()
             return
         }
-        if(module.roles && !hasAnyRole(userRoles(), module.roles)) {
+        if( module.roles 
+            && !hasAnyRole(userRoles(), module.roles)
+        ) {
             return forbidden()
         }
-        return div('menu', route, module.extraElements)
+        return div(
+            'menu', 
+            route,
+            module.extraElements
+        )
     }
 })
 ` ),
         'To handle errors during import, or errors rendering the route, pass an onerror function. It receives the error, the container div, and can return an ',
-        prismCode( `modRouter({routePath: '/ui', onerror: (route, module)=> div('menu', route, module.extraElements)})` )
+        prismCode( `modRouter({
+    routePath: '/ui',
+    onerror: ( route, module ) => div(
+        'menu', 
+        route, 
+        module.extraElements
+    )
+})` )
     ),
     contentSection(
         'Static Pattern Routing: Route Elements',

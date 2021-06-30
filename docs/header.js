@@ -11,7 +11,7 @@ export default header( { class: 'container text-center' },
                       pathState.bindAs(() =>
                           span( { class: 'display-font', style: 'font-size: 24px;' + ( pathState().currentRoute === '/' ? 'color: ' + secondaryColor : '' ) }, 'fntags -' )
                       ),
-                      span( { style: 'font-size: 18px; margin-left: 5px' }, 'less fluff, more stuff' ) )
+                      span( { style: 'font-size: 18px; margin-left: 5px' }, 'not a regular f\'n framework'  ) )
          ),
          nav( { class: 'flex-center', style: 'border-bottom: solid 1px darkgray; background-color: ' + primaryColor },
               div( { class: 'flex-center noselect' }, ...routeNavItems() ) )

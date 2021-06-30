@@ -1,3 +1,4 @@
 .idea
 *.iml
 cypress
+node_modules
