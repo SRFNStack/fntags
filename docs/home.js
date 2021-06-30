@@ -8,11 +8,12 @@ export default ()=>div( { class: 'flex-center', style: 'flex-direction: column; 
                     div(
                         ...[
                             span(a({href: 'https://github.com/hyperhype/hyperscript'}, 'Hyperscript'), ' Style Markup'),
-                            'Reusable Components',
-                            'Shared State via Export',
-                            'State to Element Binding',
+                            'Make Reusable Components',
+                            'Share State via Export',
+                            'Granular State Binding',
                             'Debuggable Templates',
-                            'Single Page App Routing',
+                            'Static Config-Based Routing',
+                            'Dynamic Path-Based Routing',
                             'Only a few KB min+gzip',
                             'No Build Process Necessary'
                         ].map( ( txt, i ) => i % 2 === 0 ? even( txt ) : odd( txt ) )
