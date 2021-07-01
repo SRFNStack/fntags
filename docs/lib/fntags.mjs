@@ -302,7 +302,10 @@ function doBindValues( ctx, parent, element, update ) {
     ctx.state.subscribe( () => {
         if( !Array.isArray( ctx.currentValue ) ) {
             console.warn( 'A state used with bindValues was updated to a non array value. This will be converted to an array of 1 and the state will be updated.' )
-            setTimeout( () => ctx.state( [ctx.currentValue] ), 0 )
+            new Promise( (resolve) => {
+                ctx.state( [ctx.currentValue] )
+                resolve()
+            })
         } else {
             reconcile( ctx )
         }
@@ -338,32 +341,33 @@ const updateReplacer = ( ctx, element, elCtx ) => () => {
             }
         }
         //Perform this action on the next event loop to give the parent a chance to render
-        setTimeout( () => {
+        new Promise( (resolve) => {
             elCtx.current.replaceWith( newElement )
             elCtx.current = newElement
             newElement = null
-        }, 0 )
+            resolve()
+        })
     }
 }
 
 const doBindSelect = ( ctx, element, update ) =>
     doBind( ctx, element, update,
-            boundElement =>
-                subscribeSelect( ctx, () => update( boundElement ) ),
-            ( elCtx ) =>
-                subscribeSelect(
-                    ctx,
-                    updateReplacer( ctx, element, elCtx )
-                )
+        boundElement =>
+            subscribeSelect( ctx, () => update( boundElement ) ),
+        ( elCtx ) =>
+            subscribeSelect(
+                ctx,
+                updateReplacer( ctx, element, elCtx )
+            )
     )
 
 const doBindAs = ( ctx, element, update ) =>
     doBind( ctx, element, update,
-            boundElement => {
-                ctx.state.subscribe( () => update( boundElement ) )
-            },
-            ( elCtx ) =>
-                ctx.state.subscribe( updateReplacer( ctx, element, elCtx ) )
+        boundElement => {
+            ctx.state.subscribe( () => update( boundElement ) )
+        },
+        ( elCtx ) =>
+            ctx.state.subscribe( updateReplacer( ctx, element, elCtx ) )
     )
 
 /**

@@ -190,8 +190,8 @@ export const figure = ( ...children ) => h( 'figure', ...children )
  */
 export const flexCol = ( ...children ) => styled(
     {
-            display: 'flex',
-            'flex-direction': 'column'
+        display: 'flex',
+        'flex-direction': 'column'
     },
     'div',
     children
