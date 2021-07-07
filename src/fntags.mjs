@@ -274,10 +274,10 @@ function doSelect( ctx, key ) {
     let currentSelected = ctx.selected
     ctx.selected = key
     if( ctx.selectObservers[ currentSelected ] !== undefined ) {
-        ctx.selectObservers[ currentSelected ].forEach( obs => obs() )
+        for( let obs of ctx.selectObservers[ currentSelected ] ) obs()
     }
     if( ctx.selectObservers[ ctx.selected ] !== undefined ) {
-        ctx.selectObservers[ ctx.selected ].forEach( obs => obs() )
+        for( let obs of ctx.selectObservers[ ctx.selected ] ) obs()
     }
 }
 

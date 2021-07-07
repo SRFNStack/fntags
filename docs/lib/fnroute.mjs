@@ -78,7 +78,7 @@ export const routeSwitch = ( ...children ) => {
 }
 
 function stripParameterValues( currentRoute ) {
-    return removeTrailingSlash(currentRoute.substr(1)).split( '/' ).reduce( ( res, part ) => {
+    return removeTrailingSlash( currentRoute.substr( 1 ) ).split( '/' ).reduce( ( res, part ) => {
         const paramStart = part.indexOf( ':' )
         let value = part
         if( paramStart > -1 ) {
@@ -97,15 +97,15 @@ export const modRouter = ( { routePath, attrs, onerror, frame, sendRawPath, form
     }
     let loadRoute = ( newPathState ) => {
         let path = newPathState.currentRoute
-        if(!sendRawPath){
+        if( !sendRawPath ) {
             path = stripParameterValues( newPathState.currentRoute )
         }
-        if(typeof formatPath === 'function') {
-            path = formatPath(path)
+        if( typeof formatPath === 'function' ) {
+            path = formatPath( path )
         }
         let filePath = path ? routePath + ensureOnlyLeadingSlash( path ) : routePath
 
-        let p = moduleCache[filePath] ? Promise.resolve(moduleCache[filePath]) : import(filePath).then(m=>moduleCache[filePath]=m)
+        let p = moduleCache[filePath] ? Promise.resolve( moduleCache[filePath] ) : import(filePath).then( m => moduleCache[filePath] = m )
 
         p.then( module => {
             let route = module.default
@@ -115,7 +115,7 @@ export const modRouter = ( { routePath, attrs, onerror, frame, sendRawPath, form
                 }
                 let node = renderNode( route )
                 if( typeof frame === 'function' ) {
-                    node = renderNode(frame( node, module ))
+                    node = renderNode( frame( node, module ) )
                 }
                 if( node ) {
                     container.append( node )
@@ -128,12 +128,12 @@ export const modRouter = ( { routePath, attrs, onerror, frame, sendRawPath, form
                 }
                 if( typeof onerror === 'function' ) {
                     err = onerror( err, newPathState )
-                    if(err){
-                        container.append(err)
+                    if( err ) {
+                        container.append( err )
                     }
                 } else {
                     console.error( 'Failed to load route: ', err )
-                    container.append("Failed to load route.")
+                    container.append( "Failed to load route." )
                 }
             } )
     }
@@ -151,18 +151,18 @@ function updatePathParameters() {
         idx: []
     }
     for( let i = 0; i < pathParts.length; i++ ) {
-        let part = pathParts[ i ]
+        let part = pathParts[i]
         let paramStart = part.indexOf( ':' )
         if( paramStart > -1 ) {
             let paramName = part.substr( 0, paramStart )
             let paramValue = part.substr( paramStart + 1 )
             parameters.idx.push( paramValue )
             if( paramName ) {
-                parameters[ paramName ] = paramValue
+                parameters[paramName] = paramValue
             }
         }
     }
-    pathParameters(parameters)
+    pathParameters( parameters )
 }
 
 /**
@@ -171,8 +171,8 @@ function updatePathParameters() {
  */
 export const fnlink = ( ...children ) => {
     let context = null
-    if( children[ 0 ] && children[ 0 ].context ) {
-        context = children[ 0 ].context
+    if( children[0] && children[0].context ) {
+        context = children[0].context
     }
     let a = h( 'a', ...children )
 
@@ -203,7 +203,7 @@ export const goTo = ( route, context, replace = false, silent = false ) => {
     let newPath = window.location.origin + makePath( route )
 
     const patch = {
-        currentRoute: route.split( /[#?]/ )[ 0 ],
+        currentRoute: route.split( /[#?]/ )[0],
         context
     }
 
@@ -212,7 +212,7 @@ export const goTo = ( route, context, replace = false, silent = false ) => {
     if( !silent ) {
         try {
             emit( beforeRouteChange, newPathState, oldPathState )
-        } catch(e) {
+        } catch( e ) {
             console.log( 'Path change cancelled', e )
             return
         }
@@ -225,7 +225,7 @@ export const goTo = ( route, context, replace = false, silent = false ) => {
 
     setTimeout( () => {
         pathState.assign( {
-            currentRoute: route.split( /[#?]/ )[ 0 ],
+            currentRoute: route.split( /[#?]/ )[0],
             context
         } )
         updatePathParameters()
@@ -233,7 +233,7 @@ export const goTo = ( route, context, replace = false, silent = false ) => {
             emit( afterRouteChange, newPathState, oldPathState )
         }
         if( newPath.indexOf( '#' ) > -1 ) {
-            const el = document.getElementById( decodeURIComponent( newPath.split( '#' )[ 1 ] ) )
+            const el = document.getElementById( decodeURIComponent( newPath.split( '#' )[1] ) )
             el && el.scrollIntoView()
         } else {
             window.scrollTo( 0, 0 )
@@ -262,13 +262,13 @@ export const beforeRouteChange = 'beforeRouteChange'
 export const afterRouteChange = 'afterRouteChange'
 export const routeChangeComplete = 'routeChangeComplete'
 const eventListeners = {
-    [ beforeRouteChange ]: [],
-    [ afterRouteChange ]: [],
-    [ routeChangeComplete ]: []
+    [beforeRouteChange]: [],
+    [afterRouteChange]: [],
+    [routeChangeComplete]: []
 }
 
 const emit = ( event, newPathState, oldPathState ) => {
-    eventListeners[ event ].forEach( fn => fn( newPathState, oldPathState ) )
+    for( let fn of eventListeners[event] ) fn( newPathState, oldPathState )
 }
 
 /**
@@ -279,14 +279,14 @@ const emit = ( event, newPathState, oldPathState ) => {
  * @return {function()} a function to stop listening with the passed handler.
  */
 export const listenFor = ( event, handler ) => {
-    if( !eventListeners[ event ] ) {
+    if( !eventListeners[event] ) {
         throw `Invalid event. Must be one of ${Object.keys( eventListeners )}`
     }
-    eventListeners[ event ].push( handler )
+    eventListeners[event].push( handler )
     return () => {
-        let i = eventListeners[ event ].indexOf( handler )
-        if(i>-1){
-            return eventListeners[ event ].splice( i, 1 )
+        let i = eventListeners[event].indexOf( handler )
+        if( i > -1 ) {
+            return eventListeners[event].splice( i, 1 )
         }
     }
 }
@@ -311,7 +311,7 @@ window.addEventListener(
         const newPathState = Object.assign( {}, oldPathState, patch )
         try {
             emit( beforeRouteChange, newPathState, oldPathState )
-        } catch(e) {
+        } catch( e ) {
             console.trace( 'Path change cancelled', e )
             goTo( oldPathState.currentRoute, oldPathState.context, true, true )
             return

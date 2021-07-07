@@ -274,10 +274,10 @@ function doSelect( ctx, key ) {
     let currentSelected = ctx.selected
     ctx.selected = key
     if( ctx.selectObservers[ currentSelected ] !== undefined ) {
-        ctx.selectObservers[ currentSelected ].forEach( obs => obs() )
+        for( let obs of ctx.selectObservers[ currentSelected ] ) obs()
     }
     if( ctx.selectObservers[ ctx.selected ] !== undefined ) {
-        ctx.selectObservers[ ctx.selected ].forEach( obs => obs() )
+        for( let obs of ctx.selectObservers[ ctx.selected ] ) obs()
     }
 }
 
@@ -352,22 +352,22 @@ const updateReplacer = ( ctx, element, elCtx ) => () => {
 
 const doBindSelect = ( ctx, element, update ) =>
     doBind( ctx, element, update,
-        boundElement =>
-            subscribeSelect( ctx, () => update( boundElement ) ),
-        ( elCtx ) =>
-            subscribeSelect(
-                ctx,
-                updateReplacer( ctx, element, elCtx )
-            )
+            boundElement =>
+                subscribeSelect( ctx, () => update( boundElement ) ),
+            ( elCtx ) =>
+                subscribeSelect(
+                    ctx,
+                    updateReplacer( ctx, element, elCtx )
+                )
     )
 
 const doBindAs = ( ctx, element, update ) =>
     doBind( ctx, element, update,
-        boundElement => {
-            ctx.state.subscribe( () => update( boundElement ) )
-        },
-        ( elCtx ) =>
-            ctx.state.subscribe( updateReplacer( ctx, element, elCtx ) )
+            boundElement => {
+                ctx.state.subscribe( () => update( boundElement ) )
+            },
+            ( elCtx ) =>
+                ctx.state.subscribe( updateReplacer( ctx, element, elCtx ) )
     )
 
 /**
