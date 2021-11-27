@@ -71,7 +71,7 @@ export default () => div({ class: 'flex-center', style: 'flex-direction: column;
     p({ style: 'text-align: center' }, button({ onclick: downloadExample }, 'Download Example')),
     prismCode(fntagsExample,
       div(ClickyCounter(), ClickyCounter(), ClickyCounter()),
-      '85vw'
+      '100%'
     )
   ),
   hr(),
