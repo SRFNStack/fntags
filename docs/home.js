@@ -86,7 +86,7 @@ import {
   fnstate,
   div, button, style, title, meta 
 } 
-from 'https://cdn.jsdelivr.net/npm/@srfnstack/fntags/index.js'
+from 'https://cdn.jsdelivr.net/npm/@srfnstack/fntags@0.2.0/index.js'
 
 // Create a shareable state container
 export const appCounter = fnstate(0)
