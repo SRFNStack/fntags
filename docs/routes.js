@@ -23,20 +23,19 @@ export const routeNavItems = () =>
   routes
     .filter(r => r.linkText)
     .map(
-      (r) => pathState.bindAs(() =>
+      (r) =>
         fnlink({
-          id: r.linkText + '-link',
-          to: r.url,
-          style: {
-            cursor: 'pointer',
-            padding: '12px',
-            'font-weight': 400,
-            'font-size': '18px',
-            'text-decoration': 'none',
-            color: pathState().currentRoute.startsWith(r.url) ? secondaryColor : 'inherit'
-          }
-        },
-        r.linkText
+            id: r.linkText + '-link',
+            to: r.url,
+            style: {
+              cursor: 'pointer',
+              padding: '12px',
+              'font-weight': 400,
+              'font-size': '18px',
+              'text-decoration': 'none',
+              color: pathState.bindStyle(() => pathState().currentRoute.startsWith(r.url) ? secondaryColor : 'inherit')
+            }
+          },
+          r.linkText
         )
-      )
     )
