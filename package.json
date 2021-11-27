@@ -1,6 +1,6 @@
 {
   "name": "@srfnstack/fntags",
-  "version": "0.1.7",
+  "version": "0.2.0",
   "author": "Robert Kempton <r@snow87.com>",
   "private": false,
   "homepage": "https://github.com/srfnstack/fntags",
@@ -30,10 +30,13 @@
     "state-management"
   ],
   "devDependencies": {
-    "cypress": "^6.8.0"
+    "cypress": "^6.8.0",
+    "standard": "^16.0.4"
   },
   "scripts": {
-    "test": "cypress run --headless -b chrome",
-    "cypress": "cypress run -b chrome"
+    "test": "npm run lint && cypress run --spec test/** --headless -b chrome",
+    "cypress": "cypress run --spec test/** -b chrome",
+    "lint": "standard --env browser src && standard --env browser --env jest --global Prism --global cy test docs",
+    "lint:fix": "standard --env browser --fix src && standard --env browser --env jest --global Prism --global cy --fix test docs"
   }
 }

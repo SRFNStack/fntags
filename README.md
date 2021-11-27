@@ -1,6 +1,6 @@
 # fntags
 
-> not a regular f'n framework
+> not your usual f'n framework
 
 ### [Documentation](https://srfnstack.github.io/fntags)
 

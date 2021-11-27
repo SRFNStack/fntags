@@ -1,6 +1,6 @@
-describe('docs home', () => {
-    // cy.visit('/')
-    // it('has a title', () => {
-    //     expect(true).to.eq(true)
-    // })
+describe('home page', () => {
+  it('loads', () => {
+    cy.visit('/')
+    cy.get('#Basics').should('be.visible')
+  })
 })
