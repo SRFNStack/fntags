@@ -10,9 +10,10 @@
  * @param children optional attrs and children for the element
  * @returns HTMLElement an html element
  *
-
  */
-export const h = (tag, ...children) => {
+export function h () {
+  const tag = arguments[0]
+  let firstChildIdx = 1
   let element
   if (tag.startsWith('ns=')) {
     element = document.createElementNS(...(tag.slice(3).split('|')))
@@ -20,8 +21,9 @@ export const h = (tag, ...children) => {
     element = document.createElement(tag)
   }
 
-  if (isAttrs(children[0])) {
-    const attrs = children.shift()
+  if (isAttrs(arguments[firstChildIdx])) {
+    const attrs = arguments[firstChildIdx]
+    firstChildIdx += 1
     for (const a in attrs) {
       let attr = attrs[a]
       if (typeof attr === 'function' && attr.isBoundAttribute) {
@@ -31,7 +33,8 @@ export const h = (tag, ...children) => {
       setAttribute(a, attr, element)
     }
   }
-  for (const child of children) {
+  for (let i = firstChildIdx; i < arguments.length; i++) {
+    const child = arguments[i]
     if (Array.isArray(child)) {
       for (const c of child) {
         element.append(renderNode(c))
@@ -76,23 +79,23 @@ export const fnstate = (initialValue, mapKey) => {
   }
 
   /**
-     * Bind the values of this state to the given element.
-     * Values are items/elements of an array.
-     * If the current value is not an array, this will behave the same as bindAs.
-     *
-     * @param parent The parent to bind the children to.
-     * @param element The element to bind to. If not a function, an update function must be passed
-     * @param update If passed this will be executed directly when the state of any value changes with no other intervention
-     */
+   * Bind the values of this state to the given element.
+   * Values are items/elements of an array.
+   * If the current value is not an array, this will behave the same as bindAs.
+   *
+   * @param parent The parent to bind the children to.
+   * @param element The element to bind to. If not a function, an update function must be passed
+   * @param update If passed this will be executed directly when the state of any value changes with no other intervention
+   */
   ctx.state.bindChildren = (parent, element, update) => doBindChildren(ctx, parent, element, update)
 
   /**
-     * Bind this state to the given element
-     *
-     * @param element The element to bind to. If not a function, an update function must be passed
-     * @param update If passed this will be executed directly when the state changes with no other intervention
-     * @returns {(HTMLDivElement|Text)[]|HTMLDivElement|Text}
-     */
+   * Bind this state to the given element
+   *
+   * @param element The element to bind to. If not a function, an update function must be passed
+   * @param update If passed this will be executed directly when the state changes with no other intervention
+   * @returns {(HTMLDivElement|Text)[]|HTMLDivElement|Text}
+   */
   ctx.state.bindAs = (element, update) => doBindAs(ctx, element, update)
 
   /**
@@ -103,63 +106,63 @@ export const fnstate = (initialValue, mapKey) => {
   ctx.state.bindSelf = () => doBindAs(ctx, ctx.state)
 
   /**
-     * Bind attribute values to state changes
-     * @param attribute A function that returns an attribute value
-     * @returns {function(): *} A function that calls the passed function, with some extra metadata
-     */
+   * Bind attribute values to state changes
+   * @param attribute A function that returns an attribute value
+   * @returns {function(): *} A function that calls the passed function, with some extra metadata
+   */
   ctx.state.bindAttr = (attribute) => doBindAttr(ctx.state, attribute)
 
   /**
-     * Bind style values to state changes
-     * @param style A function that returns a style's value
-     * @returns {function(): *} A function that calls the passed function, with some extra metadata
-     */
+   * Bind style values to state changes
+   * @param style A function that returns a style's value
+   * @returns {function(): *} A function that calls the passed function, with some extra metadata
+   */
   ctx.state.bindStyle = (style) => doBindStyle(ctx.state, style)
 
   /**
-     * Bind select and deselect to an element
-     * @param element The element to bind to. If not a function, an update function must be passed
-     * @param update If passed this will be executed directly when the state changes with no other intervention
-     */
+   * Bind select and deselect to an element
+   * @param element The element to bind to. If not a function, an update function must be passed
+   * @param update If passed this will be executed directly when the state changes with no other intervention
+   */
   ctx.state.bindSelect = (element, update) => doBindSelect(ctx, element, update)
 
   /**
-     * Bind select and deselect to an attribute
-     * @param attribute A function that returns an attribute value
-     * @returns {function(): *} A function that calls the passed function, with some extra metadata
-     */
+   * Bind select and deselect to an attribute
+   * @param attribute A function that returns an attribute value
+   * @returns {function(): *} A function that calls the passed function, with some extra metadata
+   */
   ctx.state.bindSelectAttr = (attribute) => doBindSelectAttr(ctx, attribute)
 
   /**
-     * Mark the element with the given key as selected. This causes the bound select functions to be executed.
-     */
+   * Mark the element with the given key as selected. This causes the bound select functions to be executed.
+   */
   ctx.state.select = (key) => doSelect(ctx, key)
 
   /**
-     * Get the currently selected key
-     * @returns {*}
-     */
+   * Get the currently selected key
+   * @returns {*}
+   */
   ctx.state.selected = () => ctx.selected
 
   ctx.state.isFnState = true
 
   /**
-     * Perform an Object.assign on the current state using the provided update
-     */
+   * Perform an Object.assign on the current state using the provided update
+   */
   ctx.state.assign = (update) => ctx.state(Object.assign(ctx.currentValue, update))
 
   /**
-     * Get a value at the given property path, an error is thrown if the value is not an object
-     *
-     * This returns a reference to the real current value. If you perform any modifications to the object, be sure to call setPath after you're done or the changes
-     * will not be reflected correctly.
-     */
+   * Get a value at the given property path, an error is thrown if the value is not an object
+   *
+   * This returns a reference to the real current value. If you perform any modifications to the object, be sure to call setPath after you're done or the changes
+   * will not be reflected correctly.
+   */
   ctx.state.getPath = (path) => {
     if (typeof path !== 'string') {
-      throw new Error('Invalid path').stack
+      throw new Error('Invalid path')
     }
     if (typeof ctx.currentValue !== 'object') {
-      throw new Error('Value is not an object').stack
+      throw new Error('Value is not an object')
     }
     return path
       .split('.')
@@ -176,11 +179,11 @@ export const fnstate = (initialValue, mapKey) => {
   }
 
   /**
-     * Set a value at the given property path
-     * @param path The JSON path of the value to set
-     * @param value The value to set the path to
-     * @param fillWithObjects Whether to non object values with new empty objects.
-     */
+   * Set a value at the given property path
+   * @param path The JSON path of the value to set
+   * @param value The value to set the path to
+   * @param fillWithObjects Whether to non object values with new empty objects.
+   */
   ctx.state.setPath = (path, value, fillWithObjects = false) => {
     const s = path.split('.')
     const parent = s
@@ -199,19 +202,19 @@ export const fnstate = (initialValue, mapKey) => {
       parent[s.slice(-1)] = value
       ctx.state(ctx.currentValue)
     } else {
-      throw new Error(`No object at path ${path}`).stack
+      throw new Error(`No object at path ${path}`)
     }
   }
 
   /**
-     * Register a callback that will be executed whenever the state is changed
-     * @return a function to stop the subscription
-     */
+   * Register a callback that will be executed whenever the state is changed
+   * @return a function to stop the subscription
+   */
   ctx.state.subscribe = (callback) => doSubscribe(ctx, ctx.observers, callback)
 
   /**
-     * Remove all of the observers and optionally reset the value to it's initial value
-     */
+   * Remove all of the observers and optionally reset the value to it's initial value
+   */
   ctx.state.reset = (reInit) => doReset(ctx, reInit, initialValue)
 
   return ctx.state
@@ -244,7 +247,7 @@ const doBindSelectAttr = function (ctx, attribute) {
 
 function createBoundAttr (attr) {
   if (typeof attr !== 'function') {
-    throw new Error('You must pass a function to bindAttr').stack
+    throw new Error('You must pass a function to bindAttr')
   }
   const boundAttr = () => attr()
   boundAttr.isBoundAttribute = true
@@ -259,7 +262,7 @@ function doBindAttr (state, attribute) {
 
 function doBindStyle (state, style) {
   if (typeof style !== 'function') {
-    throw new Error('You must pass a function to bindStyle').stack
+    throw new Error('You must pass a function to bindStyle')
   }
   const boundStyle = () => style()
   boundStyle.isBoundStyle = true
@@ -289,10 +292,10 @@ function doSelect (ctx, key) {
 function doBindChildren (ctx, parent, element, update) {
   parent = renderNode(parent)
   if (parent === undefined) {
-    throw new Error('You must provide a parent element to bind the children to. aka Need Bukkit.').stack
+    throw new Error('You must provide a parent element to bind the children to. aka Need Bukkit.')
   }
   if (typeof element !== 'function' && typeof update !== 'function') {
-    throw new Error('You must pass an update function when passing a non function element').stack
+    throw new Error('You must pass an update function when passing a non function element')
   }
   if (typeof ctx.mapKey !== 'function') {
     console.warn('Using value index as key, may not work correctly when moving items...')
@@ -327,7 +330,7 @@ function doBindChildren (ctx, parent, element, update) {
 
 const doBind = function (ctx, element, update, handleUpdate, handleReplace) {
   if (typeof element !== 'function' && typeof update !== 'function') {
-    throw new Error('You must pass an update function when passing a non function element').stack
+    throw new Error('You must pass an update function when passing a non function element')
   }
   if (typeof update === 'function') {
     const boundElement = renderNode(evaluateElement(element, ctx.currentValue))
@@ -426,7 +429,7 @@ function arrangeElements (ctx, bindContext) {
     }
     const key = keyMapper(ctx.mapKey, valueState())
     if (keys[key]) {
-      throw new Error('Duplicate keys in a bound array are not allowed.').stack
+      throw new Error('Duplicate keys in a bound array are not allowed.')
     }
     keys[key] = i
     keysArr[i] = key
@@ -510,12 +513,17 @@ const evaluateElement = (element, value) => {
  * Convert non objects (objects are assumed to be nodes) to text nodes and allow promises to resolve to nodes
  */
 export const renderNode = (node) => {
-  if (node && typeof node === 'object' && node.then === undefined) {
-    return node
-  } else if (node && typeof node === 'object' && typeof node.then === 'function') {
-    const temp = marker()
-    node.then(el => temp.replaceWith(renderNode(el))).catch(e => console.error('Caught failed node promise.', e))
-    return temp
+  if (node && typeof node === 'object') {
+    if (typeof node.then === 'function') {
+      let temp = h('div', { style: 'display:none', class: 'fntags-promise-marker' })
+      node.then(el => {
+        temp.replaceWith(renderNode(el))
+        temp = null
+      }).catch(e => console.error('Caught failed node promise.', e))
+      return temp
+    } else {
+      return node
+    }
   } else if (typeof node === 'function') {
     return renderNode(node())
   } else {
@@ -523,6 +531,9 @@ export const renderNode = (node) => {
   }
 }
 
+/**
+ * All of these attributes must be set to an actual boolean to function correctly
+ */
 const booleanAttributes = {
   allowfullscreen: true,
   allowpaymentrequest: true,
@@ -552,13 +563,7 @@ const booleanAttributes = {
 }
 
 const setAttribute = function (attrName, attr, element) {
-  if (attrName === 'value') {
-    element.setAttribute('value', attr)
-    // html5 nodes like range don't update unless the value property on the object is set
-    element.value = attr
-  } else if (booleanAttributes[attrName]) {
-    element[attrName] = !!attr
-  } else if (attrName === 'style' && typeof attr === 'object') {
+  if (attrName === 'style' && typeof attr === 'object') {
     for (const style in attr) {
       if (typeof attr[style] === 'function' && attr[style].isBoundStyle) {
         attr[style].init(style, element)
@@ -566,6 +571,12 @@ const setAttribute = function (attrName, attr, element) {
       }
       element.style[style] = attr[style] && attr[style].toString()
     }
+  } else if (attrName === 'value') {
+    element.setAttribute('value', attr)
+    // html5 nodes like range don't update unless the value property on the object is set
+    element.value = attr
+  } else if (booleanAttributes[attrName]) {
+    element[attrName] = !!attr
   } else if (typeof attr === 'function' && attrName.startsWith('on')) {
     element.addEventListener(attrName.substring(2), attr)
   } else {
@@ -577,17 +588,11 @@ const setAttribute = function (attrName, attr, element) {
   }
 }
 
-export const isAttrs = (val) => val !== null && typeof val === 'object' && val.nodeType === undefined && !Array.isArray(val) && typeof val.then !== 'function'
+export const isAttrs = (val) => val && typeof val === 'object' && val.nodeType === undefined && !Array.isArray(val) && typeof val.then !== 'function'
 /**
  * helper to get the attr object
  */
 export const getAttrs = (children) => Array.isArray(children) && isAttrs(children[0]) ? children[0] : {}
-
-/**
- * A hidden div node to mark your place in the dom
- * @returns {HTMLDivElement}
- */
-const marker = (attrs) => h('div', Object.assign(attrs || {}, { style: 'display:none' }))
 
 /**
  * A function to create an element with a pre-defined style.
