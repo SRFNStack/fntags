@@ -78,7 +78,7 @@ export const fntemplate = templateFn => {
   return ctx => {
     const clone = rendered.cloneNode(true)
     for (const selectorClass in placeholders) {
-      const targetElement = clone.getElementsByClassName(selectorClass)[0]
+      const targetElement = clone.classList.contains(selectorClass) ? clone : clone.getElementsByClassName(selectorClass)[0]
       targetElement.classList.remove(selectorClass)
       for (const placeholder of placeholders[selectorClass]) {
         if (!ctx[placeholder.prop]) {
@@ -637,7 +637,7 @@ const setAttribute = function (attrName, attr, element) {
     }
   } else if (attrName === 'class') {
     //special handling for class to ensure the selector classes from fntemplate don't get overwritten
-    if(element.className) {
+    if(element.selector && element.className) {
       element.className += ` ${attr}`
     } else {
       element.className = attr
