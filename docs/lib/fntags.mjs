@@ -635,6 +635,13 @@ const setAttribute = function (attrName, attr, element) {
     for (const style in attr) {
       setStyle(style, attr[style], element)
     }
+  } else if (attrName === 'class') {
+    //special handling for class to ensure the selector classes from fntemplate don't get overwritten
+    if(element.className) {
+      element.className += ` ${attr}`
+    } else {
+      element.className = attr
+    }
   } else if (attrName === 'value') {
     element.setAttribute('value', attr)
     // html5 nodes like range don't update unless the value property on the object is set
