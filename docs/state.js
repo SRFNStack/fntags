@@ -96,7 +96,7 @@ return div(
 return div(
      {
        style: {
-         color: color.bindStyle(() => color()) 
+         color: color.bindStyle() 
      }
    )
    },
@@ -118,7 +118,7 @@ return div(
       return div(
         {
           style: {
-            color: color.bindStyle(() => color())
+            color: color.bindStyle()
           }
         },
         div('Type your favorite color'),
@@ -149,11 +149,11 @@ return div(
       ' function.'),
     prismCode(`const name = fnstate( 'Jerry' )
 return div(
-   'Hello ', name.bindAs( name ),
+   'Hello ', name.bindAs(),
    br(),
    input(
        {
-           value: name.bindAttr( name ),
+           value: name.bindAttr(),
            oninput:
                ( e ) => name( e.target.value )
        }
@@ -162,11 +162,11 @@ return div(
     (() => {
       const name = fnstate('Jerry')
       return div(
-        'Hello ', name.bindAs(name),
+        'Hello ', name.bindAs(),
         br(),
         input(
           {
-            value: name.bindAttr(name),
+            value: name.bindAttr(),
             oninput:
                 (e) => name(e.target.value)
           }
@@ -456,10 +456,10 @@ const appState = fnstate({userName: 'Jerry'})
 const greeting = fnstate( 'Hello' )
 let triggered = false
 return div(
-   greeting.bindAs( greeting ), ' ', appState.bindAs( () => appState().userName ), '!',
+   greeting.bindAs(), ' ', appState.bindAs( () => appState().userName ), '!',
    div(
        input( {
-                  value: greeting.bindAttr( greeting ),
+                  value: greeting.bindAttr(),
                   oninput: ( e ) => greeting( e.target.value )
               } )
        ,
@@ -485,10 +485,10 @@ return div(
       const greeting = fnstate('Hello')
       let triggered = false
       return div(
-        greeting.bindAs(greeting), ' ', appState.bindAs(() => appState().userName), '!',
+        greeting.bindAs(), ' ', appState.bindAs(() => appState().userName), '!',
         div(
           input({
-            value: greeting.bindAttr(greeting),
+            value: greeting.bindAttr(),
             oninput: (e) => greeting(e.target.value)
           })
           ,

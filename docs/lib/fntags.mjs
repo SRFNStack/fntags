@@ -25,12 +25,7 @@ export function h () {
     const attrs = arguments[firstChildIdx]
     firstChildIdx += 1
     for (const a in attrs) {
-      let attr = attrs[a]
-      if (typeof attr === 'function' && attr.isBoundAttribute) {
-        attr.init(a, element)
-        attr = attr()
-      }
-      setAttribute(a, attr, element)
+      setAttribute(a, attrs[a], element)
     }
   }
   for (let i = firstChildIdx; i < arguments.length; i++) {
@@ -44,6 +39,68 @@ export function h () {
     }
   }
   return element
+}
+
+/**
+ * Create a compiled template function. The returned function takes a single object that contains the properties
+ * defined in the template.
+ *
+ * This allows fast rendering by precreating a dom element with the entire template structure and cloning and populating
+ * the clone with data from the provided context. This avoids the work of having to re-execute the tag functions
+ * one by one and can speed up situations where the same elements are created many times.
+ *
+ * You cannot bind state to the initial template. If you attempt to, the state will be read, but the elements will
+ * not be updated when the state changes because they will not be bound to the cloned element.
+ *
+ * All state bindings must be passed to the compiled template function to work correctly.
+ * @param templateFn {function(object): Node}
+ * @return {function(*): Node}
+ */
+export const fntemplate = templateFn => {
+  const placeholders = { }
+  let id = 1
+  const initContext = prop => {
+    const placeholder = (element, type, attrOrStyle) => {
+      let selector = element.selector
+      if (!selector) {
+        selector = `fntpl-${prop}-${id++}`
+        element.selector = selector
+        element.classList.add(selector)
+      }
+      if (!placeholders[selector]) placeholders[selector] = []
+      placeholders[selector].push({ prop, type, attrOrStyle })
+    }
+    placeholder.isTemplatePlaceholder = true
+    return placeholder
+  }
+  // The initial render is cloned to prevent invalid state bindings from changing it
+  const rendered = templateFn(initContext).cloneNode(true)
+  return ctx => {
+    const clone = rendered.cloneNode(true)
+    for (const selectorClass in placeholders) {
+      const targetElement = clone.getElementsByClassName(selectorClass)[0]
+      targetElement.classList.remove(selectorClass)
+      for (const placeholder of placeholders[selectorClass]) {
+        if (!ctx[placeholder.prop]) {
+          console.warn(`No value provided for template prop: ${placeholder.prop}`)
+        }
+        switch (placeholder.type) {
+          case 'node':
+            targetElement.replaceWith(renderNode(ctx[placeholder.prop]))
+            break
+          case 'attr':
+            setAttribute(placeholder.attrOrStyle, ctx[placeholder.prop], targetElement)
+            break
+          case 'style':
+            setStyle(placeholder.attrOrStyle, ctx[placeholder.prop], targetElement)
+            break
+          default:
+            throw new Error(`Unexpected bindType ${placeholder.type}`)
+        }
+      }
+    }
+    return clone
+  }
 }
 
 /**
@@ -92,46 +149,39 @@ export const fnstate = (initialValue, mapKey) => {
   /**
    * Bind this state to the given element
    *
-   * @param element The element to bind to. If not a function, an update function must be passed
-   * @param update If passed this will be executed directly when the state changes with no other intervention
+   * @param [element] The element to bind to. If not a function, an update function must be passed. If not passed, defaults to the state's value
+   * @param [update] If passed this will be executed directly when the state changes with no other intervention
    * @returns {(HTMLDivElement|Text)[]|HTMLDivElement|Text}
    */
-  ctx.state.bindAs = (element, update) => doBindAs(ctx, element, update)
-
-  /**
-   * Bind this state as it's value
-   *
-   * @returns {(HTMLDivElement|Text)[]|HTMLDivElement|Text}
-   */
-  ctx.state.bindSelf = () => doBindAs(ctx, ctx.state)
+  ctx.state.bindAs = (element, update) => doBindAs(ctx, element ?? ctx.state, update)
 
   /**
    * Bind attribute values to state changes
-   * @param attribute A function that returns an attribute value
+   * @param [attribute] A function that returns an attribute value. If not passed, defaults to the state's value
    * @returns {function(): *} A function that calls the passed function, with some extra metadata
    */
-  ctx.state.bindAttr = (attribute) => doBindAttr(ctx.state, attribute)
+  ctx.state.bindAttr = (attribute) => doBindAttr(ctx.state, attribute ?? ctx.state)
 
   /**
    * Bind style values to state changes
-   * @param style A function that returns a style's value
+   * @param [style] A function that returns a style's value. If not passed, defaults to the state's value
    * @returns {function(): *} A function that calls the passed function, with some extra metadata
    */
-  ctx.state.bindStyle = (style) => doBindStyle(ctx.state, style)
+  ctx.state.bindStyle = (style) => doBindStyle(ctx.state, style ?? ctx.state)
 
   /**
    * Bind select and deselect to an element
-   * @param element The element to bind to. If not a function, an update function must be passed
+   * @param [element] The element to bind to. If not a function, an update function must be passed. If not passed, defaults to the state's value
    * @param update If passed this will be executed directly when the state changes with no other intervention
    */
-  ctx.state.bindSelect = (element, update) => doBindSelect(ctx, element, update)
+  ctx.state.bindSelect = (element, update) => doBindSelect(ctx, element ?? ctx.state, update)
 
   /**
    * Bind select and deselect to an attribute
-   * @param attribute A function that returns an attribute value
+   * @param [attribute] A function that returns an attribute value. If not passed, defaults to the state's value
    * @returns {function(): *} A function that calls the passed function, with some extra metadata
    */
-  ctx.state.bindSelectAttr = (attribute) => doBindSelectAttr(ctx, attribute)
+  ctx.state.bindSelectAttr = (attribute) => doBindSelectAttr(ctx, attribute ?? ctx.state)
 
   /**
    * Mark the element with the given key as selected. This causes the bound select functions to be executed.
@@ -513,7 +563,11 @@ const evaluateElement = (element, value) => {
  * Convert non objects (objects are assumed to be nodes) to text nodes and allow promises to resolve to nodes
  */
 export const renderNode = (node) => {
-  if (node && typeof node === 'object') {
+  if (node && node.isTemplatePlaceholder) {
+    const element = h('div')
+    node(element, 'node')
+    return element
+  } else if (node && typeof node === 'object') {
     if (typeof node.then === 'function') {
       let temp = h('div', { style: 'display:none', class: 'fntags-promise-marker' })
       node.then(el => {
@@ -563,13 +617,23 @@ const booleanAttributes = {
 }
 
 const setAttribute = function (attrName, attr, element) {
+  if (typeof attr === 'function') {
+    if (attr.isBoundAttribute) {
+      attr.init(attrName, element)
+      attr = attr()
+    } else if (attr.isTemplatePlaceholder) {
+      attr(element, 'attr', attrName)
+      return
+    } else if (attrName.startsWith('on')) {
+      element.addEventListener(attrName.substring(2), attr)
+      return
+    } else {
+      attr = attr()
+    }
+  }
   if (attrName === 'style' && typeof attr === 'object') {
     for (const style in attr) {
-      if (typeof attr[style] === 'function' && attr[style].isBoundStyle) {
-        attr[style].init(style, element)
-        attr[style] = attr[style]()
-      }
-      element.style[style] = attr[style] && attr[style].toString()
+      setStyle(style, attr[style], element)
     }
   } else if (attrName === 'value') {
     element.setAttribute('value', attr)
@@ -577,8 +641,6 @@ const setAttribute = function (attrName, attr, element) {
     element.value = attr
   } else if (booleanAttributes[attrName]) {
     element[attrName] = !!attr
-  } else if (typeof attr === 'function' && attrName.startsWith('on')) {
-    element.addEventListener(attrName.substring(2), attr)
   } else {
     if (attrName.startsWith('ns=')) {
       element.setAttributeNS(...(attrName.slice(3).split('|')), attr)
@@ -586,6 +648,21 @@ const setAttribute = function (attrName, attr, element) {
       element.setAttribute(attrName, attr)
     }
   }
+}
+
+const setStyle = (style, styleValue, element) => {
+  if (typeof styleValue === 'function') {
+    if (styleValue.isBoundStyle) {
+      styleValue.init(style, element)
+      styleValue = styleValue()
+    } else if (styleValue.isTemplatePlaceholder) {
+      styleValue(element, 'style', style)
+      return
+    } else {
+      styleValue = styleValue()
+    }
+  }
+  element.style[style] = styleValue && styleValue.toString()
 }
 
 export const isAttrs = (val) => val && typeof val === 'object' && val.nodeType === undefined && !Array.isArray(val) && typeof val.then !== 'function'

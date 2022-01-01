@@ -29,7 +29,7 @@ export const ClickyCounter = () => {
     ),
 
     // Bind the value without mutation
-    div('local: ', counter.bindSelf()),
+    div('local: ', counter.bindAs()),
 
     button({
       // Create a click handler
@@ -62,7 +62,7 @@ export default () => div({ class: 'flex-center', style: 'flex-direction: column;
   }`),
   p({ style: 'font-size: large' }, strong('fntags'), ' is an es6 browser module for creating apps on the web'),
   p('fntags exports a tag function for every html element to build templates with.'),
-  p('A build process is not required and code is served directly to all major browsers without transpiling.'),
+  p('A build process is not required and code can be served directly to all major browsers.'),
   p('fnstate provides high performance data binding to ensure your app is responsive and fast. '),
   p('Data binding is granular: bind a single element, an element attribute, or a style property.'),
   p('Single Page App routing is provided either statically, or dynamically using path based routing.'),
@@ -93,10 +93,8 @@ export const appCounter = fnstate(0)
 
 // Create a Component function
 export const ClickyCounter = () => {
-
   // Create a local state
   const counter = fnstate(0)
-
   // Return an HtmlElement
   return div(
     // Pass an object as attributes
@@ -107,32 +105,28 @@ export const ClickyCounter = () => {
         color: 'Tomato'
       },
     },
-
     // Bind the state as an element
     appCounter.bindAs(
       count =>
         div('shared: ', count)
     ),
-
     // Bind the value without mutation
-    div('local: ', counter.bindSelf()),
-
+    div('local: ', counter.bindAs()),
     button({
         // Create a click handler
         onclick (e) {
-
           // Update bound elements
           appCounter(appCounter() + 1)
           counter(counter() + 1)
         }
       },
-
       // Set the button text
       'Click Me!'
     )
   )
 }
 
+// Build the document header
 document.head.append(
   title('fntags example'),
   meta({charset: 'utf-8'}),
@@ -146,7 +140,7 @@ document.head.append(
   })
 )
 
-// Append directly to other elements
+// Append directly to the body
 document.body.append(
   // Add app wide styles
   style(\`
