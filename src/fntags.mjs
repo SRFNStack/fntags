@@ -21,7 +21,7 @@ export function h (tag, ...children) {
   let firstChildIdx = 0
   let element
   if (tag.startsWith('ns=')) {
-    element = document.createElementNS(...( tag.slice(3).split('|') ))
+    element = document.createElementNS(...(tag.slice(3).split('|')))
   } else {
     element = document.createElement(tag)
   }
@@ -136,7 +136,7 @@ export const fnstate = (initialValue, mapKey) => {
     nextId: 0,
     mapKey,
     state (newState) {
-      if (arguments.length === 0 || ( arguments.length === 1 && arguments[0] === ctx.state )) {
+      if (arguments.length === 0 || (arguments.length === 1 && arguments[0] === ctx.state)) {
         return ctx.currentValue
       } else {
         ctx.currentValue = newState
@@ -649,7 +649,7 @@ const setAttribute = function (attrName, attr, element) {
       setStyle(style, attr[style], element)
     }
   } else if (attrName === 'class') {
-    //special handling for class to ensure the selector classes from fntemplate don't get overwritten
+    // special handling for class to ensure the selector classes from fntemplate don't get overwritten
     if (element.__fnselector && element.className) {
       element.className += ` ${attr}`
     } else {
@@ -663,7 +663,7 @@ const setAttribute = function (attrName, attr, element) {
     element[attrName] = !!attr
   } else {
     if (attrName.startsWith('ns=')) {
-      element.setAttributeNS(...( attrName.slice(3).split('|') ), attr)
+      element.setAttributeNS(...(attrName.slice(3).split('|')), attr)
     } else {
       element.setAttribute(attrName, attr)
     }
