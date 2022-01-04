@@ -66,27 +66,26 @@ export default () => div({ class: 'flex-center', style: 'flex-direction: column;
   p('fnstate provides high performance data binding to ensure your app is responsive and fast. '),
   p('Data binding is granular: bind a single element, an element attribute, or a style property.'),
   p('Single Page App routing is provided either statically, or dynamically using path based routing.'),
-  contentSection('Basics',
-    p('Below is an example that demonstrates the basic functionality of fntags. Click the download button to save it as an html file and run it in your browser!'),
-    p({ style: 'text-align: center' }, button({ onclick: downloadExample }, 'Download Example')),
+  hr(),
+  button({ style: 'width: 220px', onclick: (e) => goTo('/components') }, 'Start Building'),
+  hr(),
+  contentSection('Example',
+    'This demonstrates the basic functionality of fntags and shows how state can be used within an app.',
+    'Click the download button below the example to save it as an html file and run it in your browser!',
     prismCode(fntagsExample,
       div(ClickyCounter(), ClickyCounter(), ClickyCounter()),
       '100%'
-    )
+    ),
+    p({ style: 'text-align: center' }, button({ onclick: downloadExample }, 'Download Example')),
   ),
-  hr(),
-  button({ style: 'width: 220px', onclick: (e) => goTo('/components') }, 'Start Building')
 )
 
 const fntagsExample = `
 <!-- The only html required -->
 <html lang="en"><body><script type="module">
 // Import fnstate and tags
-import { 
-  fnstate,
-  div, button, style, title, meta 
-} 
-from 'https://cdn.jsdelivr.net/npm/@srfnstack/fntags@0.2.0/index.js'
+import { fnstate } from 'https://cdn.jsdelivr.net/npm/@srfnstack/fntags@0.3.3/src/fntags.min.mjs'
+import { div, button, style, title, meta } from 'https://cdn.jsdelivr.net/npm/@srfnstack/fntags@0.3.3/src/fnelements.min.mjs'
 
 // Create a shareable state container
 export const appCounter = fnstate(0)

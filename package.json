@@ -30,7 +30,7 @@
     "state-management"
   ],
   "devDependencies": {
-    "cypress": "^6.8.0",
+    "cypress": "^9.2.0",
     "standard": "^16.0.4"
   },
   "scripts": {
