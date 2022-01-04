@@ -1,35 +1,40 @@
 /**
  * A function to create dom elements with the given attributes and children.
- * If an argument is a non-node object it is considered an attributes object, attributes are combined with Object.assign in the order received.
- * All standard html attributes can be passed, as well as any other property.
- * Strings are added as attributes via setAttribute, functions are added as event listeners, other types are set as properties.
+ *
+ * The first element of the children array can be an object containing element attributes.
+ * The attribute names are the standard attribute names used in html, and should all be lower case as usual.
+ *
+ * Any attribute starting with 'on' that is a function is added as an event listener with the 'on' removed.
+ * i.e. { onclick: fn } gets added to the element as element.addEventListener('click', fn)
+ *
+ * The style attribute can be an object and the properties of the object will be added as style properties to the element.
+ * i.e. { style: { color: blue } } becomes element.style.color = blue
  *
  * The rest of the arguments will be considered children of this element and appended to it in the same order as passed.
  *
  * @param tag html tag to use when created the element
- * @param children optional attrs and children for the element
+ * @param children optional attributes object and children for the element
  * @returns HTMLElement an html element
  *
  */
-export function h () {
-  const tag = arguments[0]
-  let firstChildIdx = 1
+export function h (tag, ...children) {
+  let firstChildIdx = 0
   let element
   if (tag.startsWith('ns=')) {
-    element = document.createElementNS(...(tag.slice(3).split('|')))
+    element = document.createElementNS(...( tag.slice(3).split('|') ))
   } else {
     element = document.createElement(tag)
   }
 
-  if (isAttrs(arguments[firstChildIdx])) {
-    const attrs = arguments[firstChildIdx]
+  if (isAttrs(children[firstChildIdx])) {
+    const attrs = children[firstChildIdx]
     firstChildIdx += 1
     for (const a in attrs) {
       setAttribute(a, attrs[a], element)
     }
   }
-  for (let i = firstChildIdx; i < arguments.length; i++) {
-    const child = arguments[i]
+  for (let i = firstChildIdx; i < children.length; i++) {
+    const child = children[i]
     if (Array.isArray(child)) {
       for (const c of child) {
         element.append(renderNode(c))
@@ -45,26 +50,31 @@ export function h () {
  * Create a compiled template function. The returned function takes a single object that contains the properties
  * defined in the template.
  *
- * This allows fast rendering by precreating a dom element with the entire template structure and cloning and populating
+ * This allows fast rendering by pre-creating a dom element with the entire template structure then cloning and populating
  * the clone with data from the provided context. This avoids the work of having to re-execute the tag functions
- * one by one and can speed up situations where the same elements are created many times.
+ * one by one and can speed up situations where the a similar element is created many times.
  *
  * You cannot bind state to the initial template. If you attempt to, the state will be read, but the elements will
  * not be updated when the state changes because they will not be bound to the cloned element.
- *
- * All state bindings must be passed to the compiled template function to work correctly.
+ * Thus, all state bindings must be passed in the context to the compiled template to work correctly.
  * @param templateFn {function(object): Node}
  * @return {function(*): Node}
  */
 export const fntemplate = templateFn => {
-  const placeholders = { }
+  if (typeof templateFn !== 'function') {
+    throw new Error('You must pass a function to fntemplate. The function must return an html node.')
+  }
+  const placeholders = {}
   let id = 1
   const initContext = prop => {
+    if (!prop || typeof prop !== 'string') {
+      throw new Error('You must pass a non empty string prop name to the context function.')
+    }
     const placeholder = (element, type, attrOrStyle) => {
-      let selector = element.selector
+      let selector = element.__fnselector
       if (!selector) {
-        selector = `fntpl-${prop}-${id++}`
-        element.selector = selector
+        selector = `fntpl-${id++}`
+        element.__fnselector = selector
         element.classList.add(selector)
       }
       if (!placeholders[selector]) placeholders[selector] = []
@@ -74,16 +84,20 @@ export const fntemplate = templateFn => {
     return placeholder
   }
   // The initial render is cloned to prevent invalid state bindings from changing it
-  const rendered = templateFn(initContext).cloneNode(true)
+  const compiled = templateFn(initContext).cloneNode(true)
   return ctx => {
-    const clone = rendered.cloneNode(true)
+    const clone = compiled.cloneNode(true)
     for (const selectorClass in placeholders) {
-      const targetElement = clone.classList.contains(selectorClass) ? clone : clone.getElementsByClassName(selectorClass)[0]
+      let targetElement = clone.getElementsByClassName(selectorClass)[0]
+      if (!targetElement) {
+        if (clone.classList.contains(selectorClass)) {
+          targetElement = clone
+        } else {
+          throw new Error(`Cannot find template element for selectorClass ${selectorClass}`)
+        }
+      }
       targetElement.classList.remove(selectorClass)
       for (const placeholder of placeholders[selectorClass]) {
-        if (!ctx[placeholder.prop]) {
-          console.warn(`No value provided for template prop: ${placeholder.prop}`)
-        }
         switch (placeholder.type) {
           case 'node':
             targetElement.replaceWith(renderNode(ctx[placeholder.prop]))
@@ -108,11 +122,10 @@ export const fntemplate = templateFn => {
  * @param initialValue The initial state
  * @param mapKey A map function to extract a key from an element in the array. Receives the array value to extract the key from.
  * @returns function A function that can be used to get and set the state.
- * When getting the state, you get the actual reference to the underlying value. If you perform modifications to the object, be sure to set the value
- * when you're done or the changes won't be reflected correctly.
+ * When getting the state, you get the actual reference to the underlying value.
+ * If you perform modifications to the value, be sure to call the state function with the updated value when you're done
+ * or the changes won't be reflected correctly and binding updates won't be triggered even though the state appears to be correct.
  *
- * SideNote: this _could_ be implemented such that it returned a clone, however that would add a great deal of overhead, and a lot of code. Thus, the decision
- * was made that it's up to the caller to ensure that the fnstate is called whenever there are modifications.
  */
 export const fnstate = (initialValue, mapKey) => {
   const ctx = {
@@ -123,7 +136,7 @@ export const fnstate = (initialValue, mapKey) => {
     nextId: 0,
     mapKey,
     state (newState) {
-      if (arguments.length === 0 || (arguments.length === 1 && arguments[0] === ctx.state)) {
+      if (arguments.length === 0 || ( arguments.length === 1 && arguments[0] === ctx.state )) {
         return ctx.currentValue
       } else {
         ctx.currentValue = newState
@@ -341,7 +354,7 @@ function doSelect (ctx, key) {
 
 function doBindChildren (ctx, parent, element, update) {
   parent = renderNode(parent)
-  if (parent === undefined) {
+  if (parent === undefined || parent.nodeType === undefined) {
     throw new Error('You must provide a parent element to bind the children to. aka Need Bukkit.')
   }
   if (typeof element !== 'function' && typeof update !== 'function') {
@@ -353,7 +366,7 @@ function doBindChildren (ctx, parent, element, update) {
   }
 
   if (!Array.isArray(ctx.currentValue)) {
-    return ctx.state.bindAs(element, update)
+    throw new Error('You can only use bindChildren with a state that contains an array. try myState([mystate]) before calling this function.')
   }
   ctx.currentValue = ctx.currentValue.map(v => v.isFnState ? v : fnstate(v))
   ctx.bindContexts.push({ element, update, parent })
@@ -637,7 +650,7 @@ const setAttribute = function (attrName, attr, element) {
     }
   } else if (attrName === 'class') {
     //special handling for class to ensure the selector classes from fntemplate don't get overwritten
-    if(element.selector && element.className) {
+    if (element.__fnselector && element.className) {
       element.className += ` ${attr}`
     } else {
       element.className = attr
@@ -650,7 +663,7 @@ const setAttribute = function (attrName, attr, element) {
     element[attrName] = !!attr
   } else {
     if (attrName.startsWith('ns=')) {
-      element.setAttributeNS(...(attrName.slice(3).split('|')), attr)
+      element.setAttributeNS(...( attrName.slice(3).split('|') ), attr)
     } else {
       element.setAttribute(attrName, attr)
     }
