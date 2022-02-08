@@ -54,7 +54,7 @@ const downloadExample = () => {
   anchor.click()
 }
 
-export default () => div({ class: 'flex-center', style: 'flex-direction: column; font-size: 16px;' },
+export default () => div({ id: 'Home', class: 'flex-center', style: 'flex-direction: column; font-size: 16px;' },
   style(`
   .clicky-counter {
     width: 100%;

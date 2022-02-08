@@ -41,6 +41,7 @@
     "lint:fix": "standard --env browser --fix src && standard --env browser --env jest --global Prism --global cy --fix test docs"
   },
   "pre-commit": [
-    "lint"
+    "lint",
+    "test"
   ]
 }
