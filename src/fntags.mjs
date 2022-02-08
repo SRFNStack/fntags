@@ -139,9 +139,10 @@ export const fnstate = (initialValue, mapKey) => {
       if (arguments.length === 0 || (arguments.length === 1 && arguments[0] === ctx.state)) {
         return ctx.currentValue
       } else {
+        const oldState = ctx.currentValue
         ctx.currentValue = newState
         for (const observer of ctx.observers) {
-          observer.fn(newState)
+          observer.fn(newState, oldState)
         }
       }
       return newState
@@ -312,6 +313,7 @@ function createBoundAttr (attr) {
   if (typeof attr !== 'function') {
     throw new Error('You must pass a function to bindAttr')
   }
+  // wrap the function to avoid modifying it
   const boundAttr = () => attr()
   boundAttr.isBoundAttribute = true
   return boundAttr
@@ -370,7 +372,7 @@ function doBindChildren (ctx, parent, element, update) {
   }
   ctx.currentValue = ctx.currentValue.map(v => v.isFnState ? v : fnstate(v))
   ctx.bindContexts.push({ element, update, parent })
-  ctx.state.subscribe(() => {
+  ctx.state.subscribe((newState, oldState) => {
     if (!Array.isArray(ctx.currentValue)) {
       console.warn('A state used with bindChildren was updated to a non array value. This will be converted to an array of 1 and the state will be updated.')
       new Promise((resolve) => {
@@ -384,7 +386,7 @@ function doBindChildren (ctx, parent, element, update) {
         throw e
       })
     } else {
-      reconcile(ctx)
+      reconcile(ctx, oldState)
     }
   })
   reconcile(ctx)
@@ -456,12 +458,12 @@ const doBindAs = (ctx, element, update) =>
 /**
  * Reconcile the state of the current array value with the state of the bound elements
  */
-function reconcile (ctx) {
+function reconcile (ctx, oldState) {
   for (const bindContext of ctx.bindContexts) {
     if (bindContext.boundElementByKey === undefined) {
       bindContext.boundElementByKey = {}
     }
-    arrangeElements(ctx, bindContext)
+    arrangeElements(ctx, bindContext, oldState)
   }
 }
 
@@ -475,7 +477,7 @@ function keyMapper (mapKey, value) {
   }
 }
 
-function arrangeElements (ctx, bindContext) {
+function arrangeElements (ctx, bindContext, oldState) {
   if (ctx.currentValue.length === 0) {
     bindContext.parent.textContent = ''
     bindContext.boundElementByKey = {}
@@ -492,7 +494,8 @@ function arrangeElements (ctx, bindContext) {
     }
     const key = keyMapper(ctx.mapKey, valueState())
     if (keys[key]) {
-      throw new Error('Duplicate keys in a bound array are not allowed.')
+      if (oldState) ctx.state(oldState)
+      throw new Error('Duplicate keys in a bound array are not allowed, state reset to previous value.')
     }
     keys[key] = i
     keysArr[i] = key
