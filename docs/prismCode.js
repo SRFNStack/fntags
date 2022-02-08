@@ -7,21 +7,21 @@ export default (sourceCode, demo, width = '450px') => {
   const src = pre({
     class: 'language-js',
     style: {
-      'font-size': '14px',
+      fontSize: '14px',
       width: '100%',
       display: isDemo.bindStyle(() => isDemo() ? 'none' : 'block'),
-      'box-sizing': 'border-box',
-      'box-shadow': '0px 0px 3px 0px rgba(0,0,0,0.75)'
+      boxSizing: 'border-box',
+      boxShadow: '0px 0px 3px 0px rgba(0,0,0,0.75)'
     }
   },
   code(sourceCode.trim()))
   const demoDiv = div({
     style: {
-      'border-radius': '3px',
+      borderRadius: '3px',
       width: '100%',
       display: isDemo.bindStyle(() => isDemo() ? 'block' : 'none'),
-      'box-sizing': 'border-box',
-      'box-shadow': '0px 0px 3px 0px rgba(0,0,0,0.75)'
+      boxSizing: 'border-box',
+      boxShadow: '0px 0px 3px 0px rgba(0,0,0,0.75)'
     }
   }, demo || '')
 

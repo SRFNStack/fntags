@@ -220,7 +220,7 @@ return div(
    div( {
             style: {
                 display: 'flex',
-                'flex-direction': 'column'
+                flexDirection: 'column'
             }
         } ),
    peep =>
@@ -250,7 +250,7 @@ return div(
       div({
         style: {
           display: 'flex',
-          'flex-direction': 'column'
+          flexDirection: 'column'
         }
       }),
       peep =>
@@ -339,7 +339,7 @@ data.bindChildren(
            style: {
                padding: '10px',
                cursor: 'pointer',
-               'font-size': '40px',
+               fontSize: '40px',
            },
            onclick: () => data.select( value() )
        },
@@ -358,7 +358,7 @@ data.bindChildren(
           style: {
             padding: '10px',
             cursor: 'pointer',
-            'font-size': '40px'
+            fontSize: '40px'
           },
           onclick: () => data.select(value())
         },
@@ -382,7 +382,7 @@ data.bindChildren(
                     ? 'limegreen' : 'darkgrey',
                    padding: '10px',
                    cursor: 'pointer',
-                   'font-size': '40px'
+                   fontSize: '40px'
                } )
            ),
            onclick: () => data.select( value() )
@@ -402,7 +402,7 @@ data.bindChildren(
                 : 'darkgrey',
               padding: '10px',
               cursor: 'pointer',
-              'font-size': '40px'
+              fontSize: '40px'
             })
           ),
           onclick: () => data.select(value())

@@ -48,7 +48,10 @@ export const ClickyCounter = () => {
 
 const downloadExample = () => {
   const anchor = a({
-    href: 'data:text/plain;charset=utf-8;base64,' + btoa(fntagsExample),
+    href: 'data:text/plain;charset=utf-8;base64,' + btoa(fntagsExample(
+      'https://cdn.jsdelivr.net/npm/@srfnstack/fntags@0.3.3/src/fntags.min.mjs',
+      'https://cdn.jsdelivr.net/npm/@srfnstack/fntags@0.3.3/src/fnelements.min.mjs'
+    )),
     download: 'fntags-example.html'
   })
   anchor.click()
@@ -72,7 +75,7 @@ export default () => div({ id: 'Home', class: 'flex-center', style: 'flex-direct
   contentSection('Example',
     'This demonstrates the basic functionality of fntags and shows how state can be used within an app.',
     'Click the download button below the example to save it as an html file and run it in your browser!',
-    prismCode(fntagsExample,
+    prismCode(fntagsExample('./lib/fntags.mjs', './lib/fnelements.mjs'),
       div(ClickyCounter(), ClickyCounter(), ClickyCounter()),
       '100%'
     ),
@@ -80,12 +83,12 @@ export default () => div({ id: 'Home', class: 'flex-center', style: 'flex-direct
   )
 )
 
-const fntagsExample = `
+const fntagsExample = (fntagsUrl, fnElementsUrl) => `
 <!-- The only html required -->
 <html lang="en"><body><script type="module">
 // Import fnstate and tags
-import { fnstate } from 'https://cdn.jsdelivr.net/npm/@srfnstack/fntags@0.3.3/src/fntags.min.mjs'
-import { div, button, style, title, meta } from 'https://cdn.jsdelivr.net/npm/@srfnstack/fntags@0.3.3/src/fnelements.min.mjs'
+import { fnstate } from '${fntagsUrl}'
+import { div, button, style, title, meta } from '${fnElementsUrl}'
 
 // Create a shareable state container
 export const appCounter = fnstate(0)

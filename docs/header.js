@@ -30,7 +30,7 @@ export default header({ class: 'container text-center' },
         span({
           class: 'display-font',
           style: {
-            'font-size': '24px',
+            fontSize: '24px',
             color:
               pathState().currentRoute === '/' || pathState().currentRoute === pathState().rootPath
                 ? secondaryColor
