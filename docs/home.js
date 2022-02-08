@@ -76,8 +76,8 @@ export default () => div({ class: 'flex-center', style: 'flex-direction: column;
       div(ClickyCounter(), ClickyCounter(), ClickyCounter()),
       '100%'
     ),
-    p({ style: 'text-align: center' }, button({ onclick: downloadExample }, 'Download Example')),
-  ),
+    p({ style: 'text-align: center' }, button({ onclick: downloadExample }, 'Download Example'))
+  )
 )
 
 const fntagsExample = `

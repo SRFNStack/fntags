@@ -703,9 +703,18 @@ export const getAttrs = (children) => Array.isArray(children) && isAttrs(childre
 export const styled = (style, tag, children) => {
   const firstChild = children[0]
   if (isAttrs(firstChild)) {
-    children[0].style = Object.assign(style, firstChild.style)
+    if (typeof firstChild.style === 'string') {
+      firstChild.style = [stringifyStyle(style), stringifyStyle(firstChild.style)].join(';')
+    } else {
+      firstChild.style = Object.assign(style, firstChild.style)
+    }
   } else {
     children.unshift({ style })
   }
   return h(tag, ...children)
 }
+
+const stringifyStyle = style =>
+  typeof style === 'string'
+    ? style
+    : Object.keys(style).map(prop => `${prop}:${style[prop]}`).join(';')

@@ -52,11 +52,11 @@ export function h (tag, ...children) {
  *
  * This allows fast rendering by pre-creating a dom element with the entire template structure then cloning and populating
  * the clone with data from the provided context. This avoids the work of having to re-execute the tag functions
- * one by one and can speed up situations where the a similar element is created many times.
+ * one by one and can speed up situations where a similar element is created many times.
  *
  * You cannot bind state to the initial template. If you attempt to, the state will be read, but the elements will
  * not be updated when the state changes because they will not be bound to the cloned element.
- * Thus, all state bindings must be passed in the context to the compiled template to work correctly.
+ * All state bindings must be passed in the context to the compiled template to work correctly.
  * @param templateFn {function(object): Node}
  * @return {function(*): Node}
  */
@@ -703,9 +703,18 @@ export const getAttrs = (children) => Array.isArray(children) && isAttrs(childre
 export const styled = (style, tag, children) => {
   const firstChild = children[0]
   if (isAttrs(firstChild)) {
-    children[0].style = Object.assign(style, firstChild.style)
+    if (typeof firstChild.style === 'string') {
+      firstChild.style = [stringifyStyle(style), stringifyStyle(firstChild.style)].join(';')
+    } else {
+      firstChild.style = Object.assign(style, firstChild.style)
+    }
   } else {
     children.unshift({ style })
   }
   return h(tag, ...children)
 }
+
+const stringifyStyle = style =>
+  typeof style === 'string'
+    ? style
+    : Object.keys(style).map(prop => `${prop}:${style[prop]}`).join(';')
