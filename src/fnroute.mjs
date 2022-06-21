@@ -104,7 +104,12 @@ export const modRouter = ({ routePath, attrs, onerror, frame, sendRawPath, forma
     }
     const filePath = path ? routePath + ensureOnlyLeadingSlash(path) : routePath
 
-    const p = moduleCache[filePath] ? Promise.resolve(moduleCache[filePath]) : import(filePath).then(m => { moduleCache[filePath] = m })
+    const p = moduleCache[filePath]
+      ? Promise.resolve(moduleCache[filePath])
+      : import(filePath).then(m => {
+        moduleCache[filePath] = m
+        return m
+      })
 
     p.then(module => {
       const route = module.default
