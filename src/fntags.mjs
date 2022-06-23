@@ -170,6 +170,16 @@ export const fnstate = (initialValue, mapKey) => {
   ctx.state.bindAs = (element, update) => doBindAs(ctx, element ?? ctx.state, update)
 
   /**
+   * Bind a property of an object stored in this state as a simple value.
+   *
+   * Shortcut for `mystate.bindAs((current)=> current[prop])`
+   *
+   * @param {string} prop The object property to bind as
+   * @returns {(HTMLDivElement|Text)[]|HTMLDivElement|Text}
+   */
+  ctx.state.bindProp = (prop) => doBindAs(ctx, (st) => st[prop])
+
+  /**
    * Bind attribute values to state changes
    * @param [attribute] A function that returns an attribute value. If not passed, defaults to the state's value
    * @returns {function(): *} A function that calls the passed function, with some extra metadata
