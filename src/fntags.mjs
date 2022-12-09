@@ -29,8 +29,20 @@ export function h (tag, ...children) {
   if (isAttrs(children[firstChildIdx])) {
     const attrs = children[firstChildIdx]
     firstChildIdx += 1
+    let hasValue = false
     for (const a in attrs) {
+      // set value last to ensure value constraints are set before trying to set the value to avoid modification
+      // For example, when using a range and specifying a min and max
+      //  if the value is set first and is outside the default 1 to 100 range
+      //  the value will be adjusted to be within the range, even though the value attribute will be set correctly
+      if (a === 'value') {
+        hasValue = true
+        continue
+      }
       setAttribute(a, attrs[a], element)
+    }
+    if (hasValue) {
+      setAttribute('value', attrs.value, element)
     }
   }
   for (let i = firstChildIdx; i < children.length; i++) {
