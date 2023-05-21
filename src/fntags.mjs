@@ -18,6 +18,31 @@
  *
  */
 export function h (tag, ...children) {
+  // at startup
+  // inject a dev mode middleware that establishes a websocket connection to the browser
+  // when a file changes, tell the browser the affected files
+
+  //
+  // browser start up
+  // create window.__fntags_element_by_file = {} and window.__fntags_file_by_element = new WeakMap
+  // whenever an element is created, get the file names for each of the callers of this function and store
+  // also, generate a unique id for each element and store it at data-fn-hotness-id=""
+  // store the data
+  // window.__fntags_element_by_file[file].push(element)
+  // window.__fntags_file_by_element[element].push(file)
+  // add a handler for every element to remove all the stuff from the maps when
+  // *this is probably gonna be hella slow
+  //
+  // when a file changes
+  // dynamic import the file if it's a js file, otherwise complain that it should be a js file
+  // lookup the affected elements
+  // lookup all of the affected files for each element
+  // find the nearest in common ancestor for each modified node
+  // walk down both trees simultaneously find all divergences
+  // then use an attribute stored on the element to
+  //   //can figure out a more efficient way to do this later
+  //   //also, add more cowbell
+
   let firstChildIdx = 0
   let element
   if (tag.startsWith('ns=')) {
