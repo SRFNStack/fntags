@@ -20,8 +20,11 @@
 export function h (tag, ...children) {
   let firstChildIdx = 0
   let element
-  if (tag.startsWith('ns=')) {
-    element = document.createElementNS(...(tag.slice(3).split('|')))
+  const nsIndex = hasNs(tag)
+  if (nsIndex > -1) {
+    const { ns, val } = splitNs(tag, nsIndex)
+    console.log(ns, val)
+    element = document.createElementNS(ns, val)
   } else {
     element = document.createElement(tag)
   }
@@ -56,6 +59,14 @@ export function h (tag, ...children) {
     }
   }
   return element
+}
+
+function splitNs (val, i) {
+  return { ns: val.slice(0, i), val: val.slice(i + 1) }
+}
+
+function hasNs (val) {
+  return val.lastIndexOf(':')
 }
 
 /**
@@ -500,7 +511,7 @@ function keyMapper (mapKey, value) {
 }
 
 function arrangeElements (ctx, bindContext, oldState) {
-  if (ctx.currentValue.length === 0) {
+  if (!ctx?.currentValue?.length) {
     bindContext.parent.textContent = ''
     bindContext.boundElementByKey = {}
     ctx.selectObservers = {}
@@ -673,13 +684,9 @@ const setAttribute = function (attrName, attr, element) {
     for (const style in attr) {
       setStyle(style, attr[style], element)
     }
-  } else if (attrName === 'class') {
+  } else if (element.__fnselector && element.className && attrName === 'class') {
     // special handling for class to ensure the selector classes from fntemplate don't get overwritten
-    if (element.__fnselector && element.className) {
-      element.className += ` ${attr}`
-    } else {
-      element.className = attr
-    }
+    element.className += ` ${attr}`
   } else if (attrName === 'value') {
     element.setAttribute('value', attr)
     // html5 nodes like range don't update unless the value property on the object is set
@@ -687,11 +694,14 @@ const setAttribute = function (attrName, attr, element) {
   } else if (booleanAttributes[attrName]) {
     element[attrName] = !!attr
   } else {
-    if (attrName.startsWith('ns=')) {
-      element.setAttributeNS(...(attrName.slice(3).split('|')), attr)
-    } else {
-      element.setAttribute(attrName, attr)
+    let ns = null
+    const nsIndex = hasNs(attrName)
+    if (nsIndex > -1) {
+      const split = splitNs(attrName, nsIndex)
+      ns = split.ns
+      attrName = split.val
     }
+    element.setAttributeNS(ns, attrName, attr)
   }
 }
 

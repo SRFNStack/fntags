@@ -20,8 +20,11 @@
 export function h (tag, ...children) {
   let firstChildIdx = 0
   let element
-  if (tag.startsWith('ns=')) {
-    element = document.createElementNS(...(tag.slice(3).split('|')))
+  const nsIndex = hasNs(tag)
+  if (nsIndex > -1) {
+    const { ns, val } = splitNs(tag, nsIndex)
+    console.log(ns, val)
+    element = document.createElementNS(ns, val)
   } else {
     element = document.createElement(tag)
   }
@@ -29,8 +32,20 @@ export function h (tag, ...children) {
   if (isAttrs(children[firstChildIdx])) {
     const attrs = children[firstChildIdx]
     firstChildIdx += 1
+    let hasValue = false
     for (const a in attrs) {
+      // set value last to ensure value constraints are set before trying to set the value to avoid modification
+      // For example, when using a range and specifying a min and max
+      //  if the value is set first and is outside the default 1 to 100 range
+      //  the value will be adjusted to be within the range, even though the value attribute will be set correctly
+      if (a === 'value') {
+        hasValue = true
+        continue
+      }
       setAttribute(a, attrs[a], element)
+    }
+    if (hasValue) {
+      setAttribute('value', attrs.value, element)
     }
   }
   for (let i = firstChildIdx; i < children.length; i++) {
@@ -46,17 +61,25 @@ export function h (tag, ...children) {
   return element
 }
 
+function splitNs (val, i) {
+  return { ns: val.slice(0, i), val: val.slice(i + 1) }
+}
+
+function hasNs (val) {
+  return val.lastIndexOf(':')
+}
+
 /**
  * Create a compiled template function. The returned function takes a single object that contains the properties
  * defined in the template.
  *
  * This allows fast rendering by pre-creating a dom element with the entire template structure then cloning and populating
  * the clone with data from the provided context. This avoids the work of having to re-execute the tag functions
- * one by one and can speed up situations where the a similar element is created many times.
+ * one by one and can speed up situations where a similar element is created many times.
  *
  * You cannot bind state to the initial template. If you attempt to, the state will be read, but the elements will
  * not be updated when the state changes because they will not be bound to the cloned element.
- * Thus, all state bindings must be passed in the context to the compiled template to work correctly.
+ * All state bindings must be passed in the context to the compiled template to work correctly.
  * @param templateFn {function(object): Node}
  * @return {function(*): Node}
  */
@@ -139,9 +162,10 @@ export const fnstate = (initialValue, mapKey) => {
       if (arguments.length === 0 || (arguments.length === 1 && arguments[0] === ctx.state)) {
         return ctx.currentValue
       } else {
+        const oldState = ctx.currentValue
         ctx.currentValue = newState
         for (const observer of ctx.observers) {
-          observer.fn(newState)
+          observer.fn(newState, oldState)
         }
       }
       return newState
@@ -167,6 +191,16 @@ export const fnstate = (initialValue, mapKey) => {
    * @returns {(HTMLDivElement|Text)[]|HTMLDivElement|Text}
    */
   ctx.state.bindAs = (element, update) => doBindAs(ctx, element ?? ctx.state, update)
+
+  /**
+   * Bind a property of an object stored in this state as a simple value.
+   *
+   * Shortcut for `mystate.bindAs((current)=> current[prop])`
+   *
+   * @param {string} prop The object property to bind as
+   * @returns {(HTMLDivElement|Text)[]|HTMLDivElement|Text}
+   */
+  ctx.state.bindProp = (prop) => doBindAs(ctx, (st) => st[prop])
 
   /**
    * Bind attribute values to state changes
@@ -312,6 +346,7 @@ function createBoundAttr (attr) {
   if (typeof attr !== 'function') {
     throw new Error('You must pass a function to bindAttr')
   }
+  // wrap the function to avoid modifying it
   const boundAttr = () => attr()
   boundAttr.isBoundAttribute = true
   return boundAttr
@@ -370,7 +405,7 @@ function doBindChildren (ctx, parent, element, update) {
   }
   ctx.currentValue = ctx.currentValue.map(v => v.isFnState ? v : fnstate(v))
   ctx.bindContexts.push({ element, update, parent })
-  ctx.state.subscribe(() => {
+  ctx.state.subscribe((newState, oldState) => {
     if (!Array.isArray(ctx.currentValue)) {
       console.warn('A state used with bindChildren was updated to a non array value. This will be converted to an array of 1 and the state will be updated.')
       new Promise((resolve) => {
@@ -384,7 +419,7 @@ function doBindChildren (ctx, parent, element, update) {
         throw e
       })
     } else {
-      reconcile(ctx)
+      reconcile(ctx, oldState)
     }
   })
   reconcile(ctx)
@@ -456,12 +491,12 @@ const doBindAs = (ctx, element, update) =>
 /**
  * Reconcile the state of the current array value with the state of the bound elements
  */
-function reconcile (ctx) {
+function reconcile (ctx, oldState) {
   for (const bindContext of ctx.bindContexts) {
     if (bindContext.boundElementByKey === undefined) {
       bindContext.boundElementByKey = {}
     }
-    arrangeElements(ctx, bindContext)
+    arrangeElements(ctx, bindContext, oldState)
   }
 }
 
@@ -475,8 +510,8 @@ function keyMapper (mapKey, value) {
   }
 }
 
-function arrangeElements (ctx, bindContext) {
-  if (ctx.currentValue.length === 0) {
+function arrangeElements (ctx, bindContext, oldState) {
+  if (!ctx?.currentValue?.length) {
     bindContext.parent.textContent = ''
     bindContext.boundElementByKey = {}
     ctx.selectObservers = {}
@@ -492,7 +527,8 @@ function arrangeElements (ctx, bindContext) {
     }
     const key = keyMapper(ctx.mapKey, valueState())
     if (keys[key]) {
-      throw new Error('Duplicate keys in a bound array are not allowed.')
+      if (oldState) ctx.state(oldState)
+      throw new Error('Duplicate keys in a bound array are not allowed, state reset to previous value.')
     }
     keys[key] = i
     keysArr[i] = key
@@ -648,13 +684,9 @@ const setAttribute = function (attrName, attr, element) {
     for (const style in attr) {
       setStyle(style, attr[style], element)
     }
-  } else if (attrName === 'class') {
+  } else if (element.__fnselector && element.className && attrName === 'class') {
     // special handling for class to ensure the selector classes from fntemplate don't get overwritten
-    if (element.__fnselector && element.className) {
-      element.className += ` ${attr}`
-    } else {
-      element.className = attr
-    }
+    element.className += ` ${attr}`
   } else if (attrName === 'value') {
     element.setAttribute('value', attr)
     // html5 nodes like range don't update unless the value property on the object is set
@@ -662,11 +694,14 @@ const setAttribute = function (attrName, attr, element) {
   } else if (booleanAttributes[attrName]) {
     element[attrName] = !!attr
   } else {
-    if (attrName.startsWith('ns=')) {
-      element.setAttributeNS(...(attrName.slice(3).split('|')), attr)
-    } else {
-      element.setAttribute(attrName, attr)
+    let ns = null
+    const nsIndex = hasNs(attrName)
+    if (nsIndex > -1) {
+      const split = splitNs(attrName, nsIndex)
+      ns = split.ns
+      attrName = split.val
     }
+    element.setAttributeNS(ns, attrName, attr)
   }
 }
 

@@ -6,17 +6,17 @@ import { h, styled } from './fntags.mjs'
 export const a = (...children) => h('a', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const abbr = (...children) => h('abbr', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const acronym = (...children) => h('acronym', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const address = (...children) => h('address', ...children)
 
@@ -26,12 +26,12 @@ export const address = (...children) => h('address', ...children)
 export const area = (...children) => h('area', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const article = (...children) => h('article', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const aside = (...children) => h('aside', ...children)
 
@@ -41,7 +41,7 @@ export const aside = (...children) => h('aside', ...children)
 export const audio = (...children) => h('audio', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const b = (...children) => h('b', ...children)
 
@@ -51,17 +51,17 @@ export const b = (...children) => h('b', ...children)
 export const base = (...children) => h('base', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const bdi = (...children) => h('bdi', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const bdo = (...children) => h('bdo', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const big = (...children) => h('big', ...children)
 
@@ -69,6 +69,11 @@ export const big = (...children) => h('big', ...children)
  * @type {function(...[*]=): HTMLQuoteElement}
  */
 export const blockquote = (...children) => h('blockquote', ...children)
+
+/**
+ * @type {function(...[*]=): HTMLBodyElement}
+ */
+export const body = (...children) => h('body', ...children)
 
 /**
  * @type {function(...[*]=): HTMLBRElement}
@@ -91,12 +96,12 @@ export const canvas = (...children) => h('canvas', ...children)
 export const caption = (...children) => h('caption', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const cite = (...children) => h('cite', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const code = (...children) => h('code', ...children)
 
@@ -121,7 +126,7 @@ export const data = (...children) => h('data', ...children)
 export const datalist = (...children) => h('datalist', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const dd = (...children) => h('dd', ...children)
 
@@ -136,7 +141,7 @@ export const del = (...children) => h('del', ...children)
 export const details = (...children) => h('details', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const dfn = (...children) => h('dfn', ...children)
 
@@ -144,6 +149,11 @@ export const dfn = (...children) => h('dfn', ...children)
  * @type {function(...[*]=): HTMLDialogElement}
  */
 export const dialog = (...children) => h('dialog', ...children)
+
+/**
+ * @type {function(...[*]=): HTMLDirectoryElement}
+ */
+export const dir = (...children) => h('dir', ...children)
 
 /**
  * @type {function(...[*]=): HTMLDivElement}
@@ -156,12 +166,12 @@ export const div = (...children) => h('div', ...children)
 export const dl = (...children) => h('dl', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const dt = (...children) => h('dt', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const em = (...children) => h('em', ...children)
 
@@ -176,12 +186,12 @@ export const embed = (...children) => h('embed', ...children)
 export const fieldset = (...children) => h('fieldset', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const figcaption = (...children) => h('figcaption', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const figure = (...children) => h('figure', ...children)
 
@@ -236,7 +246,12 @@ export const flexCenteredRow = (...children) => styled(
 )
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLFontElement}
+ */
+export const font = (...children) => h(font, ...children)
+
+/**
+ * @type {function(...[*]=): HTMLElement}
  */
 export const footer = (...children) => h('footer', ...children)
 
@@ -286,9 +301,19 @@ export const h5 = (...children) => h('h5', ...children)
 export const h6 = (...children) => h('h6', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLHeadElement}
+ */
+export const head = (...children) => h('head', ...children)
+
+/**
+ * @type {function(...[*]=): HTMLElement}
  */
 export const header = (...children) => h('header', ...children)
+
+/**
+ * @type {function(...[*]=): HTMLElement}
+ */
+export const hgroup = (...children) => h('hgroup', ...children)
 
 /**
  * @type {function(...[*]=): HTMLHRElement}
@@ -296,7 +321,12 @@ export const header = (...children) => h('header', ...children)
 export const hr = (...children) => h('hr', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLHtmlElement}
+ */
+export const html = (...children) => h('html', ...children)
+
+/**
+ * @type {function(...[*]=): HTMLElement}
  */
 export const i = (...children) => h('i', ...children)
 
@@ -321,7 +351,7 @@ export const input = (...children) => h('input', ...children)
 export const ins = (...children) => h('ins', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const kbd = (...children) => h('kbd', ...children)
 
@@ -346,7 +376,7 @@ export const li = (...children) => h('li', ...children)
 export const link = (...children) => h('link', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const main = (...children) => h('main', ...children)
 
@@ -356,13 +386,13 @@ export const main = (...children) => h('main', ...children)
 export const map = (...children) => h('map', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const mark = (...children) => h('mark', ...children)
 
 /**
  * The best html element for every occasion.
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLMarqueeElement}
  */
 export const marquee = (...children) => h('marquee', ...children)
 
@@ -382,17 +412,17 @@ export const meta = (...children) => h('meta', ...children)
 export const meter = (...children) => h('meter', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const nav = (...children) => h('nav', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const noframes = (...children) => h('noframes', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const noscript = (...children) => h('noscript', ...children)
 
@@ -452,22 +482,27 @@ export const progress = (...children) => h('progress', ...children)
 export const q = (...children) => h('q', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const rp = (...children) => h('rp', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const rt = (...children) => h('rt', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const ruby = (...children) => h('ruby', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
+ */
+export const s = (...children) => h('s', ...children)
+
+/**
+ * @type {function(...[*]=): HTMLElement}
  */
 export const samp = (...children) => h('samp', ...children)
 
@@ -477,7 +512,7 @@ export const samp = (...children) => h('samp', ...children)
 export const script = (...children) => h('script', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const section = (...children) => h('section', ...children)
 
@@ -487,7 +522,12 @@ export const section = (...children) => h('section', ...children)
 export const select = (...children) => h('select', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLSlotElement}
+ */
+export const slot = (...children) => h('slot', ...children)
+
+/**
+ * @type {function(...[*]=): HTMLElement}
  */
 export const small = (...children) => h('small', ...children)
 
@@ -502,7 +542,7 @@ export const source = (...children) => h('source', ...children)
 export const span = (...children) => h('span', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const strong = (...children) => h('strong', ...children)
 
@@ -512,24 +552,19 @@ export const strong = (...children) => h('strong', ...children)
 export const style = (...children) => h('style', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const sub = (...children) => h('sub', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const summary = (...children) => h('summary', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const sup = (...children) => h('sup', ...children)
-
-/**
- * @type {function(...[*]=): ( ...children) => h}
- */
-export const svg = (...children) => h('ns=http://www.w3.org/2000/svg|svg', ...children)
 
 /**
  * @type {function(...[*]=): HTMLTableElement}
@@ -592,9 +627,14 @@ export const tr = (...children) => h('tr', ...children)
 export const track = (...children) => h('track', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const tt = (...children) => h('tt', ...children)
+
+/**
+ * @type {function(...[*]=): HTMLElement}
+ */
+export const u = (...children) => h('u', ...children)
 
 /**
  * @type {function(...[*]=): HTMLUListElement}
@@ -602,14 +642,11 @@ export const tt = (...children) => h('tt', ...children)
 export const ul = (...children) => h('ul', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * name conflicts with js syntax
+ *
+ * @type {function(...[*]=): HTMLElement}
  */
-export const use = (...children) => h('ns=http://www.w3.org/2000/svg|use', ...children)
-
-/**
- * @type {function(...[*]=): ( ...children) => h}
- */
-export const _var = (...children) => h('var', ...children)
+export const var_ = (...children) => h('var', ...children)
 
 /**
  * @type {function(...[*]=): HTMLVideoElement}
@@ -617,6 +654,6 @@ export const _var = (...children) => h('var', ...children)
 export const video = (...children) => h('video', ...children)
 
 /**
- * @type {function(...[*]=): ( ...children) => h}
+ * @type {function(...[*]=): HTMLElement}
  */
 export const wbr = (...children) => h('wbr', ...children)

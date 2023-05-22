@@ -8,7 +8,7 @@ describe('fntags', () => {
       expect(e.tagName).to.eq('DIV')
     })
     it('should set the namespace if specified in the tag', () => {
-      const e = fntags.h('ns=http://www.w3.org/2000/svg|svg')
+      const e = fntags.h('http://www.w3.org/2000/svg:svg')
       expect(e.namespaceURI).eq('http://www.w3.org/2000/svg')
       expect(e.tagName).eq('svg')
     })
@@ -88,7 +88,7 @@ describe('fntags', () => {
     })
 
     it('should set namespaced attributes as ns attributes', () => {
-      const el = fntags.h('input', { 'ns=http://www.w3.org/1999/xlink|xlink:href': '/foo/bar' })
+      const el = fntags.h('input', { 'http://www.w3.org/1999/xlink:href': '/foo/bar' })
       expect(el.getAttributeNS('http://www.w3.org/1999/xlink', 'href')).eq('/foo/bar')
     })
 
@@ -149,7 +149,7 @@ describe('fntags', () => {
         'data-blue': true,
         null: undefined,
         name: { nameio: 'jello' },
-        'ns=http://www.w3.org/1999/xlink|xlink:href': null
+        'http://www.w3.org/1999/xlink:href': null
       }, 'weee')
       expect(el.style.color).eq('')
       expect(el.getAttribute('data-blue')).eq('true')
