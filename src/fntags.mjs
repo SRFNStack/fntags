@@ -23,7 +23,6 @@ export function h (tag, ...children) {
   const nsIndex = hasNs(tag)
   if (nsIndex > -1) {
     const { ns, val } = splitNs(tag, nsIndex)
-    console.log(ns, val)
     element = document.createElementNS(ns, val)
   } else {
     element = document.createElement(tag)
