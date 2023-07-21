@@ -40,7 +40,7 @@ Check out the [documentation](https://srfnstack.github.io/fntags) to learn more!
 
 Components are plain functions
 ```javascript
-import { div } from 'https://cdn.jsdelivr.net/npm/@srfnstack/fntags@0.3.3/src/fnelements.min.mjs'
+import { div } from 'https://cdn.jsdelivr.net/npm/@srfnstack/fntags@0.4.1/src/fnelements.min.mjs'
 
 const hello = name => div('Hello ', name)
 
@@ -49,8 +49,8 @@ document.body.append( hello('world!') )
 
 Two-way binding is a breeze with the bind functions provided by fnstate objects.
 ```javascript
-import { fnstate } from 'https://cdn.jsdelivr.net/npm/@srfnstack/fntags@0.3.3/src/fntags.min.mjs'
-import { div, input, br } from 'https://cdn.jsdelivr.net/npm/@srfnstack/fntags@0.3.3/src/fnelements.min.mjs'
+import { fnstate } from 'https://cdn.jsdelivr.net/npm/@srfnstack/fntags@0.4.1/src/fntags.min.mjs'
+import { div, input, br } from 'https://cdn.jsdelivr.net/npm/@srfnstack/fntags@0.4.1/src/fnelements.min.mjs'
 
 export const userName = fnstate('world')
 export const appColor = fnstate('MediumTurquoise')
@@ -81,7 +81,7 @@ Now that these two lines are there you're set to write sweet sweet es6+ and no m
 
 ```html
 <html><body><script type="module">
-import { div } from 'https://cdn.jsdelivr.net/npm/@srfnstack/fntags@0.3.3/src/fnelements.min.mjs'
+import { div } from 'https://cdn.jsdelivr.net/npm/@srfnstack/fntags@0.4.1/src/fnelements.min.mjs'
 document.body.append(div('hello world!'))
 </script></body></html>
 ```
