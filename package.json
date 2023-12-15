@@ -1,6 +1,6 @@
 {
   "name": "@srfnstack/fntags",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "author": "Robert Kempton <r@snow87.com>",
   "private": false,
   "homepage": "https://github.com/srfnstack/fntags",
@@ -52,5 +52,5 @@
     "lint",
     "test"
   ],
-  "typings": "index.d.ts"
+  "types": "index.d.ts"
 }

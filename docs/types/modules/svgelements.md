@@ -68,7 +68,7 @@
 
 ### a\_
 
-▸ **a_**(`arg0`): `SVGAElement`
+▸ **a_**(`...children`): `SVGAElement`
 
 name conflicts with html a
 
@@ -76,7 +76,7 @@ name conflicts with html a
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -84,19 +84,19 @@ name conflicts with html a
 
 #### Defined in
 
-[svgelements.mjs:6](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L6)
+[svgelements.mjs:6](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L6)
 
 ___
 
 ### circle
 
-▸ **circle**(`arg0`): `SVGCircleElement`
+▸ **circle**(`...children`): `SVGCircleElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -104,19 +104,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:11](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L11)
+[svgelements.mjs:11](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L11)
 
 ___
 
 ### clipPath
 
-▸ **clipPath**(`arg0`): `SVGClipPathElement`
+▸ **clipPath**(`...children`): `SVGClipPathElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -124,19 +124,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:16](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L16)
+[svgelements.mjs:16](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L16)
 
 ___
 
 ### defs
 
-▸ **defs**(`arg0`): `SVGDefsElement`
+▸ **defs**(`...children`): `SVGDefsElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -144,19 +144,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:21](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L21)
+[svgelements.mjs:21](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L21)
 
 ___
 
 ### desc
 
-▸ **desc**(`arg0`): `SVGDescElement`
+▸ **desc**(`...children`): `SVGDescElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -164,19 +164,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:26](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L26)
+[svgelements.mjs:26](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L26)
 
 ___
 
 ### ellipse
 
-▸ **ellipse**(`arg0`): `SVGEllipseElement`
+▸ **ellipse**(`...children`): `SVGEllipseElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -184,19 +184,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:31](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L31)
+[svgelements.mjs:31](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L31)
 
 ___
 
 ### feBlend
 
-▸ **feBlend**(`arg0`): `SVGFEBlendElement`
+▸ **feBlend**(`...children`): `SVGFEBlendElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -204,19 +204,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:36](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L36)
+[svgelements.mjs:36](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L36)
 
 ___
 
 ### feColorMatrix
 
-▸ **feColorMatrix**(`arg0`): `SVGFEColorMatrixElement`
+▸ **feColorMatrix**(`...children`): `SVGFEColorMatrixElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -224,19 +224,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:41](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L41)
+[svgelements.mjs:41](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L41)
 
 ___
 
 ### feComponentTransfer
 
-▸ **feComponentTransfer**(`arg0`): `SVGFEComponentTransferElement`
+▸ **feComponentTransfer**(`...children`): `SVGFEComponentTransferElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -244,19 +244,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:46](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L46)
+[svgelements.mjs:46](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L46)
 
 ___
 
 ### feComposite
 
-▸ **feComposite**(`arg0`): `SVGFECompositeElement`
+▸ **feComposite**(`...children`): `SVGFECompositeElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -264,19 +264,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:51](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L51)
+[svgelements.mjs:51](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L51)
 
 ___
 
 ### feConvolveMatrix
 
-▸ **feConvolveMatrix**(`arg0`): `SVGFEConvolveMatrixElement`
+▸ **feConvolveMatrix**(`...children`): `SVGFEConvolveMatrixElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -284,19 +284,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:56](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L56)
+[svgelements.mjs:56](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L56)
 
 ___
 
 ### feDiffuseLighting
 
-▸ **feDiffuseLighting**(`arg0`): `SVGFEDiffuseLightingElement`
+▸ **feDiffuseLighting**(`...children`): `SVGFEDiffuseLightingElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -304,19 +304,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:61](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L61)
+[svgelements.mjs:61](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L61)
 
 ___
 
 ### feDisplacementMap
 
-▸ **feDisplacementMap**(`arg0`): `SVGFEDisplacementMapElement`
+▸ **feDisplacementMap**(`...children`): `SVGFEDisplacementMapElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -324,19 +324,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:66](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L66)
+[svgelements.mjs:66](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L66)
 
 ___
 
 ### feDistantLight
 
-▸ **feDistantLight**(`arg0`): `SVGFEDistantLightElement`
+▸ **feDistantLight**(`...children`): `SVGFEDistantLightElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -344,19 +344,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:71](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L71)
+[svgelements.mjs:71](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L71)
 
 ___
 
 ### feFlood
 
-▸ **feFlood**(`arg0`): `SVGFEFloodElement`
+▸ **feFlood**(`...children`): `SVGFEFloodElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -364,19 +364,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:76](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L76)
+[svgelements.mjs:76](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L76)
 
 ___
 
 ### feFuncA
 
-▸ **feFuncA**(`arg0`): `SVGFEFuncAElement`
+▸ **feFuncA**(`...children`): `SVGFEFuncAElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -384,19 +384,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:81](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L81)
+[svgelements.mjs:81](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L81)
 
 ___
 
 ### feFuncB
 
-▸ **feFuncB**(`arg0`): `SVGFEFuncBElement`
+▸ **feFuncB**(`...children`): `SVGFEFuncBElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -404,19 +404,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:86](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L86)
+[svgelements.mjs:86](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L86)
 
 ___
 
 ### feFuncG
 
-▸ **feFuncG**(`arg0`): `SVGFEFuncGElement`
+▸ **feFuncG**(`...children`): `SVGFEFuncGElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -424,19 +424,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:91](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L91)
+[svgelements.mjs:91](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L91)
 
 ___
 
 ### feFuncR
 
-▸ **feFuncR**(`arg0`): `SVGFEFuncRElement`
+▸ **feFuncR**(`...children`): `SVGFEFuncRElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -444,19 +444,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:96](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L96)
+[svgelements.mjs:96](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L96)
 
 ___
 
 ### feGaussianBlur
 
-▸ **feGaussianBlur**(`arg0`): `SVGFEGaussianBlurElement`
+▸ **feGaussianBlur**(`...children`): `SVGFEGaussianBlurElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -464,19 +464,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:101](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L101)
+[svgelements.mjs:101](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L101)
 
 ___
 
 ### feImage
 
-▸ **feImage**(`arg0`): `SVGFEImageElement`
+▸ **feImage**(`...children`): `SVGFEImageElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -484,19 +484,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:106](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L106)
+[svgelements.mjs:106](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L106)
 
 ___
 
 ### feMerge
 
-▸ **feMerge**(`arg0`): `SVGFEMergeElement`
+▸ **feMerge**(`...children`): `SVGFEMergeElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -504,19 +504,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:111](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L111)
+[svgelements.mjs:111](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L111)
 
 ___
 
 ### feMergeNode
 
-▸ **feMergeNode**(`arg0`): `SVGFEMergeNodeElement`
+▸ **feMergeNode**(`...children`): `SVGFEMergeNodeElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -524,19 +524,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:116](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L116)
+[svgelements.mjs:116](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L116)
 
 ___
 
 ### feMorphology
 
-▸ **feMorphology**(`arg0`): `SVGFEMorphologyElement`
+▸ **feMorphology**(`...children`): `SVGFEMorphologyElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -544,19 +544,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:121](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L121)
+[svgelements.mjs:121](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L121)
 
 ___
 
 ### feOffset
 
-▸ **feOffset**(`arg0`): `SVGFEOffsetElement`
+▸ **feOffset**(`...children`): `SVGFEOffsetElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -564,19 +564,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:126](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L126)
+[svgelements.mjs:126](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L126)
 
 ___
 
 ### fePointLight
 
-▸ **fePointLight**(`arg0`): `SVGFEPointLightElement`
+▸ **fePointLight**(`...children`): `SVGFEPointLightElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -584,19 +584,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:131](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L131)
+[svgelements.mjs:131](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L131)
 
 ___
 
 ### feSpecularLighting
 
-▸ **feSpecularLighting**(`arg0`): `SVGFESpecularLightingElement`
+▸ **feSpecularLighting**(`...children`): `SVGFESpecularLightingElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -604,19 +604,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:136](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L136)
+[svgelements.mjs:136](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L136)
 
 ___
 
 ### feSpotLight
 
-▸ **feSpotLight**(`arg0`): `SVGFESpotLightElement`
+▸ **feSpotLight**(`...children`): `SVGFESpotLightElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -624,19 +624,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:141](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L141)
+[svgelements.mjs:141](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L141)
 
 ___
 
 ### feTile
 
-▸ **feTile**(`arg0`): `SVGFETileElement`
+▸ **feTile**(`...children`): `SVGFETileElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -644,19 +644,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:146](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L146)
+[svgelements.mjs:146](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L146)
 
 ___
 
 ### feTurbulence
 
-▸ **feTurbulence**(`arg0`): `SVGFETurbulenceElement`
+▸ **feTurbulence**(`...children`): `SVGFETurbulenceElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -664,19 +664,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:151](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L151)
+[svgelements.mjs:151](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L151)
 
 ___
 
 ### filter
 
-▸ **filter**(`arg0`): `SVGFilterElement`
+▸ **filter**(`...children`): `SVGFilterElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -684,19 +684,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:156](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L156)
+[svgelements.mjs:156](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L156)
 
 ___
 
 ### foreignObject
 
-▸ **foreignObject**(`arg0`): `SVGForeignObjectElement`
+▸ **foreignObject**(`...children`): `SVGForeignObjectElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -704,19 +704,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:161](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L161)
+[svgelements.mjs:161](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L161)
 
 ___
 
 ### g
 
-▸ **g**(`arg0`): `SVGGElement`
+▸ **g**(`...children`): `SVGGElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -724,19 +724,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:166](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L166)
+[svgelements.mjs:166](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L166)
 
 ___
 
 ### image
 
-▸ **image**(`arg0`): `SVGImageElement`
+▸ **image**(`...children`): `SVGImageElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -744,19 +744,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:171](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L171)
+[svgelements.mjs:171](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L171)
 
 ___
 
 ### line
 
-▸ **line**(`arg0`): `SVGLineElement`
+▸ **line**(`...children`): `SVGLineElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -764,19 +764,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:176](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L176)
+[svgelements.mjs:176](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L176)
 
 ___
 
 ### linearGradient
 
-▸ **linearGradient**(`arg0`): `SVGLinearGradientElement`
+▸ **linearGradient**(`...children`): `SVGLinearGradientElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -784,19 +784,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:181](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L181)
+[svgelements.mjs:181](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L181)
 
 ___
 
 ### marker
 
-▸ **marker**(`arg0`): `SVGMarkerElement`
+▸ **marker**(`...children`): `SVGMarkerElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -804,19 +804,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:186](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L186)
+[svgelements.mjs:186](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L186)
 
 ___
 
 ### mask
 
-▸ **mask**(`arg0`): `SVGMaskElement`
+▸ **mask**(`...children`): `SVGMaskElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -824,19 +824,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:191](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L191)
+[svgelements.mjs:191](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L191)
 
 ___
 
 ### metadata
 
-▸ **metadata**(`arg0`): `SVGMetadataElement`
+▸ **metadata**(`...children`): `SVGMetadataElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -844,19 +844,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:196](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L196)
+[svgelements.mjs:196](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L196)
 
 ___
 
 ### path
 
-▸ **path**(`arg0`): `SVGPathElement`
+▸ **path**(`...children`): `SVGPathElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -864,19 +864,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:201](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L201)
+[svgelements.mjs:201](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L201)
 
 ___
 
 ### pattern
 
-▸ **pattern**(`arg0`): `SVGPatternElement`
+▸ **pattern**(`...children`): `SVGPatternElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -884,19 +884,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:206](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L206)
+[svgelements.mjs:206](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L206)
 
 ___
 
 ### polygon
 
-▸ **polygon**(`arg0`): `SVGPolygonElement`
+▸ **polygon**(`...children`): `SVGPolygonElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -904,19 +904,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:211](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L211)
+[svgelements.mjs:211](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L211)
 
 ___
 
 ### polyline
 
-▸ **polyline**(`arg0`): `SVGPolylineElement`
+▸ **polyline**(`...children`): `SVGPolylineElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -924,19 +924,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:216](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L216)
+[svgelements.mjs:216](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L216)
 
 ___
 
 ### radialGradient
 
-▸ **radialGradient**(`arg0`): `SVGRadialGradientElement`
+▸ **radialGradient**(`...children`): `SVGRadialGradientElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -944,19 +944,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:221](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L221)
+[svgelements.mjs:221](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L221)
 
 ___
 
 ### rect
 
-▸ **rect**(`arg0`): `SVGRectElement`
+▸ **rect**(`...children`): `SVGRectElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -964,13 +964,13 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:226](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L226)
+[svgelements.mjs:226](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L226)
 
 ___
 
 ### script\_
 
-▸ **script_**(`arg0`): `SVGScriptElement`
+▸ **script_**(`...children`): `SVGScriptElement`
 
 name conflicts with html script
 
@@ -978,7 +978,7 @@ name conflicts with html script
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -986,19 +986,19 @@ name conflicts with html script
 
 #### Defined in
 
-[svgelements.mjs:233](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L233)
+[svgelements.mjs:233](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L233)
 
 ___
 
 ### stop
 
-▸ **stop**(`arg0`): `SVGStopElement`
+▸ **stop**(`...children`): `SVGStopElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1006,13 +1006,13 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:238](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L238)
+[svgelements.mjs:238](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L238)
 
 ___
 
 ### style\_
 
-▸ **style_**(`arg0`): `SVGStyleElement`
+▸ **style_**(`...children`): `SVGStyleElement`
 
 name conflicts with html style
 
@@ -1020,7 +1020,7 @@ name conflicts with html style
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1028,19 +1028,19 @@ name conflicts with html style
 
 #### Defined in
 
-[svgelements.mjs:245](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L245)
+[svgelements.mjs:245](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L245)
 
 ___
 
 ### svg
 
-▸ **svg**(`arg0`): `SVGElement`
+▸ **svg**(`...children`): `SVGElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1048,13 +1048,13 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:250](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L250)
+[svgelements.mjs:250](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L250)
 
 ___
 
 ### switch\_
 
-▸ **switch_**(`arg0`): `SVGSwitchElement`
+▸ **switch_**(`...children`): `SVGSwitchElement`
 
 name conflicts with js syntax
 
@@ -1062,7 +1062,7 @@ name conflicts with js syntax
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1070,19 +1070,19 @@ name conflicts with js syntax
 
 #### Defined in
 
-[svgelements.mjs:257](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L257)
+[svgelements.mjs:257](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L257)
 
 ___
 
 ### symbol
 
-▸ **symbol**(`arg0`): `SVGSymbolElement`
+▸ **symbol**(`...children`): `SVGSymbolElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1090,19 +1090,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:262](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L262)
+[svgelements.mjs:262](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L262)
 
 ___
 
 ### text
 
-▸ **text**(`arg0`): `SVGTextElement`
+▸ **text**(`...children`): `SVGTextElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1110,19 +1110,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:267](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L267)
+[svgelements.mjs:267](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L267)
 
 ___
 
 ### textPath
 
-▸ **textPath**(`arg0`): `SVGTextPathElement`
+▸ **textPath**(`...children`): `SVGTextPathElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1130,19 +1130,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:272](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L272)
+[svgelements.mjs:272](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L272)
 
 ___
 
 ### title
 
-▸ **title**(`arg0`): `SVGTitleElement`
+▸ **title**(`...children`): `SVGTitleElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1150,19 +1150,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:277](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L277)
+[svgelements.mjs:277](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L277)
 
 ___
 
 ### tspan
 
-▸ **tspan**(`arg0`): `SVGTSpanElement`
+▸ **tspan**(`...children`): `SVGTSpanElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1170,19 +1170,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:282](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L282)
+[svgelements.mjs:282](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L282)
 
 ___
 
 ### use
 
-▸ **use**(`arg0`): `SVGUseElement`
+▸ **use**(`...children`): `SVGUseElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1190,19 +1190,19 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:287](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L287)
+[svgelements.mjs:287](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L287)
 
 ___
 
 ### view
 
-▸ **view**(`arg0`): `SVGViewElement`
+▸ **view**(`...children`): `SVGViewElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1210,4 +1210,4 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:292](https://github.com/srfnstack/fntags/blob/1212751/src/svgelements.mjs#L292)
+[svgelements.mjs:292](https://github.com/srfnstack/fntags/blob/a0d92b4/src/svgelements.mjs#L292)

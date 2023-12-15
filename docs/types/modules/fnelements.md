@@ -136,13 +136,13 @@
 
 ### a
 
-▸ **a**(`arg0`): `HTMLAnchorElement`
+▸ **a**(`...children`): `HTMLAnchorElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -150,19 +150,19 @@
 
 #### Defined in
 
-[fnelements.mjs:4](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L4)
+[fnelements.mjs:4](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L4)
 
 ___
 
 ### abbr
 
-▸ **abbr**(`arg0`): `HTMLElement`
+▸ **abbr**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -170,19 +170,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:9](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L9)
+[fnelements.mjs:9](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L9)
 
 ___
 
 ### acronym
 
-▸ **acronym**(`arg0`): `HTMLElement`
+▸ **acronym**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -190,19 +190,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:14](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L14)
+[fnelements.mjs:14](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L14)
 
 ___
 
 ### address
 
-▸ **address**(`arg0`): `HTMLElement`
+▸ **address**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -210,19 +210,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:19](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L19)
+[fnelements.mjs:19](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L19)
 
 ___
 
 ### area
 
-▸ **area**(`arg0`): `HTMLAreaElement`
+▸ **area**(`...children`): `HTMLAreaElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -230,19 +230,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:24](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L24)
+[fnelements.mjs:24](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L24)
 
 ___
 
 ### article
 
-▸ **article**(`arg0`): `HTMLElement`
+▸ **article**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -250,19 +250,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:29](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L29)
+[fnelements.mjs:29](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L29)
 
 ___
 
 ### aside
 
-▸ **aside**(`arg0`): `HTMLElement`
+▸ **aside**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -270,19 +270,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:34](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L34)
+[fnelements.mjs:34](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L34)
 
 ___
 
 ### audio
 
-▸ **audio**(`arg0`): `HTMLAudioElement`
+▸ **audio**(`...children`): `HTMLAudioElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -290,19 +290,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:39](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L39)
+[fnelements.mjs:39](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L39)
 
 ___
 
 ### b
 
-▸ **b**(`arg0`): `HTMLElement`
+▸ **b**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -310,19 +310,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:44](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L44)
+[fnelements.mjs:44](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L44)
 
 ___
 
 ### base
 
-▸ **base**(`arg0`): `HTMLBaseElement`
+▸ **base**(`...children`): `HTMLBaseElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -330,19 +330,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:49](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L49)
+[fnelements.mjs:49](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L49)
 
 ___
 
 ### bdi
 
-▸ **bdi**(`arg0`): `HTMLElement`
+▸ **bdi**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -350,19 +350,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:54](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L54)
+[fnelements.mjs:54](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L54)
 
 ___
 
 ### bdo
 
-▸ **bdo**(`arg0`): `HTMLElement`
+▸ **bdo**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -370,19 +370,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:59](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L59)
+[fnelements.mjs:59](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L59)
 
 ___
 
 ### big
 
-▸ **big**(`arg0`): `HTMLElement`
+▸ **big**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -390,19 +390,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:64](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L64)
+[fnelements.mjs:64](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L64)
 
 ___
 
 ### blockquote
 
-▸ **blockquote**(`arg0`): `HTMLQuoteElement`
+▸ **blockquote**(`...children`): `HTMLQuoteElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -410,19 +410,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:69](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L69)
+[fnelements.mjs:69](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L69)
 
 ___
 
 ### body
 
-▸ **body**(`arg0`): `HTMLBodyElement`
+▸ **body**(`...children`): `HTMLBodyElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -430,19 +430,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:74](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L74)
+[fnelements.mjs:74](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L74)
 
 ___
 
 ### br
 
-▸ **br**(`arg0`): `HTMLBRElement`
+▸ **br**(`...children`): `HTMLBRElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -450,19 +450,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:79](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L79)
+[fnelements.mjs:79](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L79)
 
 ___
 
 ### button
 
-▸ **button**(`arg0`): `HTMLButtonElement`
+▸ **button**(`...children`): `HTMLButtonElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -470,19 +470,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:84](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L84)
+[fnelements.mjs:84](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L84)
 
 ___
 
 ### canvas
 
-▸ **canvas**(`arg0`): `HTMLCanvasElement`
+▸ **canvas**(`...children`): `HTMLCanvasElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -490,19 +490,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:89](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L89)
+[fnelements.mjs:89](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L89)
 
 ___
 
 ### caption
 
-▸ **caption**(`arg0`): `HTMLTableCaptionElement`
+▸ **caption**(`...children`): `HTMLTableCaptionElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -510,19 +510,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:94](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L94)
+[fnelements.mjs:94](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L94)
 
 ___
 
 ### cite
 
-▸ **cite**(`arg0`): `HTMLElement`
+▸ **cite**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -530,19 +530,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:99](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L99)
+[fnelements.mjs:99](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L99)
 
 ___
 
 ### code
 
-▸ **code**(`arg0`): `HTMLElement`
+▸ **code**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -550,19 +550,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:104](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L104)
+[fnelements.mjs:104](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L104)
 
 ___
 
 ### col
 
-▸ **col**(`arg0`): `HTMLTableColElement`
+▸ **col**(`...children`): `HTMLTableColElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -570,19 +570,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:109](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L109)
+[fnelements.mjs:109](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L109)
 
 ___
 
 ### colgroup
 
-▸ **colgroup**(`arg0`): `HTMLTableColElement`
+▸ **colgroup**(`...children`): `HTMLTableColElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -590,19 +590,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:114](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L114)
+[fnelements.mjs:114](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L114)
 
 ___
 
 ### data
 
-▸ **data**(`arg0`): `HTMLDataElement`
+▸ **data**(`...children`): `HTMLDataElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -610,19 +610,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:119](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L119)
+[fnelements.mjs:119](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L119)
 
 ___
 
 ### datalist
 
-▸ **datalist**(`arg0`): `HTMLDataListElement`
+▸ **datalist**(`...children`): `HTMLDataListElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -630,19 +630,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:124](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L124)
+[fnelements.mjs:124](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L124)
 
 ___
 
 ### dd
 
-▸ **dd**(`arg0`): `HTMLElement`
+▸ **dd**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -650,19 +650,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:129](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L129)
+[fnelements.mjs:129](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L129)
 
 ___
 
 ### del
 
-▸ **del**(`arg0`): `HTMLModElement`
+▸ **del**(`...children`): `HTMLModElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -670,19 +670,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:134](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L134)
+[fnelements.mjs:134](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L134)
 
 ___
 
 ### details
 
-▸ **details**(`arg0`): `HTMLDetailsElement`
+▸ **details**(`...children`): `HTMLDetailsElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -690,19 +690,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:139](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L139)
+[fnelements.mjs:139](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L139)
 
 ___
 
 ### dfn
 
-▸ **dfn**(`arg0`): `HTMLElement`
+▸ **dfn**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -710,19 +710,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:144](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L144)
+[fnelements.mjs:144](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L144)
 
 ___
 
 ### dialog
 
-▸ **dialog**(`arg0`): `HTMLDialogElement`
+▸ **dialog**(`...children`): `HTMLDialogElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -730,19 +730,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:149](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L149)
+[fnelements.mjs:149](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L149)
 
 ___
 
 ### dir
 
-▸ **dir**(`arg0`): `HTMLDirectoryElement`
+▸ **dir**(`...children`): `HTMLDirectoryElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -750,19 +750,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:154](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L154)
+[fnelements.mjs:154](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L154)
 
 ___
 
 ### div
 
-▸ **div**(`arg0`): `HTMLDivElement`
+▸ **div**(`...children`): `HTMLDivElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -770,19 +770,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:159](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L159)
+[fnelements.mjs:159](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L159)
 
 ___
 
 ### dl
 
-▸ **dl**(`arg0`): `HTMLDListElement`
+▸ **dl**(`...children`): `HTMLDListElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -790,19 +790,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:164](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L164)
+[fnelements.mjs:164](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L164)
 
 ___
 
 ### dt
 
-▸ **dt**(`arg0`): `HTMLElement`
+▸ **dt**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -810,19 +810,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:169](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L169)
+[fnelements.mjs:169](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L169)
 
 ___
 
 ### em
 
-▸ **em**(`arg0`): `HTMLElement`
+▸ **em**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -830,19 +830,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:174](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L174)
+[fnelements.mjs:174](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L174)
 
 ___
 
 ### embed
 
-▸ **embed**(`arg0`): `HTMLEmbedElement`
+▸ **embed**(`...children`): `HTMLEmbedElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -850,19 +850,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:179](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L179)
+[fnelements.mjs:179](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L179)
 
 ___
 
 ### fieldset
 
-▸ **fieldset**(`arg0`): `HTMLFieldSetElement`
+▸ **fieldset**(`...children`): `HTMLFieldSetElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -870,19 +870,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:184](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L184)
+[fnelements.mjs:184](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L184)
 
 ___
 
 ### figcaption
 
-▸ **figcaption**(`arg0`): `HTMLElement`
+▸ **figcaption**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -890,19 +890,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:189](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L189)
+[fnelements.mjs:189](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L189)
 
 ___
 
 ### figure
 
-▸ **figure**(`arg0`): `HTMLElement`
+▸ **figure**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -910,19 +910,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:194](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L194)
+[fnelements.mjs:194](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L194)
 
 ___
 
 ### flexCenteredCol
 
-▸ **flexCenteredCol**(`arg0`): `HTMLDivElement`
+▸ **flexCenteredCol**(`...children`): `HTMLDivElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -930,19 +930,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:211](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L211)
+[fnelements.mjs:211](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L211)
 
 ___
 
 ### flexCenteredRow
 
-▸ **flexCenteredRow**(`arg0`): `HTMLDivElement`
+▸ **flexCenteredRow**(`...children`): `HTMLDivElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -950,19 +950,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:236](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L236)
+[fnelements.mjs:236](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L236)
 
 ___
 
 ### flexCol
 
-▸ **flexCol**(`arg0`): `HTMLDivElement`
+▸ **flexCol**(`...children`): `HTMLDivElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -970,19 +970,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:199](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L199)
+[fnelements.mjs:199](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L199)
 
 ___
 
 ### flexRow
 
-▸ **flexRow**(`arg0`): `HTMLDivElement`
+▸ **flexRow**(`...children`): `HTMLDivElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -990,19 +990,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:224](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L224)
+[fnelements.mjs:224](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L224)
 
 ___
 
 ### font
 
-▸ **font**(`arg0`): `HTMLFontElement`
+▸ **font**(`...children`): `HTMLFontElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1010,19 +1010,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:249](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L249)
+[fnelements.mjs:249](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L249)
 
 ___
 
 ### footer
 
-▸ **footer**(`arg0`): `HTMLElement`
+▸ **footer**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1030,19 +1030,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:254](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L254)
+[fnelements.mjs:254](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L254)
 
 ___
 
 ### form
 
-▸ **form**(`arg0`): `HTMLFormElement`
+▸ **form**(`...children`): `HTMLFormElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1050,19 +1050,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:259](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L259)
+[fnelements.mjs:259](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L259)
 
 ___
 
 ### frame
 
-▸ **frame**(`arg0`): `HTMLFrameElement`
+▸ **frame**(`...children`): `HTMLFrameElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1070,19 +1070,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:264](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L264)
+[fnelements.mjs:264](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L264)
 
 ___
 
 ### frameset
 
-▸ **frameset**(`arg0`): `HTMLFrameSetElement`
+▸ **frameset**(`...children`): `HTMLFrameSetElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1090,19 +1090,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:269](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L269)
+[fnelements.mjs:269](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L269)
 
 ___
 
 ### h1
 
-▸ **h1**(`arg0`): `HTMLHeadingElement`
+▸ **h1**(`...children`): `HTMLHeadingElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1110,19 +1110,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:274](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L274)
+[fnelements.mjs:274](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L274)
 
 ___
 
 ### h2
 
-▸ **h2**(`arg0`): `HTMLHeadingElement`
+▸ **h2**(`...children`): `HTMLHeadingElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1130,19 +1130,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:279](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L279)
+[fnelements.mjs:279](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L279)
 
 ___
 
 ### h3
 
-▸ **h3**(`arg0`): `HTMLHeadingElement`
+▸ **h3**(`...children`): `HTMLHeadingElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1150,19 +1150,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:284](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L284)
+[fnelements.mjs:284](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L284)
 
 ___
 
 ### h4
 
-▸ **h4**(`arg0`): `HTMLHeadingElement`
+▸ **h4**(`...children`): `HTMLHeadingElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1170,19 +1170,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:289](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L289)
+[fnelements.mjs:289](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L289)
 
 ___
 
 ### h5
 
-▸ **h5**(`arg0`): `HTMLHeadingElement`
+▸ **h5**(`...children`): `HTMLHeadingElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1190,19 +1190,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:294](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L294)
+[fnelements.mjs:294](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L294)
 
 ___
 
 ### h6
 
-▸ **h6**(`arg0`): `HTMLHeadingElement`
+▸ **h6**(`...children`): `HTMLHeadingElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1210,19 +1210,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:299](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L299)
+[fnelements.mjs:299](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L299)
 
 ___
 
 ### head
 
-▸ **head**(`arg0`): `HTMLHeadElement`
+▸ **head**(`...children`): `HTMLHeadElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1230,19 +1230,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:304](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L304)
+[fnelements.mjs:304](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L304)
 
 ___
 
 ### header
 
-▸ **header**(`arg0`): `HTMLElement`
+▸ **header**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1250,19 +1250,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:309](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L309)
+[fnelements.mjs:309](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L309)
 
 ___
 
 ### hgroup
 
-▸ **hgroup**(`arg0`): `HTMLElement`
+▸ **hgroup**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1270,19 +1270,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:314](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L314)
+[fnelements.mjs:314](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L314)
 
 ___
 
 ### hr
 
-▸ **hr**(`arg0`): `HTMLHRElement`
+▸ **hr**(`...children`): `HTMLHRElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1290,19 +1290,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:319](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L319)
+[fnelements.mjs:319](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L319)
 
 ___
 
 ### html
 
-▸ **html**(`arg0`): `HTMLHtmlElement`
+▸ **html**(`...children`): `HTMLHtmlElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1310,19 +1310,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:324](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L324)
+[fnelements.mjs:324](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L324)
 
 ___
 
 ### i
 
-▸ **i**(`arg0`): `HTMLElement`
+▸ **i**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1330,19 +1330,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:329](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L329)
+[fnelements.mjs:329](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L329)
 
 ___
 
 ### iframe
 
-▸ **iframe**(`arg0`): `HTMLIFrameElement`
+▸ **iframe**(`...children`): `HTMLIFrameElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1350,19 +1350,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:334](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L334)
+[fnelements.mjs:334](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L334)
 
 ___
 
 ### img
 
-▸ **img**(`arg0`): `HTMLImageElement`
+▸ **img**(`...children`): `HTMLImageElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1370,19 +1370,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:339](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L339)
+[fnelements.mjs:339](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L339)
 
 ___
 
 ### input
 
-▸ **input**(`arg0`): `HTMLInputElement`
+▸ **input**(`...children`): `HTMLInputElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1390,19 +1390,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:344](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L344)
+[fnelements.mjs:344](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L344)
 
 ___
 
 ### ins
 
-▸ **ins**(`arg0`): `HTMLModElement`
+▸ **ins**(`...children`): `HTMLModElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1410,19 +1410,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:349](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L349)
+[fnelements.mjs:349](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L349)
 
 ___
 
 ### kbd
 
-▸ **kbd**(`arg0`): `HTMLElement`
+▸ **kbd**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1430,19 +1430,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:354](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L354)
+[fnelements.mjs:354](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L354)
 
 ___
 
 ### label
 
-▸ **label**(`arg0`): `HTMLLabelElement`
+▸ **label**(`...children`): `HTMLLabelElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1450,19 +1450,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:359](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L359)
+[fnelements.mjs:359](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L359)
 
 ___
 
 ### legend
 
-▸ **legend**(`arg0`): `HTMLLegendElement`
+▸ **legend**(`...children`): `HTMLLegendElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1470,19 +1470,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:364](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L364)
+[fnelements.mjs:364](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L364)
 
 ___
 
 ### li
 
-▸ **li**(`arg0`): `HTMLLIElement`
+▸ **li**(`...children`): `HTMLLIElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1490,19 +1490,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:369](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L369)
+[fnelements.mjs:369](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L369)
 
 ___
 
 ### link
 
-▸ **link**(`arg0`): `HTMLLinkElement`
+▸ **link**(`...children`): `HTMLLinkElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1510,19 +1510,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:374](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L374)
+[fnelements.mjs:374](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L374)
 
 ___
 
 ### main
 
-▸ **main**(`arg0`): `HTMLElement`
+▸ **main**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1530,19 +1530,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:379](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L379)
+[fnelements.mjs:379](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L379)
 
 ___
 
 ### map
 
-▸ **map**(`arg0`): `HTMLMapElement`
+▸ **map**(`...children`): `HTMLMapElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1550,19 +1550,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:384](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L384)
+[fnelements.mjs:384](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L384)
 
 ___
 
 ### mark
 
-▸ **mark**(`arg0`): `HTMLElement`
+▸ **mark**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1570,13 +1570,13 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:389](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L389)
+[fnelements.mjs:389](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L389)
 
 ___
 
 ### marquee
 
-▸ **marquee**(`arg0`): `HTMLMarqueeElement`
+▸ **marquee**(`...children`): `HTMLMarqueeElement`
 
 The best html element for every occasion.
 
@@ -1584,7 +1584,7 @@ The best html element for every occasion.
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1592,19 +1592,19 @@ The best html element for every occasion.
 
 #### Defined in
 
-[fnelements.mjs:395](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L395)
+[fnelements.mjs:395](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L395)
 
 ___
 
 ### menu
 
-▸ **menu**(`arg0`): `HTMLMenuElement`
+▸ **menu**(`...children`): `HTMLMenuElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1612,19 +1612,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:400](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L400)
+[fnelements.mjs:400](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L400)
 
 ___
 
 ### meta
 
-▸ **meta**(`arg0`): `HTMLMetaElement`
+▸ **meta**(`...children`): `HTMLMetaElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1632,19 +1632,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:405](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L405)
+[fnelements.mjs:405](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L405)
 
 ___
 
 ### meter
 
-▸ **meter**(`arg0`): `HTMLMeterElement`
+▸ **meter**(`...children`): `HTMLMeterElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1652,19 +1652,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:410](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L410)
+[fnelements.mjs:410](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L410)
 
 ___
 
 ### nav
 
-▸ **nav**(`arg0`): `HTMLElement`
+▸ **nav**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1672,19 +1672,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:415](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L415)
+[fnelements.mjs:415](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L415)
 
 ___
 
 ### noframes
 
-▸ **noframes**(`arg0`): `HTMLElement`
+▸ **noframes**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1692,19 +1692,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:420](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L420)
+[fnelements.mjs:420](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L420)
 
 ___
 
 ### noscript
 
-▸ **noscript**(`arg0`): `HTMLElement`
+▸ **noscript**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1712,19 +1712,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:425](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L425)
+[fnelements.mjs:425](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L425)
 
 ___
 
 ### object
 
-▸ **object**(`arg0`): `HTMLObjectElement`
+▸ **object**(`...children`): `HTMLObjectElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1732,19 +1732,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:430](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L430)
+[fnelements.mjs:430](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L430)
 
 ___
 
 ### ol
 
-▸ **ol**(`arg0`): `HTMLOListElement`
+▸ **ol**(`...children`): `HTMLOListElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1752,19 +1752,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:435](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L435)
+[fnelements.mjs:435](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L435)
 
 ___
 
 ### optgroup
 
-▸ **optgroup**(`arg0`): `HTMLOptGroupElement`
+▸ **optgroup**(`...children`): `HTMLOptGroupElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1772,19 +1772,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:440](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L440)
+[fnelements.mjs:440](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L440)
 
 ___
 
 ### option
 
-▸ **option**(`arg0`): `HTMLOptionElement`
+▸ **option**(`...children`): `HTMLOptionElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1792,19 +1792,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:445](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L445)
+[fnelements.mjs:445](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L445)
 
 ___
 
 ### output
 
-▸ **output**(`arg0`): `HTMLOutputElement`
+▸ **output**(`...children`): `HTMLOutputElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1812,19 +1812,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:450](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L450)
+[fnelements.mjs:450](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L450)
 
 ___
 
 ### p
 
-▸ **p**(`arg0`): `HTMLParagraphElement`
+▸ **p**(`...children`): `HTMLParagraphElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1832,19 +1832,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:455](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L455)
+[fnelements.mjs:455](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L455)
 
 ___
 
 ### param
 
-▸ **param**(`arg0`): `HTMLParamElement`
+▸ **param**(`...children`): `HTMLParamElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1852,19 +1852,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:460](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L460)
+[fnelements.mjs:460](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L460)
 
 ___
 
 ### picture
 
-▸ **picture**(`arg0`): `HTMLPictureElement`
+▸ **picture**(`...children`): `HTMLPictureElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1872,19 +1872,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:465](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L465)
+[fnelements.mjs:465](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L465)
 
 ___
 
 ### pre
 
-▸ **pre**(`arg0`): `HTMLPreElement`
+▸ **pre**(`...children`): `HTMLPreElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1892,19 +1892,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:470](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L470)
+[fnelements.mjs:470](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L470)
 
 ___
 
 ### progress
 
-▸ **progress**(`arg0`): `HTMLProgressElement`
+▸ **progress**(`...children`): `HTMLProgressElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1912,19 +1912,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:475](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L475)
+[fnelements.mjs:475](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L475)
 
 ___
 
 ### q
 
-▸ **q**(`arg0`): `HTMLQuoteElement`
+▸ **q**(`...children`): `HTMLQuoteElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1932,19 +1932,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:480](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L480)
+[fnelements.mjs:480](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L480)
 
 ___
 
 ### rp
 
-▸ **rp**(`arg0`): `HTMLElement`
+▸ **rp**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1952,19 +1952,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:485](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L485)
+[fnelements.mjs:485](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L485)
 
 ___
 
 ### rt
 
-▸ **rt**(`arg0`): `HTMLElement`
+▸ **rt**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1972,19 +1972,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:490](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L490)
+[fnelements.mjs:490](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L490)
 
 ___
 
 ### ruby
 
-▸ **ruby**(`arg0`): `HTMLElement`
+▸ **ruby**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -1992,19 +1992,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:495](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L495)
+[fnelements.mjs:495](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L495)
 
 ___
 
 ### s
 
-▸ **s**(`arg0`): `HTMLElement`
+▸ **s**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2012,19 +2012,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:500](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L500)
+[fnelements.mjs:500](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L500)
 
 ___
 
 ### samp
 
-▸ **samp**(`arg0`): `HTMLElement`
+▸ **samp**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2032,19 +2032,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:505](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L505)
+[fnelements.mjs:505](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L505)
 
 ___
 
 ### script
 
-▸ **script**(`arg0`): `HTMLScriptElement`
+▸ **script**(`...children`): `HTMLScriptElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2052,19 +2052,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:510](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L510)
+[fnelements.mjs:510](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L510)
 
 ___
 
 ### section
 
-▸ **section**(`arg0`): `HTMLElement`
+▸ **section**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2072,19 +2072,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:515](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L515)
+[fnelements.mjs:515](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L515)
 
 ___
 
 ### select
 
-▸ **select**(`arg0`): `HTMLSelectElement`
+▸ **select**(`...children`): `HTMLSelectElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2092,19 +2092,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:520](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L520)
+[fnelements.mjs:520](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L520)
 
 ___
 
 ### slot
 
-▸ **slot**(`arg0`): `HTMLSlotElement`
+▸ **slot**(`...children`): `HTMLSlotElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2112,19 +2112,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:525](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L525)
+[fnelements.mjs:525](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L525)
 
 ___
 
 ### small
 
-▸ **small**(`arg0`): `HTMLElement`
+▸ **small**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2132,19 +2132,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:530](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L530)
+[fnelements.mjs:530](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L530)
 
 ___
 
 ### source
 
-▸ **source**(`arg0`): `HTMLSourceElement`
+▸ **source**(`...children`): `HTMLSourceElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2152,19 +2152,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:535](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L535)
+[fnelements.mjs:535](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L535)
 
 ___
 
 ### span
 
-▸ **span**(`arg0`): `HTMLSpanElement`
+▸ **span**(`...children`): `HTMLSpanElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2172,19 +2172,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:540](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L540)
+[fnelements.mjs:540](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L540)
 
 ___
 
 ### strong
 
-▸ **strong**(`arg0`): `HTMLElement`
+▸ **strong**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2192,19 +2192,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:545](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L545)
+[fnelements.mjs:545](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L545)
 
 ___
 
 ### style
 
-▸ **style**(`arg0`): `HTMLStyleElement`
+▸ **style**(`...children`): `HTMLStyleElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2212,19 +2212,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:550](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L550)
+[fnelements.mjs:550](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L550)
 
 ___
 
 ### sub
 
-▸ **sub**(`arg0`): `HTMLElement`
+▸ **sub**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2232,19 +2232,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:555](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L555)
+[fnelements.mjs:555](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L555)
 
 ___
 
 ### summary
 
-▸ **summary**(`arg0`): `HTMLElement`
+▸ **summary**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2252,19 +2252,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:560](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L560)
+[fnelements.mjs:560](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L560)
 
 ___
 
 ### sup
 
-▸ **sup**(`arg0`): `HTMLElement`
+▸ **sup**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2272,19 +2272,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:565](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L565)
+[fnelements.mjs:565](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L565)
 
 ___
 
 ### table
 
-▸ **table**(`arg0`): `HTMLTableElement`
+▸ **table**(`...children`): `HTMLTableElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2292,19 +2292,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:570](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L570)
+[fnelements.mjs:570](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L570)
 
 ___
 
 ### tbody
 
-▸ **tbody**(`arg0`): `HTMLTableSectionElement`
+▸ **tbody**(`...children`): `HTMLTableSectionElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2312,19 +2312,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:575](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L575)
+[fnelements.mjs:575](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L575)
 
 ___
 
 ### td
 
-▸ **td**(`arg0`): `HTMLTableDataCellElement`
+▸ **td**(`...children`): `HTMLTableDataCellElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2332,19 +2332,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:580](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L580)
+[fnelements.mjs:580](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L580)
 
 ___
 
 ### template
 
-▸ **template**(`arg0`): `HTMLTemplateElement`
+▸ **template**(`...children`): `HTMLTemplateElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2352,19 +2352,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:585](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L585)
+[fnelements.mjs:585](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L585)
 
 ___
 
 ### textarea
 
-▸ **textarea**(`arg0`): `HTMLTextAreaElement`
+▸ **textarea**(`...children`): `HTMLTextAreaElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2372,19 +2372,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:590](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L590)
+[fnelements.mjs:590](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L590)
 
 ___
 
 ### tfoot
 
-▸ **tfoot**(`arg0`): `HTMLTableSectionElement`
+▸ **tfoot**(`...children`): `HTMLTableSectionElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2392,19 +2392,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:595](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L595)
+[fnelements.mjs:595](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L595)
 
 ___
 
 ### th
 
-▸ **th**(`arg0`): `HTMLTableHeaderCellElement`
+▸ **th**(`...children`): `HTMLTableHeaderCellElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2412,19 +2412,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:600](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L600)
+[fnelements.mjs:600](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L600)
 
 ___
 
 ### thead
 
-▸ **thead**(`arg0`): `HTMLTableSectionElement`
+▸ **thead**(`...children`): `HTMLTableSectionElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2432,19 +2432,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:605](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L605)
+[fnelements.mjs:605](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L605)
 
 ___
 
 ### time
 
-▸ **time**(`arg0`): `HTMLTimeElement`
+▸ **time**(`...children`): `HTMLTimeElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2452,19 +2452,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:610](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L610)
+[fnelements.mjs:610](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L610)
 
 ___
 
 ### title
 
-▸ **title**(`arg0`): `HTMLTitleElement`
+▸ **title**(`...children`): `HTMLTitleElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2472,19 +2472,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:615](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L615)
+[fnelements.mjs:615](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L615)
 
 ___
 
 ### tr
 
-▸ **tr**(`arg0`): `HTMLTableRowElement`
+▸ **tr**(`...children`): `HTMLTableRowElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2492,19 +2492,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:620](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L620)
+[fnelements.mjs:620](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L620)
 
 ___
 
 ### track
 
-▸ **track**(`arg0`): `HTMLTrackElement`
+▸ **track**(`...children`): `HTMLTrackElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2512,19 +2512,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:625](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L625)
+[fnelements.mjs:625](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L625)
 
 ___
 
 ### tt
 
-▸ **tt**(`arg0`): `HTMLElement`
+▸ **tt**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2532,19 +2532,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:630](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L630)
+[fnelements.mjs:630](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L630)
 
 ___
 
 ### u
 
-▸ **u**(`arg0`): `HTMLElement`
+▸ **u**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2552,19 +2552,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:635](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L635)
+[fnelements.mjs:635](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L635)
 
 ___
 
 ### ul
 
-▸ **ul**(`arg0`): `HTMLUListElement`
+▸ **ul**(`...children`): `HTMLUListElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2572,13 +2572,13 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:640](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L640)
+[fnelements.mjs:640](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L640)
 
 ___
 
 ### var\_
 
-▸ **var_**(`arg0`): `HTMLElement`
+▸ **var_**(`...children`): `HTMLElement`
 
 name conflicts with js syntax
 
@@ -2586,7 +2586,7 @@ name conflicts with js syntax
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2594,19 +2594,19 @@ name conflicts with js syntax
 
 #### Defined in
 
-[fnelements.mjs:647](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L647)
+[fnelements.mjs:647](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L647)
 
 ___
 
 ### video
 
-▸ **video**(`arg0`): `HTMLVideoElement`
+▸ **video**(`...children`): `HTMLVideoElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2614,19 +2614,19 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:652](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L652)
+[fnelements.mjs:652](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L652)
 
 ___
 
 ### wbr
 
-▸ **wbr**(`arg0`): `HTMLElement`
+▸ **wbr**(`...children`): `HTMLElement`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `arg0` | [`any`] |
+| `...children` | `any`[] \| `Node`[] |
 
 #### Returns
 
@@ -2634,4 +2634,4 @@ ___
 
 #### Defined in
 
-[fnelements.mjs:657](https://github.com/srfnstack/fntags/blob/1212751/src/fnelements.mjs#L657)
+[fnelements.mjs:657](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fnelements.mjs#L657)

@@ -1,237 +1,237 @@
 /**
  * name conflicts with html a
  *
- * @type {function(...[*]=): SVGAElement}
+ * @type {(...children: Node[]|Object[])=>SVGAElement}
  */
-export const a_: (arg0: [any][] | undefined) => SVGAElement;
+export const a_: (...children: Node[] | any[]) => SVGAElement;
 /**
- * @type {function(...[*]=): SVGCircleElement}
+ * @type {(...children: Node[]|Object[])=>SVGCircleElement}
  */
-export const circle: (arg0: [any][] | undefined) => SVGCircleElement;
+export const circle: (...children: Node[] | any[]) => SVGCircleElement;
 /**
- * @type {function(...[*]=): SVGClipPathElement}
+ * @type {(...children: Node[]|Object[])=>SVGClipPathElement}
  */
-export const clipPath: (arg0: [any][] | undefined) => SVGClipPathElement;
+export const clipPath: (...children: Node[] | any[]) => SVGClipPathElement;
 /**
- * @type {function(...[*]=): SVGDefsElement}
+ * @type {(...children: Node[]|Object[])=>SVGDefsElement}
  */
-export const defs: (arg0: [any][] | undefined) => SVGDefsElement;
+export const defs: (...children: Node[] | any[]) => SVGDefsElement;
 /**
- * @type {function(...[*]=): SVGDescElement}
+ * @type {(...children: Node[]|Object[])=>SVGDescElement}
  */
-export const desc: (arg0: [any][] | undefined) => SVGDescElement;
+export const desc: (...children: Node[] | any[]) => SVGDescElement;
 /**
- * @type {function(...[*]=): SVGEllipseElement}
+ * @type {(...children: Node[]|Object[])=>SVGEllipseElement}
  */
-export const ellipse: (arg0: [any][] | undefined) => SVGEllipseElement;
+export const ellipse: (...children: Node[] | any[]) => SVGEllipseElement;
 /**
- * @type {function(...[*]=): SVGFEBlendElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEBlendElement}
  */
-export const feBlend: (arg0: [any][] | undefined) => SVGFEBlendElement;
+export const feBlend: (...children: Node[] | any[]) => SVGFEBlendElement;
 /**
- * @type {function(...[*]=): SVGFEColorMatrixElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEColorMatrixElement}
  */
-export const feColorMatrix: (arg0: [any][] | undefined) => SVGFEColorMatrixElement;
+export const feColorMatrix: (...children: Node[] | any[]) => SVGFEColorMatrixElement;
 /**
- * @type {function(...[*]=): SVGFEComponentTransferElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEComponentTransferElement}
  */
-export const feComponentTransfer: (arg0: [any][] | undefined) => SVGFEComponentTransferElement;
+export const feComponentTransfer: (...children: Node[] | any[]) => SVGFEComponentTransferElement;
 /**
- * @type {function(...[*]=): SVGFECompositeElement}
+ * @type {(...children: Node[]|Object[])=>SVGFECompositeElement}
  */
-export const feComposite: (arg0: [any][] | undefined) => SVGFECompositeElement;
+export const feComposite: (...children: Node[] | any[]) => SVGFECompositeElement;
 /**
- * @type {function(...[*]=): SVGFEConvolveMatrixElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEConvolveMatrixElement}
  */
-export const feConvolveMatrix: (arg0: [any][] | undefined) => SVGFEConvolveMatrixElement;
+export const feConvolveMatrix: (...children: Node[] | any[]) => SVGFEConvolveMatrixElement;
 /**
- * @type {function(...[*]=): SVGFEDiffuseLightingElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEDiffuseLightingElement}
  */
-export const feDiffuseLighting: (arg0: [any][] | undefined) => SVGFEDiffuseLightingElement;
+export const feDiffuseLighting: (...children: Node[] | any[]) => SVGFEDiffuseLightingElement;
 /**
- * @type {function(...[*]=): SVGFEDisplacementMapElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEDisplacementMapElement}
  */
-export const feDisplacementMap: (arg0: [any][] | undefined) => SVGFEDisplacementMapElement;
+export const feDisplacementMap: (...children: Node[] | any[]) => SVGFEDisplacementMapElement;
 /**
- * @type {function(...[*]=): SVGFEDistantLightElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEDistantLightElement}
  */
-export const feDistantLight: (arg0: [any][] | undefined) => SVGFEDistantLightElement;
+export const feDistantLight: (...children: Node[] | any[]) => SVGFEDistantLightElement;
 /**
- * @type {function(...[*]=): SVGFEFloodElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEFloodElement}
  */
-export const feFlood: (arg0: [any][] | undefined) => SVGFEFloodElement;
+export const feFlood: (...children: Node[] | any[]) => SVGFEFloodElement;
 /**
- * @type {function(...[*]=): SVGFEFuncAElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEFuncAElement}
  */
-export const feFuncA: (arg0: [any][] | undefined) => SVGFEFuncAElement;
+export const feFuncA: (...children: Node[] | any[]) => SVGFEFuncAElement;
 /**
- * @type {function(...[*]=): SVGFEFuncBElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEFuncBElement}
  */
-export const feFuncB: (arg0: [any][] | undefined) => SVGFEFuncBElement;
+export const feFuncB: (...children: Node[] | any[]) => SVGFEFuncBElement;
 /**
- * @type {function(...[*]=): SVGFEFuncGElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEFuncGElement}
  */
-export const feFuncG: (arg0: [any][] | undefined) => SVGFEFuncGElement;
+export const feFuncG: (...children: Node[] | any[]) => SVGFEFuncGElement;
 /**
- * @type {function(...[*]=): SVGFEFuncRElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEFuncRElement}
  */
-export const feFuncR: (arg0: [any][] | undefined) => SVGFEFuncRElement;
+export const feFuncR: (...children: Node[] | any[]) => SVGFEFuncRElement;
 /**
- * @type {function(...[*]=): SVGFEGaussianBlurElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEGaussianBlurElement}
  */
-export const feGaussianBlur: (arg0: [any][] | undefined) => SVGFEGaussianBlurElement;
+export const feGaussianBlur: (...children: Node[] | any[]) => SVGFEGaussianBlurElement;
 /**
- * @type {function(...[*]=): SVGFEImageElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEImageElement}
  */
-export const feImage: (arg0: [any][] | undefined) => SVGFEImageElement;
+export const feImage: (...children: Node[] | any[]) => SVGFEImageElement;
 /**
- * @type {function(...[*]=): SVGFEMergeElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEMergeElement}
  */
-export const feMerge: (arg0: [any][] | undefined) => SVGFEMergeElement;
+export const feMerge: (...children: Node[] | any[]) => SVGFEMergeElement;
 /**
- * @type {function(...[*]=): SVGFEMergeNodeElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEMergeNodeElement}
  */
-export const feMergeNode: (arg0: [any][] | undefined) => SVGFEMergeNodeElement;
+export const feMergeNode: (...children: Node[] | any[]) => SVGFEMergeNodeElement;
 /**
- * @type {function(...[*]=): SVGFEMorphologyElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEMorphologyElement}
  */
-export const feMorphology: (arg0: [any][] | undefined) => SVGFEMorphologyElement;
+export const feMorphology: (...children: Node[] | any[]) => SVGFEMorphologyElement;
 /**
- * @type {function(...[*]=): SVGFEOffsetElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEOffsetElement}
  */
-export const feOffset: (arg0: [any][] | undefined) => SVGFEOffsetElement;
+export const feOffset: (...children: Node[] | any[]) => SVGFEOffsetElement;
 /**
- * @type {function(...[*]=): SVGFEPointLightElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEPointLightElement}
  */
-export const fePointLight: (arg0: [any][] | undefined) => SVGFEPointLightElement;
+export const fePointLight: (...children: Node[] | any[]) => SVGFEPointLightElement;
 /**
- * @type {function(...[*]=): SVGFESpecularLightingElement}
+ * @type {(...children: Node[]|Object[])=>SVGFESpecularLightingElement}
  */
-export const feSpecularLighting: (arg0: [any][] | undefined) => SVGFESpecularLightingElement;
+export const feSpecularLighting: (...children: Node[] | any[]) => SVGFESpecularLightingElement;
 /**
- * @type {function(...[*]=): SVGFESpotLightElement}
+ * @type {(...children: Node[]|Object[])=>SVGFESpotLightElement}
  */
-export const feSpotLight: (arg0: [any][] | undefined) => SVGFESpotLightElement;
+export const feSpotLight: (...children: Node[] | any[]) => SVGFESpotLightElement;
 /**
- * @type {function(...[*]=): SVGFETileElement}
+ * @type {(...children: Node[]|Object[])=>SVGFETileElement}
  */
-export const feTile: (arg0: [any][] | undefined) => SVGFETileElement;
+export const feTile: (...children: Node[] | any[]) => SVGFETileElement;
 /**
- * @type {function(...[*]=): SVGFETurbulenceElement}
+ * @type {(...children: Node[]|Object[])=>SVGFETurbulenceElement}
  */
-export const feTurbulence: (arg0: [any][] | undefined) => SVGFETurbulenceElement;
+export const feTurbulence: (...children: Node[] | any[]) => SVGFETurbulenceElement;
 /**
- * @type {function(...[*]=): SVGFilterElement}
+ * @type {(...children: Node[]|Object[])=>SVGFilterElement}
  */
-export const filter: (arg0: [any][] | undefined) => SVGFilterElement;
+export const filter: (...children: Node[] | any[]) => SVGFilterElement;
 /**
- * @type {function(...[*]=): SVGForeignObjectElement}
+ * @type {(...children: Node[]|Object[])=>SVGForeignObjectElement}
  */
-export const foreignObject: (arg0: [any][] | undefined) => SVGForeignObjectElement;
+export const foreignObject: (...children: Node[] | any[]) => SVGForeignObjectElement;
 /**
- * @type {function(...[*]=): SVGGElement}
+ * @type {(...children: Node[]|Object[])=>SVGGElement}
  */
-export const g: (arg0: [any][] | undefined) => SVGGElement;
+export const g: (...children: Node[] | any[]) => SVGGElement;
 /**
- * @type {function(...[*]=): SVGImageElement}
+ * @type {(...children: Node[]|Object[])=>SVGImageElement}
  */
-export const image: (arg0: [any][] | undefined) => SVGImageElement;
+export const image: (...children: Node[] | any[]) => SVGImageElement;
 /**
- * @type {function(...[*]=): SVGLineElement}
+ * @type {(...children: Node[]|Object[])=>SVGLineElement}
  */
-export const line: (arg0: [any][] | undefined) => SVGLineElement;
+export const line: (...children: Node[] | any[]) => SVGLineElement;
 /**
- * @type {function(...[*]=): SVGLinearGradientElement}
+ * @type {(...children: Node[]|Object[])=>SVGLinearGradientElement}
  */
-export const linearGradient: (arg0: [any][] | undefined) => SVGLinearGradientElement;
+export const linearGradient: (...children: Node[] | any[]) => SVGLinearGradientElement;
 /**
- * @type {function(...[*]=): SVGMarkerElement}
+ * @type {(...children: Node[]|Object[])=>SVGMarkerElement}
  */
-export const marker: (arg0: [any][] | undefined) => SVGMarkerElement;
+export const marker: (...children: Node[] | any[]) => SVGMarkerElement;
 /**
- * @type {function(...[*]=): SVGMaskElement}
+ * @type {(...children: Node[]|Object[])=>SVGMaskElement}
  */
-export const mask: (arg0: [any][] | undefined) => SVGMaskElement;
+export const mask: (...children: Node[] | any[]) => SVGMaskElement;
 /**
- * @type {function(...[*]=): SVGMetadataElement}
+ * @type {(...children: Node[]|Object[])=>SVGMetadataElement}
  */
-export const metadata: (arg0: [any][] | undefined) => SVGMetadataElement;
+export const metadata: (...children: Node[] | any[]) => SVGMetadataElement;
 /**
- * @type {function(...[*]=): SVGPathElement}
+ * @type {(...children: Node[]|Object[])=>SVGPathElement}
  */
-export const path: (arg0: [any][] | undefined) => SVGPathElement;
+export const path: (...children: Node[] | any[]) => SVGPathElement;
 /**
- * @type {function(...[*]=): SVGPatternElement}
+ * @type {(...children: Node[]|Object[])=>SVGPatternElement}
  */
-export const pattern: (arg0: [any][] | undefined) => SVGPatternElement;
+export const pattern: (...children: Node[] | any[]) => SVGPatternElement;
 /**
- * @type {function(...[*]=): SVGPolygonElement}
+ * @type {(...children: Node[]|Object[])=>SVGPolygonElement}
  */
-export const polygon: (arg0: [any][] | undefined) => SVGPolygonElement;
+export const polygon: (...children: Node[] | any[]) => SVGPolygonElement;
 /**
- * @type {function(...[*]=): SVGPolylineElement}
+ * @type {(...children: Node[]|Object[])=>SVGPolylineElement}
  */
-export const polyline: (arg0: [any][] | undefined) => SVGPolylineElement;
+export const polyline: (...children: Node[] | any[]) => SVGPolylineElement;
 /**
- * @type {function(...[*]=): SVGRadialGradientElement}
+ * @type {(...children: Node[]|Object[])=>SVGRadialGradientElement}
  */
-export const radialGradient: (arg0: [any][] | undefined) => SVGRadialGradientElement;
+export const radialGradient: (...children: Node[] | any[]) => SVGRadialGradientElement;
 /**
- * @type {function(...[*]=): SVGRectElement}
+ * @type {(...children: Node[]|Object[])=>SVGRectElement}
  */
-export const rect: (arg0: [any][] | undefined) => SVGRectElement;
+export const rect: (...children: Node[] | any[]) => SVGRectElement;
 /**
  * name conflicts with html script
  *
- * @type {function(...[*]=): SVGScriptElement}
+ * @type {(...children: Node[]|Object[])=>SVGScriptElement}
  */
-export const script_: (arg0: [any][] | undefined) => SVGScriptElement;
+export const script_: (...children: Node[] | any[]) => SVGScriptElement;
 /**
- * @type {function(...[*]=): SVGStopElement}
+ * @type {(...children: Node[]|Object[])=>SVGStopElement}
  */
-export const stop: (arg0: [any][] | undefined) => SVGStopElement;
+export const stop: (...children: Node[] | any[]) => SVGStopElement;
 /**
  * name conflicts with html style
  *
- * @type {function(...[*]=): SVGStyleElement}
+ * @type {(...children: Node[]|Object[])=>SVGStyleElement}
  */
-export const style_: (arg0: [any][] | undefined) => SVGStyleElement;
+export const style_: (...children: Node[] | any[]) => SVGStyleElement;
 /**
- * @type {function(...[*]=): SVGElement}
+ * @type {(...children: Node[]|Object[])=>SVGElement}
  */
-export const svg: (arg0: [any][] | undefined) => SVGElement;
+export const svg: (...children: Node[] | any[]) => SVGElement;
 /**
  * name conflicts with js syntax
  *
- * @type {function(...[*]=): SVGSwitchElement}
+ * @type {(...children: Node[]|Object[])=>SVGSwitchElement}
  */
-export const switch_: (arg0: [any][] | undefined) => SVGSwitchElement;
+export const switch_: (...children: Node[] | any[]) => SVGSwitchElement;
 /**
- * @type {function(...[*]=): SVGSymbolElement}
+ * @type {(...children: Node[]|Object[])=>SVGSymbolElement}
  */
-export const symbol: (arg0: [any][] | undefined) => SVGSymbolElement;
+export const symbol: (...children: Node[] | any[]) => SVGSymbolElement;
 /**
- * @type {function(...[*]=): SVGTextElement}
+ * @type {(...children: Node[]|Object[])=>SVGTextElement}
  */
-export const text: (arg0: [any][] | undefined) => SVGTextElement;
+export const text: (...children: Node[] | any[]) => SVGTextElement;
 /**
- * @type {function(...[*]=): SVGTextPathElement}
+ * @type {(...children: Node[]|Object[])=>SVGTextPathElement}
  */
-export const textPath: (arg0: [any][] | undefined) => SVGTextPathElement;
+export const textPath: (...children: Node[] | any[]) => SVGTextPathElement;
 /**
- * @type {function(...[*]=): SVGTitleElement}
+ * @type {(...children: Node[]|Object[])=>SVGTitleElement}
  */
-export const title: (arg0: [any][] | undefined) => SVGTitleElement;
+export const title: (...children: Node[] | any[]) => SVGTitleElement;
 /**
- * @type {function(...[*]=): SVGTSpanElement}
+ * @type {(...children: Node[]|Object[])=>SVGTSpanElement}
  */
-export const tspan: (arg0: [any][] | undefined) => SVGTSpanElement;
+export const tspan: (...children: Node[] | any[]) => SVGTSpanElement;
 /**
- * @type {function(...[*]=): SVGUseElement}
+ * @type {(...children: Node[]|Object[])=>SVGUseElement}
  */
-export const use: (arg0: [any][] | undefined) => SVGUseElement;
+export const use: (...children: Node[] | any[]) => SVGUseElement;
 /**
- * @type {function(...[*]=): SVGViewElement}
+ * @type {(...children: Node[]|Object[])=>SVGViewElement}
  */
-export const view: (arg0: [any][] | undefined) => SVGViewElement;
+export const view: (...children: Node[] | any[]) => SVGViewElement;
 //# sourceMappingURL=svgelements.d.mts.map

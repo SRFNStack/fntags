@@ -3,292 +3,292 @@ import { h } from './fntags.mjs'
 /**
  * name conflicts with html a
  *
- * @type {function(...[*]=): SVGAElement}
+ * @type {(...children: Node[]|Object[])=>SVGAElement}
  */
 export const a_ = (...children) => h('http://www.w3.org/2000/svg:a', ...children)
 
 /**
- * @type {function(...[*]=): SVGCircleElement}
+ * @type {(...children: Node[]|Object[])=>SVGCircleElement}
  */
 export const circle = (...children) => h('http://www.w3.org/2000/svg:circle', ...children)
 
 /**
- * @type {function(...[*]=): SVGClipPathElement}
+ * @type {(...children: Node[]|Object[])=>SVGClipPathElement}
  */
 export const clipPath = (...children) => h('http://www.w3.org/2000/svg:clipPath', ...children)
 
 /**
- * @type {function(...[*]=): SVGDefsElement}
+ * @type {(...children: Node[]|Object[])=>SVGDefsElement}
  */
 export const defs = (...children) => h('http://www.w3.org/2000/svg:defs', ...children)
 
 /**
- * @type {function(...[*]=): SVGDescElement}
+ * @type {(...children: Node[]|Object[])=>SVGDescElement}
  */
 export const desc = (...children) => h('http://www.w3.org/2000/svg:desc', ...children)
 
 /**
- * @type {function(...[*]=): SVGEllipseElement}
+ * @type {(...children: Node[]|Object[])=>SVGEllipseElement}
  */
 export const ellipse = (...children) => h('http://www.w3.org/2000/svg:ellipse', ...children)
 
 /**
- * @type {function(...[*]=): SVGFEBlendElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEBlendElement}
  */
 export const feBlend = (...children) => h('http://www.w3.org/2000/svg:feBlend', ...children)
 
 /**
- * @type {function(...[*]=): SVGFEColorMatrixElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEColorMatrixElement}
  */
 export const feColorMatrix = (...children) => h('http://www.w3.org/2000/svg:feColorMatrix', ...children)
 
 /**
- * @type {function(...[*]=): SVGFEComponentTransferElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEComponentTransferElement}
  */
 export const feComponentTransfer = (...children) => h('http://www.w3.org/2000/svg:feComponentTransfer', ...children)
 
 /**
- * @type {function(...[*]=): SVGFECompositeElement}
+ * @type {(...children: Node[]|Object[])=>SVGFECompositeElement}
  */
 export const feComposite = (...children) => h('http://www.w3.org/2000/svg:feComposite', ...children)
 
 /**
- * @type {function(...[*]=): SVGFEConvolveMatrixElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEConvolveMatrixElement}
  */
 export const feConvolveMatrix = (...children) => h('http://www.w3.org/2000/svg:feConvolveMatrix', ...children)
 
 /**
- * @type {function(...[*]=): SVGFEDiffuseLightingElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEDiffuseLightingElement}
  */
 export const feDiffuseLighting = (...children) => h('http://www.w3.org/2000/svg:feDiffuseLighting', ...children)
 
 /**
- * @type {function(...[*]=): SVGFEDisplacementMapElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEDisplacementMapElement}
  */
 export const feDisplacementMap = (...children) => h('http://www.w3.org/2000/svg:feDisplacementMap', ...children)
 
 /**
- * @type {function(...[*]=): SVGFEDistantLightElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEDistantLightElement}
  */
 export const feDistantLight = (...children) => h('http://www.w3.org/2000/svg:feDistantLight', ...children)
 
 /**
- * @type {function(...[*]=): SVGFEFloodElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEFloodElement}
  */
 export const feFlood = (...children) => h('http://www.w3.org/2000/svg:feFlood', ...children)
 
 /**
- * @type {function(...[*]=): SVGFEFuncAElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEFuncAElement}
  */
 export const feFuncA = (...children) => h('http://www.w3.org/2000/svg:feFuncA', ...children)
 
 /**
- * @type {function(...[*]=): SVGFEFuncBElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEFuncBElement}
  */
 export const feFuncB = (...children) => h('http://www.w3.org/2000/svg:feFuncB', ...children)
 
 /**
- * @type {function(...[*]=): SVGFEFuncGElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEFuncGElement}
  */
 export const feFuncG = (...children) => h('http://www.w3.org/2000/svg:feFuncG', ...children)
 
 /**
- * @type {function(...[*]=): SVGFEFuncRElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEFuncRElement}
  */
 export const feFuncR = (...children) => h('http://www.w3.org/2000/svg:feFuncR', ...children)
 
 /**
- * @type {function(...[*]=): SVGFEGaussianBlurElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEGaussianBlurElement}
  */
 export const feGaussianBlur = (...children) => h('http://www.w3.org/2000/svg:feGaussianBlur', ...children)
 
 /**
- * @type {function(...[*]=): SVGFEImageElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEImageElement}
  */
 export const feImage = (...children) => h('http://www.w3.org/2000/svg:feImage', ...children)
 
 /**
- * @type {function(...[*]=): SVGFEMergeElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEMergeElement}
  */
 export const feMerge = (...children) => h('http://www.w3.org/2000/svg:feMerge', ...children)
 
 /**
- * @type {function(...[*]=): SVGFEMergeNodeElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEMergeNodeElement}
  */
 export const feMergeNode = (...children) => h('http://www.w3.org/2000/svg:feMergeNode', ...children)
 
 /**
- * @type {function(...[*]=): SVGFEMorphologyElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEMorphologyElement}
  */
 export const feMorphology = (...children) => h('http://www.w3.org/2000/svg:feMorphology', ...children)
 
 /**
- * @type {function(...[*]=): SVGFEOffsetElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEOffsetElement}
  */
 export const feOffset = (...children) => h('http://www.w3.org/2000/svg:feOffset', ...children)
 
 /**
- * @type {function(...[*]=): SVGFEPointLightElement}
+ * @type {(...children: Node[]|Object[])=>SVGFEPointLightElement}
  */
 export const fePointLight = (...children) => h('http://www.w3.org/2000/svg:fePointLight', ...children)
 
 /**
- * @type {function(...[*]=): SVGFESpecularLightingElement}
+ * @type {(...children: Node[]|Object[])=>SVGFESpecularLightingElement}
  */
 export const feSpecularLighting = (...children) => h('http://www.w3.org/2000/svg:feSpecularLighting', ...children)
 
 /**
- * @type {function(...[*]=): SVGFESpotLightElement}
+ * @type {(...children: Node[]|Object[])=>SVGFESpotLightElement}
  */
 export const feSpotLight = (...children) => h('http://www.w3.org/2000/svg:feSpotLight', ...children)
 
 /**
- * @type {function(...[*]=): SVGFETileElement}
+ * @type {(...children: Node[]|Object[])=>SVGFETileElement}
  */
 export const feTile = (...children) => h('http://www.w3.org/2000/svg:feTile', ...children)
 
 /**
- * @type {function(...[*]=): SVGFETurbulenceElement}
+ * @type {(...children: Node[]|Object[])=>SVGFETurbulenceElement}
  */
 export const feTurbulence = (...children) => h('http://www.w3.org/2000/svg:feTurbulence', ...children)
 
 /**
- * @type {function(...[*]=): SVGFilterElement}
+ * @type {(...children: Node[]|Object[])=>SVGFilterElement}
  */
 export const filter = (...children) => h('http://www.w3.org/2000/svg:filter', ...children)
 
 /**
- * @type {function(...[*]=): SVGForeignObjectElement}
+ * @type {(...children: Node[]|Object[])=>SVGForeignObjectElement}
  */
 export const foreignObject = (...children) => h('http://www.w3.org/2000/svg:foreignObject', ...children)
 
 /**
- * @type {function(...[*]=): SVGGElement}
+ * @type {(...children: Node[]|Object[])=>SVGGElement}
  */
 export const g = (...children) => h('http://www.w3.org/2000/svg:g', ...children)
 
 /**
- * @type {function(...[*]=): SVGImageElement}
+ * @type {(...children: Node[]|Object[])=>SVGImageElement}
  */
 export const image = (...children) => h('http://www.w3.org/2000/svg:image', ...children)
 
 /**
- * @type {function(...[*]=): SVGLineElement}
+ * @type {(...children: Node[]|Object[])=>SVGLineElement}
  */
 export const line = (...children) => h('http://www.w3.org/2000/svg:line', ...children)
 
 /**
- * @type {function(...[*]=): SVGLinearGradientElement}
+ * @type {(...children: Node[]|Object[])=>SVGLinearGradientElement}
  */
 export const linearGradient = (...children) => h('http://www.w3.org/2000/svg:linearGradient', ...children)
 
 /**
- * @type {function(...[*]=): SVGMarkerElement}
+ * @type {(...children: Node[]|Object[])=>SVGMarkerElement}
  */
 export const marker = (...children) => h('http://www.w3.org/2000/svg:marker', ...children)
 
 /**
- * @type {function(...[*]=): SVGMaskElement}
+ * @type {(...children: Node[]|Object[])=>SVGMaskElement}
  */
 export const mask = (...children) => h('http://www.w3.org/2000/svg:mask', ...children)
 
 /**
- * @type {function(...[*]=): SVGMetadataElement}
+ * @type {(...children: Node[]|Object[])=>SVGMetadataElement}
  */
 export const metadata = (...children) => h('http://www.w3.org/2000/svg:metadata', ...children)
 
 /**
- * @type {function(...[*]=): SVGPathElement}
+ * @type {(...children: Node[]|Object[])=>SVGPathElement}
  */
 export const path = (...children) => h('http://www.w3.org/2000/svg:path', ...children)
 
 /**
- * @type {function(...[*]=): SVGPatternElement}
+ * @type {(...children: Node[]|Object[])=>SVGPatternElement}
  */
 export const pattern = (...children) => h('http://www.w3.org/2000/svg:pattern', ...children)
 
 /**
- * @type {function(...[*]=): SVGPolygonElement}
+ * @type {(...children: Node[]|Object[])=>SVGPolygonElement}
  */
 export const polygon = (...children) => h('http://www.w3.org/2000/svg:polygon', ...children)
 
 /**
- * @type {function(...[*]=): SVGPolylineElement}
+ * @type {(...children: Node[]|Object[])=>SVGPolylineElement}
  */
 export const polyline = (...children) => h('http://www.w3.org/2000/svg:polyline', ...children)
 
 /**
- * @type {function(...[*]=): SVGRadialGradientElement}
+ * @type {(...children: Node[]|Object[])=>SVGRadialGradientElement}
  */
 export const radialGradient = (...children) => h('http://www.w3.org/2000/svg:radialGradient', ...children)
 
 /**
- * @type {function(...[*]=): SVGRectElement}
+ * @type {(...children: Node[]|Object[])=>SVGRectElement}
  */
 export const rect = (...children) => h('http://www.w3.org/2000/svg:rect', ...children)
 
 /**
  * name conflicts with html script
  *
- * @type {function(...[*]=): SVGScriptElement}
+ * @type {(...children: Node[]|Object[])=>SVGScriptElement}
  */
 export const script_ = (...children) => h('http://www.w3.org/2000/svg:script', ...children)
 
 /**
- * @type {function(...[*]=): SVGStopElement}
+ * @type {(...children: Node[]|Object[])=>SVGStopElement}
  */
 export const stop = (...children) => h('http://www.w3.org/2000/svg:stop', ...children)
 
 /**
  * name conflicts with html style
  *
- * @type {function(...[*]=): SVGStyleElement}
+ * @type {(...children: Node[]|Object[])=>SVGStyleElement}
  */
 export const style_ = (...children) => h('http://www.w3.org/2000/svg:style', ...children)
 
 /**
- * @type {function(...[*]=): SVGElement}
+ * @type {(...children: Node[]|Object[])=>SVGElement}
  */
 export const svg = (...children) => h('http://www.w3.org/2000/svg:svg', ...children)
 
 /**
  * name conflicts with js syntax
  *
- * @type {function(...[*]=): SVGSwitchElement}
+ * @type {(...children: Node[]|Object[])=>SVGSwitchElement}
  */
 export const switch_ = (...children) => h('http://www.w3.org/2000/svg:switch', ...children)
 
 /**
- * @type {function(...[*]=): SVGSymbolElement}
+ * @type {(...children: Node[]|Object[])=>SVGSymbolElement}
  */
 export const symbol = (...children) => h('http://www.w3.org/2000/svg:symbol', ...children)
 
 /**
- * @type {function(...[*]=): SVGTextElement}
+ * @type {(...children: Node[]|Object[])=>SVGTextElement}
  */
 export const text = (...children) => h('http://www.w3.org/2000/svg:text', ...children)
 
 /**
- * @type {function(...[*]=): SVGTextPathElement}
+ * @type {(...children: Node[]|Object[])=>SVGTextPathElement}
  */
 export const textPath = (...children) => h('http://www.w3.org/2000/svg:textPath', ...children)
 
 /**
- * @type {function(...[*]=): SVGTitleElement}
+ * @type {(...children: Node[]|Object[])=>SVGTitleElement}
  */
 export const title = (...children) => h('http://www.w3.org/2000/svg:title', ...children)
 
 /**
- * @type {function(...[*]=): SVGTSpanElement}
+ * @type {(...children: Node[]|Object[])=>SVGTSpanElement}
  */
 export const tspan = (...children) => h('http://www.w3.org/2000/svg:tspan', ...children)
 
 /**
- * @type {function(...[*]=): SVGUseElement}
+ * @type {(...children: Node[]|Object[])=>SVGUseElement}
  */
 export const use = (...children) => h('http://www.w3.org/2000/svg:use', ...children)
 
 /**
- * @type {function(...[*]=): SVGViewElement}
+ * @type {(...children: Node[]|Object[])=>SVGViewElement}
  */
 export const view = (...children) => h('http://www.w3.org/2000/svg:view', ...children)

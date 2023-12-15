@@ -1,504 +1,504 @@
 /**
- * @type {function(...[*]=): HTMLAnchorElement}
+ * @type {(...children: Node[]|Object[])=>HTMLAnchorElement}
  */
-export const a: (arg0: [any][] | undefined) => HTMLAnchorElement;
+export const a: (...children: Node[] | any[]) => HTMLAnchorElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const abbr: (arg0: [any][] | undefined) => HTMLElement;
+export const abbr: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const acronym: (arg0: [any][] | undefined) => HTMLElement;
+export const acronym: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const address: (arg0: [any][] | undefined) => HTMLElement;
+export const address: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLAreaElement}
+ * @type {(...children: Node[]|Object[])=>HTMLAreaElement}
  */
-export const area: (arg0: [any][] | undefined) => HTMLAreaElement;
+export const area: (...children: Node[] | any[]) => HTMLAreaElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const article: (arg0: [any][] | undefined) => HTMLElement;
+export const article: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const aside: (arg0: [any][] | undefined) => HTMLElement;
+export const aside: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLAudioElement}
+ * @type {(...children: Node[]|Object[])=>HTMLAudioElement}
  */
-export const audio: (arg0: [any][] | undefined) => HTMLAudioElement;
+export const audio: (...children: Node[] | any[]) => HTMLAudioElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const b: (arg0: [any][] | undefined) => HTMLElement;
+export const b: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLBaseElement}
+ * @type {(...children: Node[]|Object[])=>HTMLBaseElement}
  */
-export const base: (arg0: [any][] | undefined) => HTMLBaseElement;
+export const base: (...children: Node[] | any[]) => HTMLBaseElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const bdi: (arg0: [any][] | undefined) => HTMLElement;
+export const bdi: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const bdo: (arg0: [any][] | undefined) => HTMLElement;
+export const bdo: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const big: (arg0: [any][] | undefined) => HTMLElement;
+export const big: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLQuoteElement}
+ * @type {(...children: Node[]|Object[])=>HTMLQuoteElement}
  */
-export const blockquote: (arg0: [any][] | undefined) => HTMLQuoteElement;
+export const blockquote: (...children: Node[] | any[]) => HTMLQuoteElement;
 /**
- * @type {function(...[*]=): HTMLBodyElement}
+ * @type {(...children: Node[]|Object[])=>HTMLBodyElement}
  */
-export const body: (arg0: [any][] | undefined) => HTMLBodyElement;
+export const body: (...children: Node[] | any[]) => HTMLBodyElement;
 /**
- * @type {function(...[*]=): HTMLBRElement}
+ * @type {(...children: Node[]|Object[])=>HTMLBRElement}
  */
-export const br: (arg0: [any][] | undefined) => HTMLBRElement;
+export const br: (...children: Node[] | any[]) => HTMLBRElement;
 /**
- * @type {function(...[*]=): HTMLButtonElement}
+ * @type {(...children: Node[]|Object[])=>HTMLButtonElement}
  */
-export const button: (arg0: [any][] | undefined) => HTMLButtonElement;
+export const button: (...children: Node[] | any[]) => HTMLButtonElement;
 /**
- * @type {function(...[*]=): HTMLCanvasElement}
+ * @type {(...children: Node[]|Object[])=>HTMLCanvasElement}
  */
-export const canvas: (arg0: [any][] | undefined) => HTMLCanvasElement;
+export const canvas: (...children: Node[] | any[]) => HTMLCanvasElement;
 /**
- * @type {function(...[*]=): HTMLTableCaptionElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTableCaptionElement}
  */
-export const caption: (arg0: [any][] | undefined) => HTMLTableCaptionElement;
+export const caption: (...children: Node[] | any[]) => HTMLTableCaptionElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const cite: (arg0: [any][] | undefined) => HTMLElement;
+export const cite: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const code: (arg0: [any][] | undefined) => HTMLElement;
+export const code: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLTableColElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTableColElement}
  */
-export const col: (arg0: [any][] | undefined) => HTMLTableColElement;
+export const col: (...children: Node[] | any[]) => HTMLTableColElement;
 /**
- * @type {function(...[*]=): HTMLTableColElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTableColElement}
  */
-export const colgroup: (arg0: [any][] | undefined) => HTMLTableColElement;
+export const colgroup: (...children: Node[] | any[]) => HTMLTableColElement;
 /**
- * @type {function(...[*]=): HTMLDataElement}
+ * @type {(...children: Node[]|Object[])=>HTMLDataElement}
  */
-export const data: (arg0: [any][] | undefined) => HTMLDataElement;
+export const data: (...children: Node[] | any[]) => HTMLDataElement;
 /**
- * @type {function(...[*]=): HTMLDataListElement}
+ * @type {(...children: Node[]|Object[])=>HTMLDataListElement}
  */
-export const datalist: (arg0: [any][] | undefined) => HTMLDataListElement;
+export const datalist: (...children: Node[] | any[]) => HTMLDataListElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const dd: (arg0: [any][] | undefined) => HTMLElement;
+export const dd: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLModElement}
+ * @type {(...children: Node[]|Object[])=>HTMLModElement}
  */
-export const del: (arg0: [any][] | undefined) => HTMLModElement;
+export const del: (...children: Node[] | any[]) => HTMLModElement;
 /**
- * @type {function(...[*]=): HTMLDetailsElement}
+ * @type {(...children: Node[]|Object[])=>HTMLDetailsElement}
  */
-export const details: (arg0: [any][] | undefined) => HTMLDetailsElement;
+export const details: (...children: Node[] | any[]) => HTMLDetailsElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const dfn: (arg0: [any][] | undefined) => HTMLElement;
+export const dfn: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLDialogElement}
+ * @type {(...children: Node[]|Object[])=>HTMLDialogElement}
  */
-export const dialog: (arg0: [any][] | undefined) => HTMLDialogElement;
+export const dialog: (...children: Node[] | any[]) => HTMLDialogElement;
 /**
- * @type {function(...[*]=): HTMLDirectoryElement}
+ * @type {(...children: Node[]|Object[])=>HTMLDirectoryElement}
  */
-export const dir: (arg0: [any][] | undefined) => HTMLDirectoryElement;
+export const dir: (...children: Node[] | any[]) => HTMLDirectoryElement;
 /**
- * @type {function(...[*]=): HTMLDivElement}
+ * @type {(...children: Node[]|Object[])=>HTMLDivElement}
  */
-export const div: (arg0: [any][] | undefined) => HTMLDivElement;
+export const div: (...children: Node[] | any[]) => HTMLDivElement;
 /**
- * @type {function(...[*]=): HTMLDListElement}
+ * @type {(...children: Node[]|Object[])=>HTMLDListElement}
  */
-export const dl: (arg0: [any][] | undefined) => HTMLDListElement;
+export const dl: (...children: Node[] | any[]) => HTMLDListElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const dt: (arg0: [any][] | undefined) => HTMLElement;
+export const dt: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const em: (arg0: [any][] | undefined) => HTMLElement;
+export const em: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLEmbedElement}
+ * @type {(...children: Node[]|Object[])=>HTMLEmbedElement}
  */
-export const embed: (arg0: [any][] | undefined) => HTMLEmbedElement;
+export const embed: (...children: Node[] | any[]) => HTMLEmbedElement;
 /**
- * @type {function(...[*]=): HTMLFieldSetElement}
+ * @type {(...children: Node[]|Object[])=>HTMLFieldSetElement}
  */
-export const fieldset: (arg0: [any][] | undefined) => HTMLFieldSetElement;
+export const fieldset: (...children: Node[] | any[]) => HTMLFieldSetElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const figcaption: (arg0: [any][] | undefined) => HTMLElement;
+export const figcaption: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const figure: (arg0: [any][] | undefined) => HTMLElement;
+export const figure: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLDivElement}
+ * @type {(...children: Node[]|Object[])=>HTMLDivElement}
  */
-export const flexCol: (arg0: [any][] | undefined) => HTMLDivElement;
+export const flexCol: (...children: Node[] | any[]) => HTMLDivElement;
 /**
- * @type {function(...[*]=): HTMLDivElement}
+ * @type {(...children: Node[]|Object[])=>HTMLDivElement}
  */
-export const flexCenteredCol: (arg0: [any][] | undefined) => HTMLDivElement;
+export const flexCenteredCol: (...children: Node[] | any[]) => HTMLDivElement;
 /**
- * @type {function(...[*]=): HTMLDivElement}
+ * @type {(...children: Node[]|Object[])=>HTMLDivElement}
  */
-export const flexRow: (arg0: [any][] | undefined) => HTMLDivElement;
+export const flexRow: (...children: Node[] | any[]) => HTMLDivElement;
 /**
- * @type {function(...[*]=): HTMLDivElement}
+ * @type {(...children: Node[]|Object[])=>HTMLDivElement}
  */
-export const flexCenteredRow: (arg0: [any][] | undefined) => HTMLDivElement;
+export const flexCenteredRow: (...children: Node[] | any[]) => HTMLDivElement;
 /**
- * @type {function(...[*]=): HTMLFontElement}
+ * @type {(...children: Node[]|Object[])=>HTMLFontElement}
  */
-export const font: (arg0: [any][] | undefined) => HTMLFontElement;
+export const font: (...children: Node[] | any[]) => HTMLFontElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const footer: (arg0: [any][] | undefined) => HTMLElement;
+export const footer: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLFormElement}
+ * @type {(...children: Node[]|Object[])=>HTMLFormElement}
  */
-export const form: (arg0: [any][] | undefined) => HTMLFormElement;
+export const form: (...children: Node[] | any[]) => HTMLFormElement;
 /**
- * @type {function(...[*]=): HTMLFrameElement}
+ * @type {(...children: Node[]|Object[])=>HTMLFrameElement}
  */
-export const frame: (arg0: [any][] | undefined) => HTMLFrameElement;
+export const frame: (...children: Node[] | any[]) => HTMLFrameElement;
 /**
- * @type {function(...[*]=): HTMLFrameSetElement}
+ * @type {(...children: Node[]|Object[])=>HTMLFrameSetElement}
  */
-export const frameset: (arg0: [any][] | undefined) => HTMLFrameSetElement;
+export const frameset: (...children: Node[] | any[]) => HTMLFrameSetElement;
 /**
- * @type {function(...[*]=): HTMLHeadingElement}
+ * @type {(...children: Node[]|Object[])=>HTMLHeadingElement}
  */
-export const h1: (arg0: [any][] | undefined) => HTMLHeadingElement;
+export const h1: (...children: Node[] | any[]) => HTMLHeadingElement;
 /**
- * @type {function(...[*]=): HTMLHeadingElement}
+ * @type {(...children: Node[]|Object[])=>HTMLHeadingElement}
  */
-export const h2: (arg0: [any][] | undefined) => HTMLHeadingElement;
+export const h2: (...children: Node[] | any[]) => HTMLHeadingElement;
 /**
- * @type {function(...[*]=): HTMLHeadingElement}
+ * @type {(...children: Node[]|Object[])=>HTMLHeadingElement}
  */
-export const h3: (arg0: [any][] | undefined) => HTMLHeadingElement;
+export const h3: (...children: Node[] | any[]) => HTMLHeadingElement;
 /**
- * @type {function(...[*]=): HTMLHeadingElement}
+ * @type {(...children: Node[]|Object[])=>HTMLHeadingElement}
  */
-export const h4: (arg0: [any][] | undefined) => HTMLHeadingElement;
+export const h4: (...children: Node[] | any[]) => HTMLHeadingElement;
 /**
- * @type {function(...[*]=): HTMLHeadingElement}
+ * @type {(...children: Node[]|Object[])=>HTMLHeadingElement}
  */
-export const h5: (arg0: [any][] | undefined) => HTMLHeadingElement;
+export const h5: (...children: Node[] | any[]) => HTMLHeadingElement;
 /**
- * @type {function(...[*]=): HTMLHeadingElement}
+ * @type {(...children: Node[]|Object[])=>HTMLHeadingElement}
  */
-export const h6: (arg0: [any][] | undefined) => HTMLHeadingElement;
+export const h6: (...children: Node[] | any[]) => HTMLHeadingElement;
 /**
- * @type {function(...[*]=): HTMLHeadElement}
+ * @type {(...children: Node[]|Object[])=>HTMLHeadElement}
  */
-export const head: (arg0: [any][] | undefined) => HTMLHeadElement;
+export const head: (...children: Node[] | any[]) => HTMLHeadElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const header: (arg0: [any][] | undefined) => HTMLElement;
+export const header: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const hgroup: (arg0: [any][] | undefined) => HTMLElement;
+export const hgroup: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLHRElement}
+ * @type {(...children: Node[]|Object[])=>HTMLHRElement}
  */
-export const hr: (arg0: [any][] | undefined) => HTMLHRElement;
+export const hr: (...children: Node[] | any[]) => HTMLHRElement;
 /**
- * @type {function(...[*]=): HTMLHtmlElement}
+ * @type {(...children: Node[]|Object[])=>HTMLHtmlElement}
  */
-export const html: (arg0: [any][] | undefined) => HTMLHtmlElement;
+export const html: (...children: Node[] | any[]) => HTMLHtmlElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const i: (arg0: [any][] | undefined) => HTMLElement;
+export const i: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLIFrameElement}
+ * @type {(...children: Node[]|Object[])=>HTMLIFrameElement}
  */
-export const iframe: (arg0: [any][] | undefined) => HTMLIFrameElement;
+export const iframe: (...children: Node[] | any[]) => HTMLIFrameElement;
 /**
- * @type {function(...[*]=): HTMLImageElement}
+ * @type {(...children: Node[]|Object[])=>HTMLImageElement}
  */
-export const img: (arg0: [any][] | undefined) => HTMLImageElement;
+export const img: (...children: Node[] | any[]) => HTMLImageElement;
 /**
- * @type {function(...[*]=): HTMLInputElement}
+ * @type {(...children: Node[]|Object[])=>HTMLInputElement}
  */
-export const input: (arg0: [any][] | undefined) => HTMLInputElement;
+export const input: (...children: Node[] | any[]) => HTMLInputElement;
 /**
- * @type {function(...[*]=): HTMLModElement}
+ * @type {(...children: Node[]|Object[])=>HTMLModElement}
  */
-export const ins: (arg0: [any][] | undefined) => HTMLModElement;
+export const ins: (...children: Node[] | any[]) => HTMLModElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const kbd: (arg0: [any][] | undefined) => HTMLElement;
+export const kbd: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLLabelElement}
+ * @type {(...children: Node[]|Object[])=>HTMLLabelElement}
  */
-export const label: (arg0: [any][] | undefined) => HTMLLabelElement;
+export const label: (...children: Node[] | any[]) => HTMLLabelElement;
 /**
- * @type {function(...[*]=): HTMLLegendElement}
+ * @type {(...children: Node[]|Object[])=>HTMLLegendElement}
  */
-export const legend: (arg0: [any][] | undefined) => HTMLLegendElement;
+export const legend: (...children: Node[] | any[]) => HTMLLegendElement;
 /**
- * @type {function(...[*]=): HTMLLIElement}
+ * @type {(...children: Node[]|Object[])=>HTMLLIElement}
  */
-export const li: (arg0: [any][] | undefined) => HTMLLIElement;
+export const li: (...children: Node[] | any[]) => HTMLLIElement;
 /**
- * @type {function(...[*]=): HTMLLinkElement}
+ * @type {(...children: Node[]|Object[])=>HTMLLinkElement}
  */
-export const link: (arg0: [any][] | undefined) => HTMLLinkElement;
+export const link: (...children: Node[] | any[]) => HTMLLinkElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const main: (arg0: [any][] | undefined) => HTMLElement;
+export const main: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLMapElement}
+ * @type {(...children: Node[]|Object[])=>HTMLMapElement}
  */
-export const map: (arg0: [any][] | undefined) => HTMLMapElement;
+export const map: (...children: Node[] | any[]) => HTMLMapElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const mark: (arg0: [any][] | undefined) => HTMLElement;
+export const mark: (...children: Node[] | any[]) => HTMLElement;
 /**
  * The best html element for every occasion.
- * @type {function(...[*]=): HTMLMarqueeElement}
+ * @type {(...children: Node[]|Object[])=>HTMLMarqueeElement}
  */
-export const marquee: (arg0: [any][] | undefined) => HTMLMarqueeElement;
+export const marquee: (...children: Node[] | any[]) => HTMLMarqueeElement;
 /**
- * @type {function(...[*]=): HTMLMenuElement}
+ * @type {(...children: Node[]|Object[])=>HTMLMenuElement}
  */
-export const menu: (arg0: [any][] | undefined) => HTMLMenuElement;
+export const menu: (...children: Node[] | any[]) => HTMLMenuElement;
 /**
- * @type {function(...[*]=): HTMLMetaElement}
+ * @type {(...children: Node[]|Object[])=>HTMLMetaElement}
  */
-export const meta: (arg0: [any][] | undefined) => HTMLMetaElement;
+export const meta: (...children: Node[] | any[]) => HTMLMetaElement;
 /**
- * @type {function(...[*]=): HTMLMeterElement}
+ * @type {(...children: Node[]|Object[])=>HTMLMeterElement}
  */
-export const meter: (arg0: [any][] | undefined) => HTMLMeterElement;
+export const meter: (...children: Node[] | any[]) => HTMLMeterElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const nav: (arg0: [any][] | undefined) => HTMLElement;
+export const nav: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const noframes: (arg0: [any][] | undefined) => HTMLElement;
+export const noframes: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const noscript: (arg0: [any][] | undefined) => HTMLElement;
+export const noscript: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLObjectElement}
+ * @type {(...children: Node[]|Object[])=>HTMLObjectElement}
  */
-export const object: (arg0: [any][] | undefined) => HTMLObjectElement;
+export const object: (...children: Node[] | any[]) => HTMLObjectElement;
 /**
- * @type {function(...[*]=): HTMLOListElement}
+ * @type {(...children: Node[]|Object[])=>HTMLOListElement}
  */
-export const ol: (arg0: [any][] | undefined) => HTMLOListElement;
+export const ol: (...children: Node[] | any[]) => HTMLOListElement;
 /**
- * @type {function(...[*]=): HTMLOptGroupElement}
+ * @type {(...children: Node[]|Object[])=>HTMLOptGroupElement}
  */
-export const optgroup: (arg0: [any][] | undefined) => HTMLOptGroupElement;
+export const optgroup: (...children: Node[] | any[]) => HTMLOptGroupElement;
 /**
- * @type {function(...[*]=): HTMLOptionElement}
+ * @type {(...children: Node[]|Object[])=>HTMLOptionElement}
  */
-export const option: (arg0: [any][] | undefined) => HTMLOptionElement;
+export const option: (...children: Node[] | any[]) => HTMLOptionElement;
 /**
- * @type {function(...[*]=): HTMLOutputElement}
+ * @type {(...children: Node[]|Object[])=>HTMLOutputElement}
  */
-export const output: (arg0: [any][] | undefined) => HTMLOutputElement;
+export const output: (...children: Node[] | any[]) => HTMLOutputElement;
 /**
- * @type {function(...[*]=): HTMLParagraphElement}
+ * @type {(...children: Node[]|Object[])=>HTMLParagraphElement}
  */
-export const p: (arg0: [any][] | undefined) => HTMLParagraphElement;
+export const p: (...children: Node[] | any[]) => HTMLParagraphElement;
 /**
- * @type {function(...[*]=): HTMLParamElement}
+ * @type {(...children: Node[]|Object[])=>HTMLParamElement}
  */
-export const param: (arg0: [any][] | undefined) => HTMLParamElement;
+export const param: (...children: Node[] | any[]) => HTMLParamElement;
 /**
- * @type {function(...[*]=): HTMLPictureElement}
+ * @type {(...children: Node[]|Object[])=>HTMLPictureElement}
  */
-export const picture: (arg0: [any][] | undefined) => HTMLPictureElement;
+export const picture: (...children: Node[] | any[]) => HTMLPictureElement;
 /**
- * @type {function(...[*]=): HTMLPreElement}
+ * @type {(...children: Node[]|Object[])=>HTMLPreElement}
  */
-export const pre: (arg0: [any][] | undefined) => HTMLPreElement;
+export const pre: (...children: Node[] | any[]) => HTMLPreElement;
 /**
- * @type {function(...[*]=): HTMLProgressElement}
+ * @type {(...children: Node[]|Object[])=>HTMLProgressElement}
  */
-export const progress: (arg0: [any][] | undefined) => HTMLProgressElement;
+export const progress: (...children: Node[] | any[]) => HTMLProgressElement;
 /**
- * @type {function(...[*]=): HTMLQuoteElement}
+ * @type {(...children: Node[]|Object[])=>HTMLQuoteElement}
  */
-export const q: (arg0: [any][] | undefined) => HTMLQuoteElement;
+export const q: (...children: Node[] | any[]) => HTMLQuoteElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const rp: (arg0: [any][] | undefined) => HTMLElement;
+export const rp: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const rt: (arg0: [any][] | undefined) => HTMLElement;
+export const rt: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const ruby: (arg0: [any][] | undefined) => HTMLElement;
+export const ruby: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const s: (arg0: [any][] | undefined) => HTMLElement;
+export const s: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const samp: (arg0: [any][] | undefined) => HTMLElement;
+export const samp: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLScriptElement}
+ * @type {(...children: Node[]|Object[])=>HTMLScriptElement}
  */
-export const script: (arg0: [any][] | undefined) => HTMLScriptElement;
+export const script: (...children: Node[] | any[]) => HTMLScriptElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const section: (arg0: [any][] | undefined) => HTMLElement;
+export const section: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLSelectElement}
+ * @type {(...children: Node[]|Object[])=>HTMLSelectElement}
  */
-export const select: (arg0: [any][] | undefined) => HTMLSelectElement;
+export const select: (...children: Node[] | any[]) => HTMLSelectElement;
 /**
- * @type {function(...[*]=): HTMLSlotElement}
+ * @type {(...children: Node[]|Object[])=>HTMLSlotElement}
  */
-export const slot: (arg0: [any][] | undefined) => HTMLSlotElement;
+export const slot: (...children: Node[] | any[]) => HTMLSlotElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const small: (arg0: [any][] | undefined) => HTMLElement;
+export const small: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLSourceElement}
+ * @type {(...children: Node[]|Object[])=>HTMLSourceElement}
  */
-export const source: (arg0: [any][] | undefined) => HTMLSourceElement;
+export const source: (...children: Node[] | any[]) => HTMLSourceElement;
 /**
- * @type {function(...[*]=): HTMLSpanElement}
+ * @type {(...children: Node[]|Object[])=>HTMLSpanElement}
  */
-export const span: (arg0: [any][] | undefined) => HTMLSpanElement;
+export const span: (...children: Node[] | any[]) => HTMLSpanElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const strong: (arg0: [any][] | undefined) => HTMLElement;
+export const strong: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLStyleElement}
+ * @type {(...children: Node[]|Object[])=>HTMLStyleElement}
  */
-export const style: (arg0: [any][] | undefined) => HTMLStyleElement;
+export const style: (...children: Node[] | any[]) => HTMLStyleElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const sub: (arg0: [any][] | undefined) => HTMLElement;
+export const sub: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const summary: (arg0: [any][] | undefined) => HTMLElement;
+export const summary: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const sup: (arg0: [any][] | undefined) => HTMLElement;
+export const sup: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLTableElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTableElement}
  */
-export const table: (arg0: [any][] | undefined) => HTMLTableElement;
+export const table: (...children: Node[] | any[]) => HTMLTableElement;
 /**
- * @type {function(...[*]=): HTMLTableSectionElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTableSectionElement}
  */
-export const tbody: (arg0: [any][] | undefined) => HTMLTableSectionElement;
+export const tbody: (...children: Node[] | any[]) => HTMLTableSectionElement;
 /**
- * @type {function(...[*]=): HTMLTableDataCellElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTableDataCellElement}
  */
-export const td: (arg0: [any][] | undefined) => HTMLTableDataCellElement;
+export const td: (...children: Node[] | any[]) => HTMLTableDataCellElement;
 /**
- * @type {function(...[*]=): HTMLTemplateElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTemplateElement}
  */
-export const template: (arg0: [any][] | undefined) => HTMLTemplateElement;
+export const template: (...children: Node[] | any[]) => HTMLTemplateElement;
 /**
- * @type {function(...[*]=): HTMLTextAreaElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTextAreaElement}
  */
-export const textarea: (arg0: [any][] | undefined) => HTMLTextAreaElement;
+export const textarea: (...children: Node[] | any[]) => HTMLTextAreaElement;
 /**
- * @type {function(...[*]=): HTMLTableSectionElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTableSectionElement}
  */
-export const tfoot: (arg0: [any][] | undefined) => HTMLTableSectionElement;
+export const tfoot: (...children: Node[] | any[]) => HTMLTableSectionElement;
 /**
- * @type {function(...[*]=): HTMLTableHeaderCellElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTableHeaderCellElement}
  */
-export const th: (arg0: [any][] | undefined) => HTMLTableHeaderCellElement;
+export const th: (...children: Node[] | any[]) => HTMLTableHeaderCellElement;
 /**
- * @type {function(...[*]=): HTMLTableSectionElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTableSectionElement}
  */
-export const thead: (arg0: [any][] | undefined) => HTMLTableSectionElement;
+export const thead: (...children: Node[] | any[]) => HTMLTableSectionElement;
 /**
- * @type {function(...[*]=): HTMLTimeElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTimeElement}
  */
-export const time: (arg0: [any][] | undefined) => HTMLTimeElement;
+export const time: (...children: Node[] | any[]) => HTMLTimeElement;
 /**
- * @type {function(...[*]=): HTMLTitleElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTitleElement}
  */
-export const title: (arg0: [any][] | undefined) => HTMLTitleElement;
+export const title: (...children: Node[] | any[]) => HTMLTitleElement;
 /**
- * @type {function(...[*]=): HTMLTableRowElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTableRowElement}
  */
-export const tr: (arg0: [any][] | undefined) => HTMLTableRowElement;
+export const tr: (...children: Node[] | any[]) => HTMLTableRowElement;
 /**
- * @type {function(...[*]=): HTMLTrackElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTrackElement}
  */
-export const track: (arg0: [any][] | undefined) => HTMLTrackElement;
+export const track: (...children: Node[] | any[]) => HTMLTrackElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const tt: (arg0: [any][] | undefined) => HTMLElement;
+export const tt: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const u: (arg0: [any][] | undefined) => HTMLElement;
+export const u: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLUListElement}
+ * @type {(...children: Node[]|Object[])=>HTMLUListElement}
  */
-export const ul: (arg0: [any][] | undefined) => HTMLUListElement;
+export const ul: (...children: Node[] | any[]) => HTMLUListElement;
 /**
  * name conflicts with js syntax
  *
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const var_: (arg0: [any][] | undefined) => HTMLElement;
+export const var_: (...children: Node[] | any[]) => HTMLElement;
 /**
- * @type {function(...[*]=): HTMLVideoElement}
+ * @type {(...children: Node[]|Object[])=>HTMLVideoElement}
  */
-export const video: (arg0: [any][] | undefined) => HTMLVideoElement;
+export const video: (...children: Node[] | any[]) => HTMLVideoElement;
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
-export const wbr: (arg0: [any][] | undefined) => HTMLElement;
+export const wbr: (...children: Node[] | any[]) => HTMLElement;
 //# sourceMappingURL=fnelements.d.mts.map

@@ -1,202 +1,202 @@
 import { h, styled } from './fntags.mjs'
 
 /**
- * @type {function(...[*]=): HTMLAnchorElement}
+ * @type {(...children: Node[]|Object[])=>HTMLAnchorElement}
  */
 export const a = (...children) => h('a', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const abbr = (...children) => h('abbr', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const acronym = (...children) => h('acronym', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const address = (...children) => h('address', ...children)
 
 /**
- * @type {function(...[*]=): HTMLAreaElement}
+ * @type {(...children: Node[]|Object[])=>HTMLAreaElement}
  */
 export const area = (...children) => h('area', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const article = (...children) => h('article', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const aside = (...children) => h('aside', ...children)
 
 /**
- * @type {function(...[*]=): HTMLAudioElement}
+ * @type {(...children: Node[]|Object[])=>HTMLAudioElement}
  */
 export const audio = (...children) => h('audio', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const b = (...children) => h('b', ...children)
 
 /**
- * @type {function(...[*]=): HTMLBaseElement}
+ * @type {(...children: Node[]|Object[])=>HTMLBaseElement}
  */
 export const base = (...children) => h('base', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const bdi = (...children) => h('bdi', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const bdo = (...children) => h('bdo', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const big = (...children) => h('big', ...children)
 
 /**
- * @type {function(...[*]=): HTMLQuoteElement}
+ * @type {(...children: Node[]|Object[])=>HTMLQuoteElement}
  */
 export const blockquote = (...children) => h('blockquote', ...children)
 
 /**
- * @type {function(...[*]=): HTMLBodyElement}
+ * @type {(...children: Node[]|Object[])=>HTMLBodyElement}
  */
 export const body = (...children) => h('body', ...children)
 
 /**
- * @type {function(...[*]=): HTMLBRElement}
+ * @type {(...children: Node[]|Object[])=>HTMLBRElement}
  */
 export const br = (...children) => h('br', ...children)
 
 /**
- * @type {function(...[*]=): HTMLButtonElement}
+ * @type {(...children: Node[]|Object[])=>HTMLButtonElement}
  */
 export const button = (...children) => h('button', ...children)
 
 /**
- * @type {function(...[*]=): HTMLCanvasElement}
+ * @type {(...children: Node[]|Object[])=>HTMLCanvasElement}
  */
 export const canvas = (...children) => h('canvas', ...children)
 
 /**
- * @type {function(...[*]=): HTMLTableCaptionElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTableCaptionElement}
  */
 export const caption = (...children) => h('caption', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const cite = (...children) => h('cite', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const code = (...children) => h('code', ...children)
 
 /**
- * @type {function(...[*]=): HTMLTableColElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTableColElement}
  */
 export const col = (...children) => h('col', ...children)
 
 /**
- * @type {function(...[*]=): HTMLTableColElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTableColElement}
  */
 export const colgroup = (...children) => h('colgroup', ...children)
 
 /**
- * @type {function(...[*]=): HTMLDataElement}
+ * @type {(...children: Node[]|Object[])=>HTMLDataElement}
  */
 export const data = (...children) => h('data', ...children)
 
 /**
- * @type {function(...[*]=): HTMLDataListElement}
+ * @type {(...children: Node[]|Object[])=>HTMLDataListElement}
  */
 export const datalist = (...children) => h('datalist', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const dd = (...children) => h('dd', ...children)
 
 /**
- * @type {function(...[*]=): HTMLModElement}
+ * @type {(...children: Node[]|Object[])=>HTMLModElement}
  */
 export const del = (...children) => h('del', ...children)
 
 /**
- * @type {function(...[*]=): HTMLDetailsElement}
+ * @type {(...children: Node[]|Object[])=>HTMLDetailsElement}
  */
 export const details = (...children) => h('details', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const dfn = (...children) => h('dfn', ...children)
 
 /**
- * @type {function(...[*]=): HTMLDialogElement}
+ * @type {(...children: Node[]|Object[])=>HTMLDialogElement}
  */
 export const dialog = (...children) => h('dialog', ...children)
 
 /**
- * @type {function(...[*]=): HTMLDirectoryElement}
+ * @type {(...children: Node[]|Object[])=>HTMLDirectoryElement}
  */
 export const dir = (...children) => h('dir', ...children)
 
 /**
- * @type {function(...[*]=): HTMLDivElement}
+ * @type {(...children: Node[]|Object[])=>HTMLDivElement}
  */
 export const div = (...children) => h('div', ...children)
 
 /**
- * @type {function(...[*]=): HTMLDListElement}
+ * @type {(...children: Node[]|Object[])=>HTMLDListElement}
  */
 export const dl = (...children) => h('dl', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const dt = (...children) => h('dt', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const em = (...children) => h('em', ...children)
 
 /**
- * @type {function(...[*]=): HTMLEmbedElement}
+ * @type {(...children: Node[]|Object[])=>HTMLEmbedElement}
  */
 export const embed = (...children) => h('embed', ...children)
 
 /**
- * @type {function(...[*]=): HTMLFieldSetElement}
+ * @type {(...children: Node[]|Object[])=>HTMLFieldSetElement}
  */
 export const fieldset = (...children) => h('fieldset', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const figcaption = (...children) => h('figcaption', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const figure = (...children) => h('figure', ...children)
 
 /**
- * @type {function(...[*]=): HTMLDivElement}
+ * @type {(...children: Node[]|Object[])=>HTMLDivElement}
  */
 export const flexCol = (...children) => styled(
   {
@@ -208,7 +208,7 @@ export const flexCol = (...children) => styled(
 )
 
 /**
- * @type {function(...[*]=): HTMLDivElement}
+ * @type {(...children: Node[]|Object[])=>HTMLDivElement}
  */
 export const flexCenteredCol = (...children) => styled(
   {
@@ -221,7 +221,7 @@ export const flexCenteredCol = (...children) => styled(
 )
 
 /**
- * @type {function(...[*]=): HTMLDivElement}
+ * @type {(...children: Node[]|Object[])=>HTMLDivElement}
  */
 export const flexRow = (...children) => styled(
   {
@@ -233,7 +233,7 @@ export const flexRow = (...children) => styled(
 )
 
 /**
- * @type {function(...[*]=): HTMLDivElement}
+ * @type {(...children: Node[]|Object[])=>HTMLDivElement}
  */
 export const flexCenteredRow = (...children) => styled(
   {
@@ -246,414 +246,414 @@ export const flexCenteredRow = (...children) => styled(
 )
 
 /**
- * @type {function(...[*]=): HTMLFontElement}
+ * @type {(...children: Node[]|Object[])=>HTMLFontElement}
  */
 export const font = (...children) => h(font, ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const footer = (...children) => h('footer', ...children)
 
 /**
- * @type {function(...[*]=): HTMLFormElement}
+ * @type {(...children: Node[]|Object[])=>HTMLFormElement}
  */
 export const form = (...children) => h('form', ...children)
 
 /**
- * @type {function(...[*]=): HTMLFrameElement}
+ * @type {(...children: Node[]|Object[])=>HTMLFrameElement}
  */
 export const frame = (...children) => h('frame', ...children)
 
 /**
- * @type {function(...[*]=): HTMLFrameSetElement}
+ * @type {(...children: Node[]|Object[])=>HTMLFrameSetElement}
  */
 export const frameset = (...children) => h('frameset', ...children)
 
 /**
- * @type {function(...[*]=): HTMLHeadingElement}
+ * @type {(...children: Node[]|Object[])=>HTMLHeadingElement}
  */
 export const h1 = (...children) => h('h1', ...children)
 
 /**
- * @type {function(...[*]=): HTMLHeadingElement}
+ * @type {(...children: Node[]|Object[])=>HTMLHeadingElement}
  */
 export const h2 = (...children) => h('h2', ...children)
 
 /**
- * @type {function(...[*]=): HTMLHeadingElement}
+ * @type {(...children: Node[]|Object[])=>HTMLHeadingElement}
  */
 export const h3 = (...children) => h('h3', ...children)
 
 /**
- * @type {function(...[*]=): HTMLHeadingElement}
+ * @type {(...children: Node[]|Object[])=>HTMLHeadingElement}
  */
 export const h4 = (...children) => h('h4', ...children)
 
 /**
- * @type {function(...[*]=): HTMLHeadingElement}
+ * @type {(...children: Node[]|Object[])=>HTMLHeadingElement}
  */
 export const h5 = (...children) => h('h5', ...children)
 
 /**
- * @type {function(...[*]=): HTMLHeadingElement}
+ * @type {(...children: Node[]|Object[])=>HTMLHeadingElement}
  */
 export const h6 = (...children) => h('h6', ...children)
 
 /**
- * @type {function(...[*]=): HTMLHeadElement}
+ * @type {(...children: Node[]|Object[])=>HTMLHeadElement}
  */
 export const head = (...children) => h('head', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const header = (...children) => h('header', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const hgroup = (...children) => h('hgroup', ...children)
 
 /**
- * @type {function(...[*]=): HTMLHRElement}
+ * @type {(...children: Node[]|Object[])=>HTMLHRElement}
  */
 export const hr = (...children) => h('hr', ...children)
 
 /**
- * @type {function(...[*]=): HTMLHtmlElement}
+ * @type {(...children: Node[]|Object[])=>HTMLHtmlElement}
  */
 export const html = (...children) => h('html', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const i = (...children) => h('i', ...children)
 
 /**
- * @type {function(...[*]=): HTMLIFrameElement}
+ * @type {(...children: Node[]|Object[])=>HTMLIFrameElement}
  */
 export const iframe = (...children) => h('iframe', ...children)
 
 /**
- * @type {function(...[*]=): HTMLImageElement}
+ * @type {(...children: Node[]|Object[])=>HTMLImageElement}
  */
 export const img = (...children) => h('img', ...children)
 
 /**
- * @type {function(...[*]=): HTMLInputElement}
+ * @type {(...children: Node[]|Object[])=>HTMLInputElement}
  */
 export const input = (...children) => h('input', ...children)
 
 /**
- * @type {function(...[*]=): HTMLModElement}
+ * @type {(...children: Node[]|Object[])=>HTMLModElement}
  */
 export const ins = (...children) => h('ins', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const kbd = (...children) => h('kbd', ...children)
 
 /**
- * @type {function(...[*]=): HTMLLabelElement}
+ * @type {(...children: Node[]|Object[])=>HTMLLabelElement}
  */
 export const label = (...children) => h('label', ...children)
 
 /**
- * @type {function(...[*]=): HTMLLegendElement}
+ * @type {(...children: Node[]|Object[])=>HTMLLegendElement}
  */
 export const legend = (...children) => h('legend', ...children)
 
 /**
- * @type {function(...[*]=): HTMLLIElement}
+ * @type {(...children: Node[]|Object[])=>HTMLLIElement}
  */
 export const li = (...children) => h('li', ...children)
 
 /**
- * @type {function(...[*]=): HTMLLinkElement}
+ * @type {(...children: Node[]|Object[])=>HTMLLinkElement}
  */
 export const link = (...children) => h('link', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const main = (...children) => h('main', ...children)
 
 /**
- * @type {function(...[*]=): HTMLMapElement}
+ * @type {(...children: Node[]|Object[])=>HTMLMapElement}
  */
 export const map = (...children) => h('map', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const mark = (...children) => h('mark', ...children)
 
 /**
  * The best html element for every occasion.
- * @type {function(...[*]=): HTMLMarqueeElement}
+ * @type {(...children: Node[]|Object[])=>HTMLMarqueeElement}
  */
 export const marquee = (...children) => h('marquee', ...children)
 
 /**
- * @type {function(...[*]=): HTMLMenuElement}
+ * @type {(...children: Node[]|Object[])=>HTMLMenuElement}
  */
 export const menu = (...children) => h('menu', ...children)
 
 /**
- * @type {function(...[*]=): HTMLMetaElement}
+ * @type {(...children: Node[]|Object[])=>HTMLMetaElement}
  */
 export const meta = (...children) => h('meta', ...children)
 
 /**
- * @type {function(...[*]=): HTMLMeterElement}
+ * @type {(...children: Node[]|Object[])=>HTMLMeterElement}
  */
 export const meter = (...children) => h('meter', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const nav = (...children) => h('nav', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const noframes = (...children) => h('noframes', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const noscript = (...children) => h('noscript', ...children)
 
 /**
- * @type {function(...[*]=): HTMLObjectElement}
+ * @type {(...children: Node[]|Object[])=>HTMLObjectElement}
  */
 export const object = (...children) => h('object', ...children)
 
 /**
- * @type {function(...[*]=): HTMLOListElement}
+ * @type {(...children: Node[]|Object[])=>HTMLOListElement}
  */
 export const ol = (...children) => h('ol', ...children)
 
 /**
- * @type {function(...[*]=): HTMLOptGroupElement}
+ * @type {(...children: Node[]|Object[])=>HTMLOptGroupElement}
  */
 export const optgroup = (...children) => h('optgroup', ...children)
 
 /**
- * @type {function(...[*]=): HTMLOptionElement}
+ * @type {(...children: Node[]|Object[])=>HTMLOptionElement}
  */
 export const option = (...children) => h('option', ...children)
 
 /**
- * @type {function(...[*]=): HTMLOutputElement}
+ * @type {(...children: Node[]|Object[])=>HTMLOutputElement}
  */
 export const output = (...children) => h('output', ...children)
 
 /**
- * @type {function(...[*]=): HTMLParagraphElement}
+ * @type {(...children: Node[]|Object[])=>HTMLParagraphElement}
  */
 export const p = (...children) => h('p', ...children)
 
 /**
- * @type {function(...[*]=): HTMLParamElement}
+ * @type {(...children: Node[]|Object[])=>HTMLParamElement}
  */
 export const param = (...children) => h('param', ...children)
 
 /**
- * @type {function(...[*]=): HTMLPictureElement}
+ * @type {(...children: Node[]|Object[])=>HTMLPictureElement}
  */
 export const picture = (...children) => h('picture', ...children)
 
 /**
- * @type {function(...[*]=): HTMLPreElement}
+ * @type {(...children: Node[]|Object[])=>HTMLPreElement}
  */
 export const pre = (...children) => h('pre', ...children)
 
 /**
- * @type {function(...[*]=): HTMLProgressElement}
+ * @type {(...children: Node[]|Object[])=>HTMLProgressElement}
  */
 export const progress = (...children) => h('progress', ...children)
 
 /**
- * @type {function(...[*]=): HTMLQuoteElement}
+ * @type {(...children: Node[]|Object[])=>HTMLQuoteElement}
  */
 export const q = (...children) => h('q', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const rp = (...children) => h('rp', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const rt = (...children) => h('rt', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const ruby = (...children) => h('ruby', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const s = (...children) => h('s', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const samp = (...children) => h('samp', ...children)
 
 /**
- * @type {function(...[*]=): HTMLScriptElement}
+ * @type {(...children: Node[]|Object[])=>HTMLScriptElement}
  */
 export const script = (...children) => h('script', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const section = (...children) => h('section', ...children)
 
 /**
- * @type {function(...[*]=): HTMLSelectElement}
+ * @type {(...children: Node[]|Object[])=>HTMLSelectElement}
  */
 export const select = (...children) => h('select', ...children)
 
 /**
- * @type {function(...[*]=): HTMLSlotElement}
+ * @type {(...children: Node[]|Object[])=>HTMLSlotElement}
  */
 export const slot = (...children) => h('slot', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const small = (...children) => h('small', ...children)
 
 /**
- * @type {function(...[*]=): HTMLSourceElement}
+ * @type {(...children: Node[]|Object[])=>HTMLSourceElement}
  */
 export const source = (...children) => h('source', ...children)
 
 /**
- * @type {function(...[*]=): HTMLSpanElement}
+ * @type {(...children: Node[]|Object[])=>HTMLSpanElement}
  */
 export const span = (...children) => h('span', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const strong = (...children) => h('strong', ...children)
 
 /**
- * @type {function(...[*]=): HTMLStyleElement}
+ * @type {(...children: Node[]|Object[])=>HTMLStyleElement}
  */
 export const style = (...children) => h('style', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const sub = (...children) => h('sub', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const summary = (...children) => h('summary', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const sup = (...children) => h('sup', ...children)
 
 /**
- * @type {function(...[*]=): HTMLTableElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTableElement}
  */
 export const table = (...children) => h('table', ...children)
 
 /**
- * @type {function(...[*]=): HTMLTableSectionElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTableSectionElement}
  */
 export const tbody = (...children) => h('tbody', ...children)
 
 /**
- * @type {function(...[*]=): HTMLTableDataCellElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTableDataCellElement}
  */
 export const td = (...children) => h('td', ...children)
 
 /**
- * @type {function(...[*]=): HTMLTemplateElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTemplateElement}
  */
 export const template = (...children) => h('template', ...children)
 
 /**
- * @type {function(...[*]=): HTMLTextAreaElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTextAreaElement}
  */
 export const textarea = (...children) => h('textarea', ...children)
 
 /**
- * @type {function(...[*]=): HTMLTableSectionElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTableSectionElement}
  */
 export const tfoot = (...children) => h('tfoot', ...children)
 
 /**
- * @type {function(...[*]=): HTMLTableHeaderCellElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTableHeaderCellElement}
  */
 export const th = (...children) => h('th', ...children)
 
 /**
- * @type {function(...[*]=): HTMLTableSectionElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTableSectionElement}
  */
 export const thead = (...children) => h('thead', ...children)
 
 /**
- * @type {function(...[*]=): HTMLTimeElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTimeElement}
  */
 export const time = (...children) => h('time', ...children)
 
 /**
- * @type {function(...[*]=): HTMLTitleElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTitleElement}
  */
 export const title = (...children) => h('title', ...children)
 
 /**
- * @type {function(...[*]=): HTMLTableRowElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTableRowElement}
  */
 export const tr = (...children) => h('tr', ...children)
 
 /**
- * @type {function(...[*]=): HTMLTrackElement}
+ * @type {(...children: Node[]|Object[])=>HTMLTrackElement}
  */
 export const track = (...children) => h('track', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const tt = (...children) => h('tt', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const u = (...children) => h('u', ...children)
 
 /**
- * @type {function(...[*]=): HTMLUListElement}
+ * @type {(...children: Node[]|Object[])=>HTMLUListElement}
  */
 export const ul = (...children) => h('ul', ...children)
 
 /**
  * name conflicts with js syntax
  *
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const var_ = (...children) => h('var', ...children)
 
 /**
- * @type {function(...[*]=): HTMLVideoElement}
+ * @type {(...children: Node[]|Object[])=>HTMLVideoElement}
  */
 export const video = (...children) => h('video', ...children)
 
 /**
- * @type {function(...[*]=): HTMLElement}
+ * @type {(...children: Node[]|Object[])=>HTMLElement}
  */
 export const wbr = (...children) => h('wbr', ...children)

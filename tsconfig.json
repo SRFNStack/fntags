@@ -3,6 +3,7 @@
   "include": ["index.js","src/*.mjs"],
   "exclude": ["node_modules", "**/*.test.ts", "**/*.test.js"],
   "compilerOptions": {
+    "lib": ["es6","dom"],
     "moduleResolution": "Node",
     "target": "es6",
     "allowJs": true,

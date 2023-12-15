@@ -38,13 +38,13 @@ A container for a state value that can be bound to.
 
 #### Defined in
 
-[fntags.mjs:179](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.mjs#L179)
+[fntags.mjs:179](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fntags.mjs#L179)
 
 ## Functions
 
 ### fnstate
 
-▸ **fnstate**\<`T`\>(`initialValue`, `mapKey`): [`FnState`](fntags.md#fnstate)\<`T`\>
+▸ **fnstate**\<`T`\>(`initialValue`, `mapKey?`): [`FnState`](fntags.md#fnstate)\<`T`\>
 
 Create a state object that can be bound to.
 
@@ -58,8 +58,8 @@ Create a state object that can be bound to.
 
 | Name | Type | Description |
 | :------ | :------ | :------ |
-| `initialValue` | `any` | The initial state |
-| `mapKey` | (`arg0`: `T`) => `any` | A map function to extract a key from an element in the array. Receives the array value to extract the key from. A key can be any unique value. |
+| `initialValue` | `T` | The initial state |
+| `mapKey?` | (`T`: `any`) => `any` | A map function to extract a key from an element in the array. Receives the array value to extract the key from. A key can be any unique value. |
 
 #### Returns
 
@@ -72,7 +72,7 @@ or the changes won't be reflected correctly and binding updates won't be trigger
 
 #### Defined in
 
-[fntags.mjs:193](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.mjs#L193)
+[fntags.mjs:193](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fntags.mjs#L193)
 
 ___
 
@@ -117,7 +117,7 @@ A function that takes a context object and returns a rendered node.
 
 #### Defined in
 
-[fntags.mjs:90](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.mjs#L90)
+[fntags.mjs:90](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fntags.mjs#L90)
 
 ___
 
@@ -141,7 +141,7 @@ the attr object or an empty object
 
 #### Defined in
 
-[fntags.mjs:779](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.mjs#L779)
+[fntags.mjs:779](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fntags.mjs#L779)
 
 ___
 
@@ -167,7 +167,7 @@ The rest of the arguments will be considered children of this element and append
 | Name | Type | Description |
 | :------ | :------ | :------ |
 | `tag` | `string` | html tag to use when created the element |
-| `...children` | `any`[] | optional attributes object and children for the element |
+| `...children` | `any`[] \| `Node`[] | optional attributes object and children for the element |
 
 #### Returns
 
@@ -177,7 +177,7 @@ an html element
 
 #### Defined in
 
-[fntags.mjs:23](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.mjs#L23)
+[fntags.mjs:23](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fntags.mjs#L23)
 
 ___
 
@@ -201,7 +201,7 @@ true if the value is an object that can be used as attributes
 
 #### Defined in
 
-[fntags.mjs:770](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.mjs#L770)
+[fntags.mjs:770](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fntags.mjs#L770)
 
 ___
 
@@ -225,13 +225,13 @@ The rendered node
 
 #### Defined in
 
-[fntags.mjs:656](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.mjs#L656)
+[fntags.mjs:656](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fntags.mjs#L656)
 
 ___
 
 ### styled
 
-▸ **styled**(`style`, `tag`, `children`): `any`
+▸ **styled**(`style`, `tag`, `children`): `HTMLElement`
 
 A function to create an element with a pre-defined style.
 For example, the flex* elements in fnelements.
@@ -242,14 +242,14 @@ For example, the flex* elements in fnelements.
 | :------ | :------ | :------ |
 | `style` | `any` | The style to apply to the element |
 | `tag` | `string` | The tag to use when creating the element |
-| `children` | `any` | The children to append to the element |
+| `children` | `any`[] \| `Node`[] | The children to append to the element |
 
 #### Returns
 
-`any`
+`HTMLElement`
 
 The styled element
 
 #### Defined in
 
-[fntags.mjs:792](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.mjs#L792)
+[fntags.mjs:792](https://github.com/srfnstack/fntags/blob/a0d92b4/src/fntags.mjs#L792)

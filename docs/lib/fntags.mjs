@@ -16,7 +16,7 @@
  * The rest of the arguments will be considered children of this element and appended to it in the same order as passed.
  *
  * @param {string} tag html tag to use when created the element
- * @param {object[]?|Node[]?} children optional attributes object and children for the element
+ * @param {object[]|Node[]} children optional attributes object and children for the element
  * @return {HTMLElement} an html element
  *
  */
@@ -147,17 +147,17 @@ export function fntemplate (templateFn) {
 /**
  * @template T The type of data stored in the state container
  * @typedef FnStateObj A container for a state value that can be bound to.
- * @property {(element: (T)=>void|Node|any?, update: (Node)=>void?) => Node|() => Node} bindAs Bind this state to the given element. This causes the element to update when state changes.
+ * @property {(element: Node|any|()=>Node|any, update?: (Node)=>void) => Node|() => Node} bindAs Bind this state to the given element. This causes the element to update when state changes.
  * If called with no parameters, the state's value will be rendered as an element. If the first parameters is not a function,
  * the second parameter (the update function) must be provided and must be a function. This function receives the node the state is bound to.
- * @property {(parent: Node,element: Node|any, update: (Node)=>void?)=> Node|()=> Node} bindChildren Bind the values of this state to the given element.
+ * @property {(parent: Node|any|()=>Node|any,element: Node|any|()=>Node|any, update?: (Node)=>void)=> Node|()=> Node} bindChildren Bind the values of this state to the given element.
  * Values are items/elements of an array.
  * If the current value is not an array, this will behave the same as bindAs.
  * @property {(prop: string)=>Node|()=>Node} bindProp Bind to a property of an object stored in this state instead of the state itself.
  * Shortcut for `mystate.bindAs((current)=> current[prop])`
  * @property {(attribute: string)=>any} bindAttr Bind attribute values to state changes
  * @property {(style: string)=> string} bindStyle Bind style values to state changes
- * @property {(element: Node|any, update: (Node)=>void?)=>Node|()=>Node} bindSelect Bind selected state to an element
+ * @property {(element: Node|any|()=>Node|any, update?: (Node)=>void)=>Node|()=>Node} bindSelect Bind selected state to an element
  * @property {(attribute: string)=>any} bindSelectAttr Bind selected state to an attribute
  * @property {(key: any)=>void} select Mark the element with the given key as selected
  * where the key is identified using the mapKey function passed on creation of the fnstate.
@@ -182,8 +182,8 @@ export function fntemplate (templateFn) {
 /**
  * Create a state object that can be bound to.
  * @template T
- * @param {T|any} initialValue The initial state
- * @param {function(T): any?} mapKey A map function to extract a key from an element in the array. Receives the array value to extract the key from.
+ * @param {T} initialValue The initial state
+ * @param {(T)=>any} [mapKey] A map function to extract a key from an element in the array. Receives the array value to extract the key from.
  * A key can be any unique value.
  * @return {FnState<T>} A function that can be used to get and set the state.
  * When getting the state, you get the actual reference to the underlying value.
@@ -245,14 +245,14 @@ export function fnstate (initialValue, mapKey) {
   /**
    * Bind attribute values to state changes
    * @param [attribute] A function that returns an attribute value. If not passed, defaults to the state's value
-   * @returns {function(): *} A function that calls the passed function, with some extra metadata
+   * @returns {()=>Node} A function that calls the passed function, with some extra metadata
    */
   ctx.state.bindAttr = (attribute) => doBindAttr(ctx.state, attribute ?? ctx.state)
 
   /**
    * Bind style values to state changes
    * @param [style] A function that returns a style's value. If not passed, defaults to the state's value
-   * @returns {function(): *} A function that calls the passed function, with some extra metadata
+   * @returns {()=>Node} A function that calls the passed function, with some extra metadata
    */
   ctx.state.bindStyle = (style) => doBindStyle(ctx.state, style ?? ctx.state)
 
@@ -266,7 +266,7 @@ export function fnstate (initialValue, mapKey) {
   /**
    * Bind select and deselect to an attribute
    * @param [attribute] A function that returns an attribute value. If not passed, defaults to the state's value
-   * @returns {function(): *} A function that calls the passed function, with some extra metadata
+   * @returns {()=>any} A function that calls the passed function, with some extra metadata
    */
   ctx.state.bindSelectAttr = (attribute) => doBindSelectAttr(ctx, attribute ?? ctx.state)
 
@@ -277,14 +277,14 @@ export function fnstate (initialValue, mapKey) {
 
   /**
    * Get the currently selected key
-   * @returns {*}
+   * @returns {any}
    */
   ctx.state.selected = () => ctx.selected
 
   ctx.state.isFnState = true
 
   /**
-   * Perform an Object.assign on the current state using the provided update
+   * Perform an Object.assign() on the current state using the provided update
    */
   ctx.state.assign = (update) => ctx.state(Object.assign(ctx.currentValue, update))
 
@@ -786,8 +786,8 @@ export function getAttrs (children) {
  *
  * @param {object|string} style The style to apply to the element
  * @param {string} tag The tag to use when creating the element
- * @param {object|object[]?} children The children to append to the element
- * @return {*} The styled element
+ * @param {object[]|Node[]} children The children to append to the element
+ * @return {HTMLElement} The styled element
  */
 export function styled (style, tag, children) {
   const firstChild = children[0]
