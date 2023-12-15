@@ -38,7 +38,7 @@ A container for a state value that can be bound to.
 
 #### Defined in
 
-[fntags.mjs:179](https://github.com/narcolepticsnowman/fntags/blob/4775f59/src/fntags.mjs#L179)
+[fntags.mjs:179](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.mjs#L179)
 
 ## Functions
 
@@ -72,7 +72,7 @@ or the changes won't be reflected correctly and binding updates won't be trigger
 
 #### Defined in
 
-[fntags.mjs:193](https://github.com/narcolepticsnowman/fntags/blob/4775f59/src/fntags.mjs#L193)
+[fntags.mjs:193](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.mjs#L193)
 
 ___
 
@@ -117,7 +117,7 @@ A function that takes a context object and returns a rendered node.
 
 #### Defined in
 
-[fntags.mjs:90](https://github.com/narcolepticsnowman/fntags/blob/4775f59/src/fntags.mjs#L90)
+[fntags.mjs:90](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.mjs#L90)
 
 ___
 
@@ -141,7 +141,7 @@ the attr object or an empty object
 
 #### Defined in
 
-[fntags.mjs:779](https://github.com/narcolepticsnowman/fntags/blob/4775f59/src/fntags.mjs#L779)
+[fntags.mjs:779](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.mjs#L779)
 
 ___
 
@@ -177,7 +177,7 @@ an html element
 
 #### Defined in
 
-[fntags.mjs:23](https://github.com/narcolepticsnowman/fntags/blob/4775f59/src/fntags.mjs#L23)
+[fntags.mjs:23](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.mjs#L23)
 
 ___
 
@@ -201,7 +201,7 @@ true if the value is an object that can be used as attributes
 
 #### Defined in
 
-[fntags.mjs:770](https://github.com/narcolepticsnowman/fntags/blob/4775f59/src/fntags.mjs#L770)
+[fntags.mjs:770](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.mjs#L770)
 
 ___
 
@@ -225,7 +225,7 @@ The rendered node
 
 #### Defined in
 
-[fntags.mjs:656](https://github.com/narcolepticsnowman/fntags/blob/4775f59/src/fntags.mjs#L656)
+[fntags.mjs:656](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.mjs#L656)
 
 ___
 
@@ -252,4 +252,4 @@ The styled element
 
 #### Defined in
 
-[fntags.mjs:792](https://github.com/narcolepticsnowman/fntags/blob/4775f59/src/fntags.mjs#L792)
+[fntags.mjs:792](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.mjs#L792)

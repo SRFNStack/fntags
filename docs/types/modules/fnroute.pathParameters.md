@@ -39,11 +39,13 @@ A flag to indicate that this is an fnstate object
 
 #### Defined in
 
-[fntags.mjs:174](https://github.com/narcolepticsnowman/fntags/blob/4775f59/src/fntags.mjs#L174)
+[fntags.d.mts:187](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.d.mts#L187)
 
 ## Functions
 
 ▸ ****(`newState`, `oldState`): `void`
+
+=>void} subscribe Register a callback that will be executed whenever the state is changed
 
 #### Parameters
 
@@ -58,7 +60,7 @@ A flag to indicate that this is an fnstate object
 
 #### Defined in
 
-[fntags.mjs:172](https://github.com/narcolepticsnowman/fntags/blob/4775f59/src/fntags.mjs#L172)
+[fntags.d.mts:179](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.d.mts#L179)
 
 ___
 
@@ -81,7 +83,7 @@ a state change and is a shortcut for `mystate(Object.assign(mystate(), update))`
 
 #### Defined in
 
-[fntags.mjs:166](https://github.com/narcolepticsnowman/fntags/blob/4775f59/src/fntags.mjs#L166)
+[fntags.d.mts:165](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.d.mts#L165)
 
 ___
 
@@ -106,7 +108,7 @@ the second parameter (the update function) must be provided and must be a functi
 
 #### Defined in
 
-[fntags.mjs:150](https://github.com/narcolepticsnowman/fntags/blob/4775f59/src/fntags.mjs#L150)
+[fntags.d.mts:123](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.d.mts#L123)
 
 ___
 
@@ -128,7 +130,7 @@ Bind attribute values to state changes
 
 #### Defined in
 
-[fntags.mjs:158](https://github.com/narcolepticsnowman/fntags/blob/4775f59/src/fntags.mjs#L158)
+[fntags.d.mts:138](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.d.mts#L138)
 
 ___
 
@@ -154,7 +156,7 @@ If the current value is not an array, this will behave the same as bindAs.
 
 #### Defined in
 
-[fntags.mjs:153](https://github.com/narcolepticsnowman/fntags/blob/4775f59/src/fntags.mjs#L153)
+[fntags.d.mts:129](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.d.mts#L129)
 
 ___
 
@@ -177,7 +179,7 @@ Shortcut for `mystate.bindAs((current)=> current[prop])`
 
 #### Defined in
 
-[fntags.mjs:156](https://github.com/narcolepticsnowman/fntags/blob/4775f59/src/fntags.mjs#L156)
+[fntags.d.mts:134](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.d.mts#L134)
 
 ___
 
@@ -200,7 +202,7 @@ Bind selected state to an element
 
 #### Defined in
 
-[fntags.mjs:160](https://github.com/narcolepticsnowman/fntags/blob/4775f59/src/fntags.mjs#L160)
+[fntags.d.mts:146](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.d.mts#L146)
 
 ___
 
@@ -222,7 +224,7 @@ Bind selected state to an attribute
 
 #### Defined in
 
-[fntags.mjs:161](https://github.com/narcolepticsnowman/fntags/blob/4775f59/src/fntags.mjs#L161)
+[fntags.d.mts:150](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.d.mts#L150)
 
 ___
 
@@ -244,7 +246,7 @@ Bind style values to state changes
 
 #### Defined in
 
-[fntags.mjs:159](https://github.com/narcolepticsnowman/fntags/blob/4775f59/src/fntags.mjs#L159)
+[fntags.d.mts:142](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.d.mts#L142)
 
 ___
 
@@ -268,7 +270,7 @@ will not be reflected correctly.
 
 #### Defined in
 
-[fntags.mjs:168](https://github.com/narcolepticsnowman/fntags/blob/4775f59/src/fntags.mjs#L168)
+[fntags.d.mts:171](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.d.mts#L171)
 
 ___
 
@@ -290,7 +292,7 @@ Remove all of the observers and optionally reset the value to it's initial value
 
 #### Defined in
 
-[fntags.mjs:173](https://github.com/narcolepticsnowman/fntags/blob/4775f59/src/fntags.mjs#L173)
+[fntags.d.mts:183](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.d.mts#L183)
 
 ___
 
@@ -314,7 +316,7 @@ This causes the bound select functions to be executed.
 
 #### Defined in
 
-[fntags.mjs:162](https://github.com/narcolepticsnowman/fntags/blob/4775f59/src/fntags.mjs#L162)
+[fntags.d.mts:156](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.d.mts#L156)
 
 ___
 
@@ -330,7 +332,7 @@ Get the currently selected key
 
 #### Defined in
 
-[fntags.mjs:165](https://github.com/narcolepticsnowman/fntags/blob/4775f59/src/fntags.mjs#L165)
+[fntags.d.mts:160](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.d.mts#L160)
 
 ___
 
@@ -354,4 +356,4 @@ Set a value at the given property path
 
 #### Defined in
 
-[fntags.mjs:171](https://github.com/narcolepticsnowman/fntags/blob/4775f59/src/fntags.mjs#L171)
+[fntags.d.mts:175](https://github.com/srfnstack/fntags/blob/1212751/src/fntags.d.mts#L175)
