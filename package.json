@@ -1,12 +1,14 @@
 {
   "name": "@srfnstack/fntags",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "author": "Robert Kempton <r@snow87.com>",
   "private": false,
   "homepage": "https://github.com/srfnstack/fntags",
   "license": "MIT",
   "files": [
     "src/*",
+    "*.mts",
+    "*.mts.map",
     "index.js",
     "LICENSE.txt",
     "README.md"
@@ -49,5 +51,6 @@
   "pre-commit": [
     "lint",
     "test"
-  ]
+  ],
+  "typings": "index.d.ts"
 }
