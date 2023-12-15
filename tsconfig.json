@@ -1,0 +1,15 @@
+{
+  // https://www.typescriptlang.org/docs/handbook/declaration-files/dts-from-js.html#tsconfig
+  "include": ["src/*.mjs"],
+  "exclude": ["node_modules", "**/*.test.ts", "**/*.test.js"],
+  "compilerOptions": {
+    "moduleResolution": "Node",
+    "target": "es6",
+    "allowJs": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": ".",
+    "declarationMap": true,
+    "removeComments": false
+  }
+}

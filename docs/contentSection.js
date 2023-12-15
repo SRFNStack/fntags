@@ -5,7 +5,7 @@ export default (title, ...content) => section(
   h3({ id: title }, title,
     span({
       style: 'cursor: pointer',
-      title: title,
+      title,
       onclick: (e) => {
         goTo(`${pathState().currentRoute}#${encodeURIComponent(title)}`)
       }

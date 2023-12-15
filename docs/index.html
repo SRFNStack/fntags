@@ -15,16 +15,12 @@
     <!--    font-family: 'Ubuntu', sans-serif;-->
 </head>
 <body style="display: flex; justify-content: center">
-<script>var gattrs = null</script>
 <script type="module">
-    //hack to make github pages route this app
     import { secondaryColor } from './constants.js'
     import { goTo, routeSwitch } from './lib/fnroute.mjs'
-    import { getAttrs } from './lib/fntags.mjs'
     import { a, div, footer, img, style } from './lib/fnelements.mjs'
     import { routeElements } from './routes.js'
     import header from './header.js'
-    gattrs = getAttrs
     document.head.append( style(
         `
 .noselect {
@@ -86,10 +82,12 @@
                            img( { src: './GitHub_Logo.png' } ),
                            img( { src: './GitHub-Mark-64px.png' } )
                         ),
-                        div( 'Copyright © 2019 Robert Kempton' )
+                        div( 'Copyright © 2023 Robert Kempton' )
                 )
            )
     )
+
+    //hack to make github pages route this app
     if( sessionStorage.redirect ) {
         setTimeout( () => {
             goTo( sessionStorage.redirect.replace( location.pathname.split(/[#?]/)[0], '' ) )

@@ -1,6 +1,6 @@
 {
   "name": "@srfnstack/fntags",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "author": "Robert Kempton <r@snow87.com>",
   "private": false,
   "homepage": "https://github.com/srfnstack/fntags",
@@ -30,15 +30,21 @@
     "state-management"
   ],
   "devDependencies": {
-    "cypress": "10.3.0",
+    "cypress": "13.6.1",
     "pre-commit": "^1.2.2",
-    "standard": "^16.0.4"
+    "standard": "^17.1.0",
+    "typedoc": "^0.25.4",
+    "typedoc-plugin-markdown": "^3.17.1",
+    "typescript": "^5.3.3"
   },
   "scripts": {
     "test": "cp src/* docs/lib/ && npm run lint && cypress run --spec test/** --headless -b chrome",
     "cypress": "cypress run --spec test/** -b chrome",
     "lint": "standard --env browser src && standard --env browser --env jest --global Prism --global cy test docs",
-    "lint:fix": "standard --env browser --fix src && standard --env browser --env jest --global Prism --global cy --fix test docs"
+    "lint:fix": "standard --env browser --fix src && standard --env browser --env jest --global Prism --global cy --fix test docs",
+    "typedef": "tsc",
+    "docs": "typedoc --plugin typedoc-plugin-markdown --out docs/types ./src/*.mjs",
+    "build": "npm run lint:fix && npm run typedef && npm run docs && npm run test"
   },
   "pre-commit": [
     "lint",

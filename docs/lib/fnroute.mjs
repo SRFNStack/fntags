@@ -1,7 +1,11 @@
+/// <reference path="fntags.mjs" name="fntags"/>
+/**
+ * @module fnroute
+ */
 import { fnstate, getAttrs, h, isAttrs, renderNode } from './fntags.mjs'
 
 /**
- * An element that is displayed only if the the current route starts with elements path attribute.
+ * An element that is displayed only if the current route starts with elements path attribute.
  *
  * For example,
  *  route({path: "/proc"},
@@ -24,10 +28,10 @@ import { fnstate, getAttrs, h, isAttrs, renderNode } from './fntags.mjs'
  *          )
  *      )
  *
- * @param children The attributes and children of this element.
- * @returns HTMLDivElement
+ * @param {any} children The attributes and children of this element.
+ * @returns {HTMLDivElement} A div element that will only be displayed if the current route starts with the path attribute.
  */
-export const route = (...children) => {
+export function route (...children) {
   const attrs = getAttrs(children)
   children = children.filter(c => !isAttrs(c))
   const routeEl = h('div', attrs)
@@ -50,9 +54,10 @@ export const route = (...children) => {
 /**
  * An element that only renders the first route that matches and updates when the route is changed
  * The primary purpose of this element is to provide catchall routes for not found pages and path variables
- * @param children
+ * @param {any} children
+ * @returns {HTMLDivElement}
  */
-export const routeSwitch = (...children) => {
+export function routeSwitch (...children) {
   const sw = h('div', getAttrs(children))
 
   return pathState.bindAs(
@@ -89,7 +94,18 @@ function stripParameterValues (currentRoute) {
 
 const moduleCache = {}
 
-export const modRouter = ({ routePath, attrs, onerror, frame, sendRawPath, formatPath }) => {
+/**
+ * The main function of this library. It will load the route at the specified path and render it into the container element.
+ * @param {object} options
+ * @param {string} options.routePath The path to the root of the routes. This is used to resolve the paths of the routes.
+ * @param {object} options.attrs The attributes of the container element
+ * @param {(error: Error, newPathState: object)=>void} options.onerror A function that will be called if the route fails to load. The function receives the error and the current pathState object.
+ * @param {(node: Node, module: object)=>Node} options.frame A function that will be called with the rendered route element and the module that was loaded. The function should return a new element to be rendered.
+ * @param {boolean} options.sendRawPath If true, the raw path will be sent to the route. Otherwise, the path will be stripped of parameter values.
+ * @param {(path: string)=>string} options.formatPath A function that will be called with the raw path before it is used to load the route. The function should return a new path.
+ * @return {HTMLElement} The container element
+ */
+export function modRouter ({ routePath, attrs, onerror, frame, sendRawPath, formatPath }) {
   const container = h('div', attrs || {})
   if (!routePath) {
     throw new Error('You must provide a root url for modRouter. Routes in the ui will be looked up relative to this url.')
@@ -171,9 +187,10 @@ function updatePathParameters () {
 
 /**
  * A link element that is a link to another route in this single page app
- * @param children The attributes of the anchor element and any children
+ * @param {any} children The attributes of the anchor element and any children
+ * @returns {HTMLAnchorElement} An anchor element that will navigate to the specified route when clicked
  */
-export const fnlink = (...children) => {
+export function fnlink (...children) {
   let context = null
   if (children[0] && children[0].context) {
     context = children[0].context
@@ -198,12 +215,12 @@ export const fnlink = (...children) => {
 
 /**
  * A function to navigate to the specified route
- * @param route The route to navigate to
- * @param context Data related to the route change
- * @param replace Whether to replace the state or push it. pushState is used by default.
- * @param silent Prevent route change events from being emitted for this route change
+ * @param {string} route The route to navigate to
+ * @param {any} context Data related to the route change
+ * @param {boolean} replace Whether to replace the state or push it. pushState is used by default.
+ * @param {boolean} silent Prevent route change events from being emitted for this route change
  */
-export const goTo = (route, context, replace = false, silent = false) => {
+export function goTo (route, context, replace = false, silent = false) {
   const newPath = window.location.origin + makePath(route)
 
   const patch = {
@@ -252,8 +269,26 @@ const ensureOnlyLeadingSlash = (part) => removeTrailingSlash(part.startsWith('/'
 
 const removeTrailingSlash = part => part.endsWith('/') && part.length > 1 ? part.slice(0, -1) : part
 
+/**
+ * Key value pairs of path parameter names to their values
+ * @typedef {Object} PathParameters
+ */
+
+/**
+ * The path parameters of the current route
+ * @type {import("./fntags.mjs").FnState<PathParameters>}
+ */
 export const pathParameters = fnstate({})
 
+/**
+ * The path information for a route
+ * @typedef {{currentRoute: string, rootPath: string, context: any}} PathState
+ */
+
+/**
+ * The current path state
+ * @type {import("./fntags.mjs").FnState<PathState>}
+ */
 export const pathState = fnstate(
   {
     rootPath: ensureOnlyLeadingSlash(window.location.pathname),
@@ -261,8 +296,23 @@ export const pathState = fnstate(
     context: null
   })
 
+/**
+ * @typedef {string} RouteEvent
+ */
+/**
+ * Before the route is changed
+ * @type {RouteEvent}
+ */
 export const beforeRouteChange = 'beforeRouteChange'
+/**
+ * After the route is changed
+ * @type {RouteEvent}
+ */
 export const afterRouteChange = 'afterRouteChange'
+/**
+ * After the route is changed and the route element is rendered
+ * @type {RouteEvent}
+ */
 export const routeChangeComplete = 'routeChangeComplete'
 const eventListeners = {
   [beforeRouteChange]: [],
@@ -279,9 +329,9 @@ const emit = (event, newPathState, oldPathState) => {
  * @param event a string event to listen for
  * @param handler A function that will be called when the event occurs.
  *                  The function receives the new and old pathState objects, in that order.
- * @return {function()} a function to stop listening with the passed handler.
+ * @return {()=>void} a function to stop listening with the passed handler.
  */
-export const listenFor = (event, handler) => {
+export function listenFor (event, handler) {
   if (!eventListeners[event]) {
     throw new Error(`Invalid event. Must be one of ${Object.keys(eventListeners)}`)
   }
@@ -296,12 +346,14 @@ export const listenFor = (event, handler) => {
 
 /**
  * Set the root path of the app. This is necessary to make deep linking work in cases where the same html file is served from all paths.
+ * @param {string} rootPath The root path of the app
  */
-export const setRootPath = (rootPath) =>
-  pathState.assign({
+export function setRootPath (rootPath) {
+  return pathState.assign({
     rootPath: ensureOnlyLeadingSlash(rootPath),
     currentRoute: ensureOnlyLeadingSlash(window.location.pathname.replace(new RegExp('^' + rootPath), '')) || '/'
   })
+}
 
 window.addEventListener(
   'popstate',

@@ -1,4 +1,7 @@
 /**
+ * @module fntags
+ */
+/**
  * A function to create dom elements with the given attributes and children.
  *
  * The first element of the children array can be an object containing element attributes.
@@ -12,9 +15,9 @@
  *
  * The rest of the arguments will be considered children of this element and appended to it in the same order as passed.
  *
- * @param tag html tag to use when created the element
- * @param children optional attributes object and children for the element
- * @returns HTMLElement an html element
+ * @param {string} tag html tag to use when created the element
+ * @param {object[]?|Node[]?} children optional attributes object and children for the element
+ * @return {HTMLElement} an html element
  *
  */
 export function h (tag, ...children) {
@@ -79,10 +82,12 @@ function hasNs (val) {
  * You cannot bind state to the initial template. If you attempt to, the state will be read, but the elements will
  * not be updated when the state changes because they will not be bound to the cloned element.
  * All state bindings must be passed in the context to the compiled template to work correctly.
- * @param templateFn {function(object): Node}
- * @return {function(*): Node}
+ *
+ * @param {(any)=>Node} templateFn A function that returns an html node.
+ * @return {(any)=>Node} A function that takes a context object and returns a rendered node.
+ *
  */
-export const fntemplate = templateFn => {
+export function fntemplate (templateFn) {
   if (typeof templateFn !== 'function') {
     throw new Error('You must pass a function to fntemplate. The function must return an html node.')
   }
@@ -140,16 +145,52 @@ export const fntemplate = templateFn => {
 }
 
 /**
+ * @template T The type of data stored in the state container
+ * @typedef FnStateObj A container for a state value that can be bound to.
+ * @property {(element: (T)=>void|Node|any?, update: (Node)=>void?) => Node|() => Node} bindAs Bind this state to the given element. This causes the element to update when state changes.
+ * If called with no parameters, the state's value will be rendered as an element. If the first parameters is not a function,
+ * the second parameter (the update function) must be provided and must be a function. This function receives the node the state is bound to.
+ * @property {(parent: Node,element: Node|any, update: (Node)=>void?)=> Node|()=> Node} bindChildren Bind the values of this state to the given element.
+ * Values are items/elements of an array.
+ * If the current value is not an array, this will behave the same as bindAs.
+ * @property {(prop: string)=>Node|()=>Node} bindProp Bind to a property of an object stored in this state instead of the state itself.
+ * Shortcut for `mystate.bindAs((current)=> current[prop])`
+ * @property {(attribute: string)=>any} bindAttr Bind attribute values to state changes
+ * @property {(style: string)=> string} bindStyle Bind style values to state changes
+ * @property {(element: Node|any, update: (Node)=>void?)=>Node|()=>Node} bindSelect Bind selected state to an element
+ * @property {(attribute: string)=>any} bindSelectAttr Bind selected state to an attribute
+ * @property {(key: any)=>void} select Mark the element with the given key as selected
+ * where the key is identified using the mapKey function passed on creation of the fnstate.
+ * This causes the bound select functions to be executed.
+ * @property {()=> any} selected Get the currently selected key
+ * @property {(update: T)=>void} assign Perform an Object.assign() on the current state using the provided update, triggers
+ * a state change and is a shortcut for `mystate(Object.assign(mystate(), update))`
+ * @property {(path: string)=>any} getPath Get a value at the given property path, an error is thrown if the value is not an object
+ * This returns a reference to the real current value. If you perform any modifications to the object, be sure to call setPath after you're done or the changes
+ * will not be reflected correctly.
+ * @property {(path: string, value: any, fillWithObjects: boolean)=>void} setPath Set a value at the given property path
+ * @property {((newState: T, oldState: T)=>void)=>void} subscribe Register a callback that will be executed whenever the state is changed
+ * @property {(reinit: boolean)=>{}} reset Remove all of the observers and optionally reset the value to it's initial value
+ * @property {} isFnState A flag to indicate that this is an fnstate object
+ */
+
+/**
+ * @template T The type of data stored in the state container
+ * @typedef {FnStateObj<T> & (newState: T?)=>T} FnState A container for a state value that can be bound to.
+ */
+
+/**
  * Create a state object that can be bound to.
- * @param initialValue The initial state
- * @param mapKey A map function to extract a key from an element in the array. Receives the array value to extract the key from.
- * @returns function A function that can be used to get and set the state.
+ * @template T
+ * @param {T|any} initialValue The initial state
+ * @param {function(T): any?} mapKey A map function to extract a key from an element in the array. Receives the array value to extract the key from.
+ * A key can be any unique value.
+ * @return {FnState<T>} A function that can be used to get and set the state.
  * When getting the state, you get the actual reference to the underlying value.
  * If you perform modifications to the value, be sure to call the state function with the updated value when you're done
  * or the changes won't be reflected correctly and binding updates won't be triggered even though the state appears to be correct.
- *
  */
-export const fnstate = (initialValue, mapKey) => {
+export function fnstate (initialValue, mapKey) {
   const ctx = {
     currentValue: initialValue,
     observers: [],
@@ -172,6 +213,15 @@ export const fnstate = (initialValue, mapKey) => {
   }
 
   /**
+   * Bind this state to the given element
+   *
+   * @param [element] The element to bind to. If not a function, an update function must be passed. If not passed, defaults to the state's value
+   * @param [update] If passed this will be executed directly when the state changes with no other intervention
+   * @returns {(HTMLDivElement|Text)[]|HTMLDivElement|Text}
+   */
+  ctx.state.bindAs = (element, update) => doBindAs(ctx, element ?? ctx.state, update)
+
+  /**
    * Bind the values of this state to the given element.
    * Values are items/elements of an array.
    * If the current value is not an array, this will behave the same as bindAs.
@@ -183,16 +233,7 @@ export const fnstate = (initialValue, mapKey) => {
   ctx.state.bindChildren = (parent, element, update) => doBindChildren(ctx, parent, element, update)
 
   /**
-   * Bind this state to the given element
-   *
-   * @param [element] The element to bind to. If not a function, an update function must be passed. If not passed, defaults to the state's value
-   * @param [update] If passed this will be executed directly when the state changes with no other intervention
-   * @returns {(HTMLDivElement|Text)[]|HTMLDivElement|Text}
-   */
-  ctx.state.bindAs = (element, update) => doBindAs(ctx, element ?? ctx.state, update)
-
-  /**
-   * Bind a property of an object stored in this state as a simple value.
+   * Bind to a property of an object stored in this state instead of the state itself.
    *
    * Shortcut for `mystate.bindAs((current)=> current[prop])`
    *
@@ -609,8 +650,10 @@ const evaluateElement = (element, value) => {
 
 /**
  * Convert non objects (objects are assumed to be nodes) to text nodes and allow promises to resolve to nodes
+ * @param {any} node The node to render
+ * @returns {Node} The rendered node
  */
-export const renderNode = (node) => {
+export function renderNode (node) {
   if (node && node.isTemplatePlaceholder) {
     const element = h('div')
     node(element, 'node')
@@ -719,22 +762,34 @@ const setStyle = (style, styleValue, element) => {
   element.style[style] = styleValue && styleValue.toString()
 }
 
-export const isAttrs = (val) => val && typeof val === 'object' && val.nodeType === undefined && !Array.isArray(val) && typeof val.then !== 'function'
+/**
+ * Check if the given value is an object that can be used as attributes
+ * @param {any} val The value to check
+ * @returns {boolean} true if the value is an object that can be used as attributes
+ */
+export function isAttrs (val) {
+  return val && typeof val === 'object' && val.nodeType === undefined && !Array.isArray(val) && typeof val.then !== 'function'
+}
+
 /**
  * helper to get the attr object
+ * @param {any} children
+ * @return {object} the attr object or an empty object
  */
-export const getAttrs = (children) => Array.isArray(children) && isAttrs(children[0]) ? children[0] : {}
+export function getAttrs (children) {
+  return Array.isArray(children) && isAttrs(children[0]) ? children[0] : {}
+}
 
 /**
  * A function to create an element with a pre-defined style.
  * For example, the flex* elements in fnelements.
  *
- * @param style
- * @param tag
- * @param children
- * @return {*}
+ * @param {object|string} style The style to apply to the element
+ * @param {string} tag The tag to use when creating the element
+ * @param {object|object[]?} children The children to append to the element
+ * @return {*} The styled element
  */
-export const styled = (style, tag, children) => {
+export function styled (style, tag, children) {
   const firstChild = children[0]
   if (isAttrs(firstChild)) {
     if (typeof firstChild.style === 'string') {

@@ -33,7 +33,7 @@ export const ClickyCounter = () => {
 
     button({
       // Create a click handler
-      onclick (e) {
+      onclick () {
         // Update bound elements
         appCounter(appCounter() + 1)
         counter(counter() + 1)
@@ -49,8 +49,8 @@ export const ClickyCounter = () => {
 const downloadExample = () => {
   const anchor = a({
     href: 'data:text/plain;charset=utf-8;base64,' + btoa(fntagsExample(
-      'https://cdn.jsdelivr.net/npm/@srfnstack/fntags@0.3.3/src/fntags.min.mjs',
-      'https://cdn.jsdelivr.net/npm/@srfnstack/fntags@0.3.3/src/fnelements.min.mjs'
+      'https://cdn.jsdelivr.net/npm/@srfnstack/fntags@0.4.1/src/fntags.min.mjs',
+      'https://cdn.jsdelivr.net/npm/@srfnstack/fntags@0.4.1/src/fnelements.min.mjs'
     )),
     download: 'fntags-example.html'
   })
@@ -72,9 +72,10 @@ export default () => div({ id: 'Home', class: 'flex-center', style: 'flex-direct
   hr(),
   button({ style: 'width: 220px', onclick: (e) => goTo('/components') }, 'Start Building'),
   hr(),
-  contentSection('Example',
-    'This demonstrates the basic functionality of fntags and shows how state can be used within an app.',
-    'Click the download button below the example to save it as an html file and run it in your browser!',
+  contentSection('Examples',
+    p('See the ', a({ href: 'https://github.com/SRFNStack/fntags/blob/master/README.md', target: '_blank' }, ' README'), ' for basic examples.'),
+    p('This demonstrates the basic functionality of fntags and shows how state can be used within an app.',
+      'Click the download button below the example to save it as an html file and run it in your browser!'),
     prismCode(fntagsExample('./lib/fntags.mjs', './lib/fnelements.mjs'),
       div(ClickyCounter(), ClickyCounter(), ClickyCounter()),
       '100%'
