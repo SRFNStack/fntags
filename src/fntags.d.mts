@@ -69,7 +69,7 @@ export function fntemplate(templateFn: (any: any) => Node): (any: any) => Node;
  */
 /**
  * @template T The type of data stored in the state container
- * @typedef {FnStateObj<T> & (newState: T?)=>T} FnState A container for a state value that can be bound to.
+ * @typedef {FnStateObj<T> & (newState?: T)=>T} FnState A container for a state value that can be bound to.
  */
 /**
  * Create a state object that can be bound to.
@@ -189,5 +189,5 @@ export type FnStateObj<T> = {
 /**
  * A container for a state value that can be bound to.
  */
-export type FnState<T> = FnStateObj<T> & ((newState: T | null) => T);
+export type FnState<T> = FnStateObj<T> & ((newState?: T) => T);
 //# sourceMappingURL=fntags.d.mts.map

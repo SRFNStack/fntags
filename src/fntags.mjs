@@ -176,7 +176,7 @@ export function fntemplate (templateFn) {
 
 /**
  * @template T The type of data stored in the state container
- * @typedef {FnStateObj<T> & (newState: T?)=>T} FnState A container for a state value that can be bound to.
+ * @typedef {FnStateObj<T> & (newState?: T)=>T} FnState A container for a state value that can be bound to.
  */
 
 /**
