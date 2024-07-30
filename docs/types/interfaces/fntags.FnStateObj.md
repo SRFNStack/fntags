@@ -16,7 +16,6 @@ A container for a state value that can be bound to.
 
 ### Properties
 
-- [](fntags.FnStateObj.md#)
 - [assign](fntags.FnStateObj.md#assign)
 - [bindAs](fntags.FnStateObj.md#bindas)
 - [bindAttr](fntags.FnStateObj.md#bindattr)
@@ -31,31 +30,9 @@ A container for a state value that can be bound to.
 - [select](fntags.FnStateObj.md#select)
 - [selected](fntags.FnStateObj.md#selected)
 - [setPath](fntags.FnStateObj.md#setpath)
+- [subscribe](fntags.FnStateObj.md#subscribe)
 
 ## Properties
-
-• ****: (`newState`: `T`, `oldState`: `T`) => `void`
-
-#### Type declaration
-
-▸ (`newState`, `oldState`): `void`
-
-##### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `newState` | `T` |
-| `oldState` | `T` |
-
-##### Returns
-
-`void`
-
-#### Defined in
-
-[fntags.mjs:172](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.mjs#L172)
-
-___
 
 ### assign
 
@@ -80,7 +57,7 @@ a state change and is a shortcut for `mystate(Object.assign(mystate(), update))`
 
 #### Defined in
 
-[fntags.mjs:166](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.mjs#L166)
+[fntags.mjs:167](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L167)
 
 ___
 
@@ -109,7 +86,7 @@ the second parameter (the update function) must be provided and must be a functi
 
 #### Defined in
 
-[fntags.mjs:150](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.mjs#L150)
+[fntags.mjs:151](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L151)
 
 ___
 
@@ -135,7 +112,7 @@ Bind attribute values to state changes
 
 #### Defined in
 
-[fntags.mjs:158](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.mjs#L158)
+[fntags.mjs:159](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L159)
 
 ___
 
@@ -165,7 +142,7 @@ If the current value is not an array, this will behave the same as bindAs.
 
 #### Defined in
 
-[fntags.mjs:153](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.mjs#L153)
+[fntags.mjs:154](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L154)
 
 ___
 
@@ -173,26 +150,12 @@ ___
 
 • **bindProp**: (`prop`: `string`) => `Node` \| () => `Node`
 
-#### Type declaration
-
-▸ (`prop`): `Node` \| () => `Node`
-
 Bind to a property of an object stored in this state instead of the state itself.
 Shortcut for `mystate.bindAs((current)=> current[prop])`
 
-##### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `prop` | `string` |
-
-##### Returns
-
-`Node` \| () => `Node`
-
 #### Defined in
 
-[fntags.mjs:156](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.mjs#L156)
+[fntags.mjs:157](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L157)
 
 ___
 
@@ -219,7 +182,7 @@ Bind selected state to an element
 
 #### Defined in
 
-[fntags.mjs:160](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.mjs#L160)
+[fntags.mjs:161](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L161)
 
 ___
 
@@ -245,7 +208,7 @@ Bind selected state to an attribute
 
 #### Defined in
 
-[fntags.mjs:161](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.mjs#L161)
+[fntags.mjs:162](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L162)
 
 ___
 
@@ -271,7 +234,7 @@ Bind style values to state changes
 
 #### Defined in
 
-[fntags.mjs:159](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.mjs#L159)
+[fntags.mjs:160](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L160)
 
 ___
 
@@ -299,19 +262,19 @@ will not be reflected correctly.
 
 #### Defined in
 
-[fntags.mjs:168](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.mjs#L168)
+[fntags.mjs:169](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L169)
 
 ___
 
 ### isFnState
 
-• **isFnState**: `any`
+• **isFnState**: `boolean`
 
-A flag to indicate that this is an fnstate object
+A flag to indicate that this is a fnstate object
 
 #### Defined in
 
-[fntags.mjs:174](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.mjs#L174)
+[fntags.mjs:175](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L175)
 
 ___
 
@@ -337,7 +300,7 @@ Remove all of the observers and optionally reset the value to it's initial value
 
 #### Defined in
 
-[fntags.mjs:173](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.mjs#L173)
+[fntags.mjs:174](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L174)
 
 ___
 
@@ -365,7 +328,7 @@ This causes the bound select functions to be executed.
 
 #### Defined in
 
-[fntags.mjs:162](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.mjs#L162)
+[fntags.mjs:163](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L163)
 
 ___
 
@@ -385,7 +348,7 @@ Get the currently selected key
 
 #### Defined in
 
-[fntags.mjs:165](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.mjs#L165)
+[fntags.mjs:166](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L166)
 
 ___
 
@@ -413,4 +376,30 @@ Set a value at the given property path
 
 #### Defined in
 
-[fntags.mjs:171](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.mjs#L171)
+[fntags.mjs:172](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L172)
+
+___
+
+### subscribe
+
+• **subscribe**: (`subscriber`: (`newState`: `T`, `oldState`: `T`) => `void`) => `void`
+
+#### Type declaration
+
+▸ (`subscriber`): `void`
+
+Register a callback that will be executed whenever the state is changed
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `subscriber` | (`newState`: `T`, `oldState`: `T`) => `void` |
+
+##### Returns
+
+`void`
+
+#### Defined in
+
+[fntags.mjs:173](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L173)

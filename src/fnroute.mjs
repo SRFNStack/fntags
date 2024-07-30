@@ -28,7 +28,7 @@ import { fnstate, getAttrs, h, isAttrs, renderNode } from './fntags.mjs'
  *          )
  *      )
  *
- * @param {any} children The attributes and children of this element.
+ * @param {Object|Node} children The attributes and children of this element.
  * @returns {HTMLDivElement} A div element that will only be displayed if the current route starts with the path attribute.
  */
 export function route (...children) {
@@ -55,7 +55,7 @@ export function route (...children) {
  * An element that only renders the first route that matches and updates when the route is changed
  * The primary purpose of this element is to provide catchall routes for not found pages and path variables
  * @param {any} children
- * @returns {HTMLDivElement}
+ * @returns {Node|(()=>Node)}
  */
 export function routeSwitch (...children) {
   const sw = h('div', getAttrs(children))
@@ -82,11 +82,11 @@ export function routeSwitch (...children) {
 }
 
 function stripParameterValues (currentRoute) {
-  return removeTrailingSlash(currentRoute.substr(1)).split('/').reduce((res, part) => {
+  return removeTrailingSlash(currentRoute.substring(1)).split('/').reduce((res, part) => {
     const paramStart = part.indexOf(':')
     let value = part
     if (paramStart > -1) {
-      value = part.substr(0, paramStart)
+      value = part.substring(0, paramStart)
     }
     return `${res}/${value}`
   }, '')
@@ -99,7 +99,7 @@ const moduleCache = {}
  * @param {object} options
  * @param {string} options.routePath The path to the root of the routes. This is used to resolve the paths of the routes.
  * @param {object} options.attrs The attributes of the container element
- * @param {(error: Error, newPathState: object)=>void} options.onerror A function that will be called if the route fails to load. The function receives the error and the current pathState object.
+ * @param {(error: Error, newPathState: object)=>void|Node} options.onerror A function that will be called if the route fails to load. The function receives the error and the current pathState object. Should return an error to display if it's not handled.
  * @param {(node: Node, module: object)=>Node} options.frame A function that will be called with the rendered route element and the module that was loaded. The function should return a new element to be rendered.
  * @param {boolean} options.sendRawPath If true, the raw path will be sent to the route. Otherwise, the path will be stripped of parameter values.
  * @param {(path: string)=>string} options.formatPath A function that will be called with the raw path before it is used to load the route. The function should return a new path.
@@ -174,8 +174,8 @@ function updatePathParameters () {
     const part = pathParts[i]
     const paramStart = part.indexOf(':')
     if (paramStart > -1) {
-      const paramName = part.substr(0, paramStart)
-      const paramValue = part.substr(paramStart + 1)
+      const paramName = part.substring(0, paramStart)
+      const paramValue = part.substring(paramStart + 1)
       parameters.idx.push(paramValue)
       if (paramName) {
         parameters[paramName] = paramValue

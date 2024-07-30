@@ -76,7 +76,7 @@ name conflicts with html a
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -84,7 +84,7 @@ name conflicts with html a
 
 #### Defined in
 
-[svgelements.mjs:6](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L6)
+[svgelements.mjs:6](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L6)
 
 ___
 
@@ -96,7 +96,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -104,7 +104,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:11](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L11)
+[svgelements.mjs:11](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L11)
 
 ___
 
@@ -116,7 +116,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -124,7 +124,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:16](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L16)
+[svgelements.mjs:16](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L16)
 
 ___
 
@@ -136,7 +136,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -144,7 +144,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:21](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L21)
+[svgelements.mjs:21](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L21)
 
 ___
 
@@ -156,7 +156,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -164,7 +164,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:26](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L26)
+[svgelements.mjs:26](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L26)
 
 ___
 
@@ -176,7 +176,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -184,7 +184,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:31](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L31)
+[svgelements.mjs:31](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L31)
 
 ___
 
@@ -196,7 +196,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -204,7 +204,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:36](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L36)
+[svgelements.mjs:36](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L36)
 
 ___
 
@@ -216,7 +216,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -224,7 +224,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:41](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L41)
+[svgelements.mjs:41](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L41)
 
 ___
 
@@ -236,7 +236,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -244,7 +244,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:46](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L46)
+[svgelements.mjs:46](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L46)
 
 ___
 
@@ -256,7 +256,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -264,7 +264,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:51](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L51)
+[svgelements.mjs:51](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L51)
 
 ___
 
@@ -276,7 +276,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -284,7 +284,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:56](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L56)
+[svgelements.mjs:56](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L56)
 
 ___
 
@@ -296,7 +296,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -304,7 +304,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:61](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L61)
+[svgelements.mjs:61](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L61)
 
 ___
 
@@ -316,7 +316,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -324,7 +324,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:66](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L66)
+[svgelements.mjs:66](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L66)
 
 ___
 
@@ -336,7 +336,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -344,7 +344,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:71](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L71)
+[svgelements.mjs:71](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L71)
 
 ___
 
@@ -356,7 +356,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -364,7 +364,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:76](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L76)
+[svgelements.mjs:76](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L76)
 
 ___
 
@@ -376,7 +376,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -384,7 +384,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:81](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L81)
+[svgelements.mjs:81](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L81)
 
 ___
 
@@ -396,7 +396,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -404,7 +404,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:86](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L86)
+[svgelements.mjs:86](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L86)
 
 ___
 
@@ -416,7 +416,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -424,7 +424,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:91](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L91)
+[svgelements.mjs:91](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L91)
 
 ___
 
@@ -436,7 +436,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -444,7 +444,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:96](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L96)
+[svgelements.mjs:96](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L96)
 
 ___
 
@@ -456,7 +456,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -464,7 +464,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:101](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L101)
+[svgelements.mjs:101](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L101)
 
 ___
 
@@ -476,7 +476,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -484,7 +484,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:106](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L106)
+[svgelements.mjs:106](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L106)
 
 ___
 
@@ -496,7 +496,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -504,7 +504,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:111](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L111)
+[svgelements.mjs:111](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L111)
 
 ___
 
@@ -516,7 +516,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -524,7 +524,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:116](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L116)
+[svgelements.mjs:116](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L116)
 
 ___
 
@@ -536,7 +536,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -544,7 +544,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:121](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L121)
+[svgelements.mjs:121](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L121)
 
 ___
 
@@ -556,7 +556,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -564,7 +564,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:126](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L126)
+[svgelements.mjs:126](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L126)
 
 ___
 
@@ -576,7 +576,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -584,7 +584,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:131](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L131)
+[svgelements.mjs:131](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L131)
 
 ___
 
@@ -596,7 +596,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -604,7 +604,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:136](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L136)
+[svgelements.mjs:136](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L136)
 
 ___
 
@@ -616,7 +616,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -624,7 +624,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:141](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L141)
+[svgelements.mjs:141](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L141)
 
 ___
 
@@ -636,7 +636,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -644,7 +644,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:146](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L146)
+[svgelements.mjs:146](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L146)
 
 ___
 
@@ -656,7 +656,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -664,7 +664,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:151](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L151)
+[svgelements.mjs:151](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L151)
 
 ___
 
@@ -676,7 +676,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -684,7 +684,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:156](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L156)
+[svgelements.mjs:156](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L156)
 
 ___
 
@@ -696,7 +696,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -704,7 +704,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:161](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L161)
+[svgelements.mjs:161](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L161)
 
 ___
 
@@ -716,7 +716,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -724,7 +724,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:166](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L166)
+[svgelements.mjs:166](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L166)
 
 ___
 
@@ -736,7 +736,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -744,7 +744,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:171](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L171)
+[svgelements.mjs:171](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L171)
 
 ___
 
@@ -756,7 +756,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -764,7 +764,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:176](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L176)
+[svgelements.mjs:176](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L176)
 
 ___
 
@@ -776,7 +776,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -784,7 +784,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:181](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L181)
+[svgelements.mjs:181](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L181)
 
 ___
 
@@ -796,7 +796,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -804,7 +804,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:186](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L186)
+[svgelements.mjs:186](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L186)
 
 ___
 
@@ -816,7 +816,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -824,7 +824,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:191](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L191)
+[svgelements.mjs:191](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L191)
 
 ___
 
@@ -836,7 +836,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -844,7 +844,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:196](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L196)
+[svgelements.mjs:196](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L196)
 
 ___
 
@@ -856,7 +856,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -864,7 +864,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:201](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L201)
+[svgelements.mjs:201](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L201)
 
 ___
 
@@ -876,7 +876,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -884,7 +884,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:206](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L206)
+[svgelements.mjs:206](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L206)
 
 ___
 
@@ -896,7 +896,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -904,7 +904,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:211](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L211)
+[svgelements.mjs:211](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L211)
 
 ___
 
@@ -916,7 +916,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -924,7 +924,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:216](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L216)
+[svgelements.mjs:216](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L216)
 
 ___
 
@@ -936,7 +936,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -944,7 +944,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:221](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L221)
+[svgelements.mjs:221](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L221)
 
 ___
 
@@ -956,7 +956,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -964,7 +964,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:226](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L226)
+[svgelements.mjs:226](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L226)
 
 ___
 
@@ -978,7 +978,7 @@ name conflicts with html script
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -986,7 +986,7 @@ name conflicts with html script
 
 #### Defined in
 
-[svgelements.mjs:233](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L233)
+[svgelements.mjs:233](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L233)
 
 ___
 
@@ -998,7 +998,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -1006,7 +1006,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:238](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L238)
+[svgelements.mjs:238](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L238)
 
 ___
 
@@ -1020,7 +1020,7 @@ name conflicts with html style
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -1028,7 +1028,7 @@ name conflicts with html style
 
 #### Defined in
 
-[svgelements.mjs:245](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L245)
+[svgelements.mjs:245](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L245)
 
 ___
 
@@ -1040,7 +1040,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -1048,7 +1048,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:250](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L250)
+[svgelements.mjs:250](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L250)
 
 ___
 
@@ -1062,7 +1062,7 @@ name conflicts with js syntax
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -1070,7 +1070,7 @@ name conflicts with js syntax
 
 #### Defined in
 
-[svgelements.mjs:257](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L257)
+[svgelements.mjs:257](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L257)
 
 ___
 
@@ -1082,7 +1082,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -1090,7 +1090,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:262](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L262)
+[svgelements.mjs:262](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L262)
 
 ___
 
@@ -1102,7 +1102,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -1110,7 +1110,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:267](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L267)
+[svgelements.mjs:267](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L267)
 
 ___
 
@@ -1122,7 +1122,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -1130,7 +1130,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:272](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L272)
+[svgelements.mjs:272](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L272)
 
 ___
 
@@ -1142,7 +1142,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -1150,7 +1150,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:277](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L277)
+[svgelements.mjs:277](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L277)
 
 ___
 
@@ -1162,7 +1162,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -1170,7 +1170,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:282](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L282)
+[svgelements.mjs:282](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L282)
 
 ___
 
@@ -1182,7 +1182,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -1190,7 +1190,7 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:287](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L287)
+[svgelements.mjs:287](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L287)
 
 ___
 
@@ -1202,7 +1202,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `...children` | `any`[] \| `Node`[] |
+| `...children` | `any`[] |
 
 #### Returns
 
@@ -1210,4 +1210,4 @@ ___
 
 #### Defined in
 
-[svgelements.mjs:292](https://github.com/srfnstack/fntags/blob/9b92bb0/src/svgelements.mjs#L292)
+[svgelements.mjs:292](https://github.com/srfnstack/fntags/blob/a2ca817/src/svgelements.mjs#L292)

@@ -15,9 +15,10 @@
  *
  * The rest of the arguments will be considered children of this element and appended to it in the same order as passed.
  *
+ * @template {HTMLElement|SVGElement} T
  * @param {string} tag html tag to use when created the element
- * @param {object[]|Node[]} children optional attributes object and children for the element
- * @return {HTMLElement} an html element
+ * @param {Node|Object} children optional attributes object and children for the element
+ * @return {T} an html element
  *
  */
 export function h (tag, ...children) {
@@ -83,7 +84,7 @@ function hasNs (val) {
  * not be updated when the state changes because they will not be bound to the cloned element.
  * All state bindings must be passed in the context to the compiled template to work correctly.
  *
- * @param {(any)=>Node} templateFn A function that returns an html node.
+ * @param {(any)=>Node} templateFn A function that returns a html node.
  * @return {(any)=>Node} A function that takes a context object and returns a rendered node.
  *
  */
@@ -147,17 +148,17 @@ export function fntemplate (templateFn) {
 /**
  * @template T The type of data stored in the state container
  * @typedef FnStateObj A container for a state value that can be bound to.
- * @property {(element: Node|any|()=>Node|any, update?: (Node)=>void) => Node|() => Node} bindAs Bind this state to the given element. This causes the element to update when state changes.
+ * @property {(element: Node|any|(()=>Node|any), update?: (Node)=>void) => Node|(() => Node)} bindAs Bind this state to the given element. This causes the element to update when state changes.
  * If called with no parameters, the state's value will be rendered as an element. If the first parameters is not a function,
  * the second parameter (the update function) must be provided and must be a function. This function receives the node the state is bound to.
- * @property {(parent: Node|any|()=>Node|any,element: Node|any|()=>Node|any, update?: (Node)=>void)=> Node|()=> Node} bindChildren Bind the values of this state to the given element.
+ * @property {(parent: Node|any|(()=>Node|any),element: Node|any|(()=>Node|any), update?: (Node)=>void)=> Node|(()=> Node)} bindChildren Bind the values of this state to the given element.
  * Values are items/elements of an array.
  * If the current value is not an array, this will behave the same as bindAs.
- * @property {(prop: string)=>Node|()=>Node} bindProp Bind to a property of an object stored in this state instead of the state itself.
+ * @property {((prop: string)=>Node)|(()=>Node)} bindProp Bind to a property of an object stored in this state instead of the state itself.
  * Shortcut for `mystate.bindAs((current)=> current[prop])`
  * @property {(attribute: string)=>any} bindAttr Bind attribute values to state changes
  * @property {(style: string)=> string} bindStyle Bind style values to state changes
- * @property {(element: Node|any|()=>Node|any, update?: (Node)=>void)=>Node|()=>Node} bindSelect Bind selected state to an element
+ * @property {(element: Node|any|(()=>Node|any), update?: ((Node)=>void))=>Node|(()=>Node)} bindSelect Bind selected state to an element
  * @property {(attribute: string)=>any} bindSelectAttr Bind selected state to an attribute
  * @property {(key: any)=>void} select Mark the element with the given key as selected
  * where the key is identified using the mapKey function passed on creation of the fnstate.
@@ -169,14 +170,14 @@ export function fntemplate (templateFn) {
  * This returns a reference to the real current value. If you perform any modifications to the object, be sure to call setPath after you're done or the changes
  * will not be reflected correctly.
  * @property {(path: string, value: any, fillWithObjects: boolean)=>void} setPath Set a value at the given property path
- * @property {((newState: T, oldState: T)=>void)=>void} subscribe Register a callback that will be executed whenever the state is changed
+ * @property {(subscriber: (newState: T, oldState: T)=>void) => void} subscribe Register a callback that will be executed whenever the state is changed
  * @property {(reinit: boolean)=>{}} reset Remove all of the observers and optionally reset the value to it's initial value
- * @property {} isFnState A flag to indicate that this is an fnstate object
+ * @property {boolean} isFnState A flag to indicate that this is a fnstate object
  */
 
 /**
  * @template T The type of data stored in the state container
- * @typedef {FnStateObj<T> & (newState?: T)=>T} FnState A container for a state value that can be bound to.
+ * @typedef {FnStateObj<T> & ((newState?: T)=>T)} FnState A container for a state value that can be bound to.
  */
 
 /**
@@ -350,7 +351,7 @@ export function fnstate (initialValue, mapKey) {
   ctx.state.subscribe = (callback) => doSubscribe(ctx, ctx.observers, callback)
 
   /**
-   * Remove all of the observers and optionally reset the value to it's initial value
+   * Remove all the observers and optionally reset the value to it's initial value
    */
   ctx.state.reset = (reInit) => doReset(ctx, reInit, initialValue)
 
@@ -582,7 +583,7 @@ function arrangeElements (ctx, bindContext, oldState) {
     const valueState = ctx.currentValue[i]
     let current = bindContext.boundElementByKey[key]
     let isNew = false
-    // ensure the parent state is always set and can be accessed by the child states to lsiten to the selection change and such
+    // ensure the parent state is always set and can be accessed by the child states to listen to the selection change and such
     if (valueState.parentCtx === undefined) {
       valueState.parentCtx = ctx
     }
@@ -600,7 +601,7 @@ function arrangeElements (ctx, bindContext, oldState) {
       if (prev.previousSibling === null) {
         // insertAdjacentElement is faster, but some nodes don't have it (lookin' at you text)
         if (prev.insertAdjacentElement !== undefined && current.insertAdjacentElement !== undefined) {
-          prev.insertAdjacentElement('beforeBegin', current)
+          prev.insertAdjacentElement('beforebegin', current)
         } else {
           parent.insertBefore(current, prev)
         }
@@ -615,7 +616,7 @@ function arrangeElements (ctx, bindContext, oldState) {
         } else if (isNew) {
           // insertAdjacentElement is faster, but some nodes don't have it (lookin' at you text)
           if (prev.insertAdjacentElement !== undefined) {
-            prev.insertAdjacentElement('beforeBegin', current)
+            prev.insertAdjacentElement('beforebegin', current)
           } else {
             parent.insertBefore(current, prev)
           }
@@ -784,10 +785,12 @@ export function getAttrs (children) {
  * A function to create an element with a pre-defined style.
  * For example, the flex* elements in fnelements.
  *
+ * @template {HTMLElement|SVGElement} T
+ *
  * @param {object|string} style The style to apply to the element
  * @param {string} tag The tag to use when creating the element
  * @param {object[]|Node[]} children The children to append to the element
- * @return {HTMLElement} The styled element
+ * @return {T} The styled element
  */
 export function styled (style, tag, children) {
   const firstChild = children[0]

@@ -38,7 +38,7 @@ A container for a state value that can be bound to.
 
 #### Defined in
 
-[fntags.mjs:179](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.mjs#L179)
+[fntags.mjs:180](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L180)
 
 ## Functions
 
@@ -72,7 +72,7 @@ or the changes won't be reflected correctly and binding updates won't be trigger
 
 #### Defined in
 
-[fntags.mjs:193](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.mjs#L193)
+[fntags.mjs:194](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L194)
 
 ___
 
@@ -95,7 +95,7 @@ All state bindings must be passed in the context to the compiled template to wor
 
 | Name | Type | Description |
 | :------ | :------ | :------ |
-| `templateFn` | (`any`: `any`) => `Node` | A function that returns an html node. |
+| `templateFn` | (`any`: `any`) => `Node` | A function that returns a html node. |
 
 #### Returns
 
@@ -117,7 +117,7 @@ A function that takes a context object and returns a rendered node.
 
 #### Defined in
 
-[fntags.mjs:90](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.mjs#L90)
+[fntags.mjs:91](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L91)
 
 ___
 
@@ -141,13 +141,13 @@ the attr object or an empty object
 
 #### Defined in
 
-[fntags.mjs:779](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.mjs#L779)
+[fntags.mjs:780](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L780)
 
 ___
 
 ### h
 
-▸ **h**(`tag`, `...children`): `HTMLElement`
+▸ **h**\<`T`\>(`tag`, `...children`): `T`
 
 A function to create dom elements with the given attributes and children.
 
@@ -162,22 +162,28 @@ i.e. { style: { color: blue } } becomes element.style.color = blue
 
 The rest of the arguments will be considered children of this element and appended to it in the same order as passed.
 
+#### Type parameters
+
+| Name | Type |
+| :------ | :------ |
+| `T` | extends `HTMLElement` \| `SVGElement` |
+
 #### Parameters
 
 | Name | Type | Description |
 | :------ | :------ | :------ |
 | `tag` | `string` | html tag to use when created the element |
-| `...children` | `any`[] \| `Node`[] | optional attributes object and children for the element |
+| `...children` | `any` | optional attributes object and children for the element |
 
 #### Returns
 
-`HTMLElement`
+`T`
 
 an html element
 
 #### Defined in
 
-[fntags.mjs:23](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.mjs#L23)
+[fntags.mjs:24](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L24)
 
 ___
 
@@ -201,7 +207,7 @@ true if the value is an object that can be used as attributes
 
 #### Defined in
 
-[fntags.mjs:770](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.mjs#L770)
+[fntags.mjs:771](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L771)
 
 ___
 
@@ -225,16 +231,22 @@ The rendered node
 
 #### Defined in
 
-[fntags.mjs:656](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.mjs#L656)
+[fntags.mjs:657](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L657)
 
 ___
 
 ### styled
 
-▸ **styled**(`style`, `tag`, `children`): `HTMLElement`
+▸ **styled**\<`T`\>(`style`, `tag`, `children`): `T`
 
 A function to create an element with a pre-defined style.
 For example, the flex* elements in fnelements.
+
+#### Type parameters
+
+| Name | Type |
+| :------ | :------ |
+| `T` | extends `HTMLElement` \| `SVGElement` |
 
 #### Parameters
 
@@ -246,10 +258,10 @@ For example, the flex* elements in fnelements.
 
 #### Returns
 
-`HTMLElement`
+`T`
 
 The styled element
 
 #### Defined in
 
-[fntags.mjs:792](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.mjs#L792)
+[fntags.mjs:795](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L795)

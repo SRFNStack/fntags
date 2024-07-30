@@ -41,7 +41,7 @@
 
 #### Defined in
 
-[fnroute.mjs:274](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fnroute.mjs#L274)
+[fnroute.mjs:274](https://github.com/srfnstack/fntags/blob/a2ca817/src/fnroute.mjs#L274)
 
 ___
 
@@ -59,7 +59,7 @@ ___
 
 #### Defined in
 
-[fnroute.mjs:285](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fnroute.mjs#L285)
+[fnroute.mjs:285](https://github.com/srfnstack/fntags/blob/a2ca817/src/fnroute.mjs#L285)
 
 ___
 
@@ -69,7 +69,7 @@ ___
 
 #### Defined in
 
-[fnroute.mjs:300](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fnroute.mjs#L300)
+[fnroute.mjs:300](https://github.com/srfnstack/fntags/blob/a2ca817/src/fnroute.mjs#L300)
 
 ## Variables
 
@@ -81,7 +81,7 @@ After the route is changed
 
 #### Defined in
 
-[fnroute.mjs:311](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fnroute.mjs#L311)
+[fnroute.mjs:311](https://github.com/srfnstack/fntags/blob/a2ca817/src/fnroute.mjs#L311)
 
 ___
 
@@ -93,7 +93,7 @@ Before the route is changed
 
 #### Defined in
 
-[fnroute.mjs:306](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fnroute.mjs#L306)
+[fnroute.mjs:306](https://github.com/srfnstack/fntags/blob/a2ca817/src/fnroute.mjs#L306)
 
 ___
 
@@ -105,7 +105,7 @@ After the route is changed and the route element is rendered
 
 #### Defined in
 
-[fnroute.mjs:316](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fnroute.mjs#L316)
+[fnroute.mjs:316](https://github.com/srfnstack/fntags/blob/a2ca817/src/fnroute.mjs#L316)
 
 ## Functions
 
@@ -129,7 +129,7 @@ An anchor element that will navigate to the specified route when clicked
 
 #### Defined in
 
-[fnroute.mjs:193](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fnroute.mjs#L193)
+[fnroute.mjs:193](https://github.com/srfnstack/fntags/blob/a2ca817/src/fnroute.mjs#L193)
 
 ___
 
@@ -154,7 +154,7 @@ A function to navigate to the specified route
 
 #### Defined in
 
-[fnroute.mjs:223](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fnroute.mjs#L223)
+[fnroute.mjs:223](https://github.com/srfnstack/fntags/blob/a2ca817/src/fnroute.mjs#L223)
 
 ___
 
@@ -185,7 +185,7 @@ a function to stop listening with the passed handler.
 
 #### Defined in
 
-[fnroute.mjs:334](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fnroute.mjs#L334)
+[fnroute.mjs:334](https://github.com/srfnstack/fntags/blob/a2ca817/src/fnroute.mjs#L334)
 
 ___
 
@@ -203,7 +203,7 @@ The main function of this library. It will load the route at the specified path 
 | `options.attrs` | `any` | The attributes of the container element |
 | `options.formatPath` | (`path`: `string`) => `string` | A function that will be called with the raw path before it is used to load the route. The function should return a new path. |
 | `options.frame` | (`node`: `Node`, `module`: `any`) => `Node` | A function that will be called with the rendered route element and the module that was loaded. The function should return a new element to be rendered. |
-| `options.onerror` | (`error`: `Error`, `newPathState`: `any`) => `void` | A function that will be called if the route fails to load. The function receives the error and the current pathState object. |
+| `options.onerror` | (`error`: `Error`, `newPathState`: `any`) => `void` \| `Node` | A function that will be called if the route fails to load. The function receives the error and the current pathState object. Should return an error to display if it's not handled. |
 | `options.routePath` | `string` | The path to the root of the routes. This is used to resolve the paths of the routes. |
 | `options.sendRawPath` | `boolean` | If true, the raw path will be sent to the route. Otherwise, the path will be stripped of parameter values. |
 
@@ -215,7 +215,7 @@ The container element
 
 #### Defined in
 
-[fnroute.mjs:108](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fnroute.mjs#L108)
+[fnroute.mjs:108](https://github.com/srfnstack/fntags/blob/a2ca817/src/fnroute.mjs#L108)
 
 ___
 
@@ -237,7 +237,7 @@ The path parameters of the current route
 
 #### Defined in
 
-[fntags.d.mts:192](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.d.mts#L192)
+[fntags.d.mts:195](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.d.mts#L195)
 
 ___
 
@@ -259,7 +259,7 @@ The current path state
 
 #### Defined in
 
-[fntags.d.mts:192](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.d.mts#L192)
+[fntags.d.mts:195](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.d.mts#L195)
 
 ___
 
@@ -304,13 +304,13 @@ A div element that will only be displayed if the current route starts with the p
 
 #### Defined in
 
-[fnroute.mjs:34](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fnroute.mjs#L34)
+[fnroute.mjs:34](https://github.com/srfnstack/fntags/blob/a2ca817/src/fnroute.mjs#L34)
 
 ___
 
 ### routeSwitch
 
-▸ **routeSwitch**(`...children`): `HTMLDivElement`
+▸ **routeSwitch**(`...children`): `Node` \| () => `Node`
 
 An element that only renders the first route that matches and updates when the route is changed
 The primary purpose of this element is to provide catchall routes for not found pages and path variables
@@ -323,11 +323,11 @@ The primary purpose of this element is to provide catchall routes for not found 
 
 #### Returns
 
-`HTMLDivElement`
+`Node` \| () => `Node`
 
 #### Defined in
 
-[fnroute.mjs:60](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fnroute.mjs#L60)
+[fnroute.mjs:60](https://github.com/srfnstack/fntags/blob/a2ca817/src/fnroute.mjs#L60)
 
 ___
 
@@ -349,4 +349,4 @@ Set the root path of the app. This is necessary to make deep linking work in cas
 
 #### Defined in
 
-[fnroute.mjs:351](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fnroute.mjs#L351)
+[fnroute.mjs:351](https://github.com/srfnstack/fntags/blob/a2ca817/src/fnroute.mjs#L351)

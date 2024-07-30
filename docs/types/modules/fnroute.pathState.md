@@ -14,7 +14,6 @@ The current path state
 
 ### Functions
 
-- [](fnroute.pathState.md#)
 - [assign](fnroute.pathState.md#assign)
 - [bindAs](fnroute.pathState.md#bindas)
 - [bindAttr](fnroute.pathState.md#bindattr)
@@ -28,6 +27,7 @@ The current path state
 - [select](fnroute.pathState.md#select)
 - [selected](fnroute.pathState.md#selected)
 - [setPath](fnroute.pathState.md#setpath)
+- [subscribe](fnroute.pathState.md#subscribe)
 
 ## References
 
@@ -36,27 +36,6 @@ The current path state
 Re-exports [isFnState](fnroute.pathParameters.md#isfnstate)
 
 ## Functions
-
-▸ ****(`newState`, `oldState`): `void`
-
-=>void} subscribe Register a callback that will be executed whenever the state is changed
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `newState` | [`PathState`](fnroute.md#pathstate) |
-| `oldState` | [`PathState`](fnroute.md#pathstate) |
-
-#### Returns
-
-`void`
-
-#### Defined in
-
-[fntags.d.mts:179](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.d.mts#L179)
-
-___
 
 ### assign
 
@@ -77,7 +56,7 @@ a state change and is a shortcut for `mystate(Object.assign(mystate(), update))`
 
 #### Defined in
 
-[fntags.d.mts:165](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.d.mts#L165)
+[fntags.d.mts:168](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.d.mts#L168)
 
 ___
 
@@ -102,7 +81,7 @@ the second parameter (the update function) must be provided and must be a functi
 
 #### Defined in
 
-[fntags.d.mts:123](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.d.mts#L123)
+[fntags.d.mts:126](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.d.mts#L126)
 
 ___
 
@@ -124,7 +103,7 @@ Bind attribute values to state changes
 
 #### Defined in
 
-[fntags.d.mts:138](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.d.mts#L138)
+[fntags.d.mts:141](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.d.mts#L141)
 
 ___
 
@@ -150,16 +129,13 @@ If the current value is not an array, this will behave the same as bindAs.
 
 #### Defined in
 
-[fntags.d.mts:129](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.d.mts#L129)
+[fntags.d.mts:132](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.d.mts#L132)
 
 ___
 
 ### bindProp
 
-▸ **bindProp**(`prop`): `Node` \| () => `Node`
-
-Bind to a property of an object stored in this state instead of the state itself.
-Shortcut for `mystate.bindAs((current)=> current[prop])`
+▸ **bindProp**(`prop`): `Node`
 
 #### Parameters
 
@@ -169,11 +145,11 @@ Shortcut for `mystate.bindAs((current)=> current[prop])`
 
 #### Returns
 
-`Node` \| () => `Node`
+`Node`
 
 #### Defined in
 
-[fntags.d.mts:134](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.d.mts#L134)
+[fntags.d.mts:137](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.d.mts#L137)
 
 ___
 
@@ -196,7 +172,7 @@ Bind selected state to an element
 
 #### Defined in
 
-[fntags.d.mts:146](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.d.mts#L146)
+[fntags.d.mts:149](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.d.mts#L149)
 
 ___
 
@@ -218,7 +194,7 @@ Bind selected state to an attribute
 
 #### Defined in
 
-[fntags.d.mts:150](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.d.mts#L150)
+[fntags.d.mts:153](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.d.mts#L153)
 
 ___
 
@@ -240,7 +216,7 @@ Bind style values to state changes
 
 #### Defined in
 
-[fntags.d.mts:142](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.d.mts#L142)
+[fntags.d.mts:145](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.d.mts#L145)
 
 ___
 
@@ -264,7 +240,7 @@ will not be reflected correctly.
 
 #### Defined in
 
-[fntags.d.mts:171](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.d.mts#L171)
+[fntags.d.mts:174](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.d.mts#L174)
 
 ___
 
@@ -286,7 +262,7 @@ Remove all of the observers and optionally reset the value to it's initial value
 
 #### Defined in
 
-[fntags.d.mts:183](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.d.mts#L183)
+[fntags.d.mts:186](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.d.mts#L186)
 
 ___
 
@@ -310,7 +286,7 @@ This causes the bound select functions to be executed.
 
 #### Defined in
 
-[fntags.d.mts:156](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.d.mts#L156)
+[fntags.d.mts:159](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.d.mts#L159)
 
 ___
 
@@ -326,7 +302,7 @@ Get the currently selected key
 
 #### Defined in
 
-[fntags.d.mts:160](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.d.mts#L160)
+[fntags.d.mts:163](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.d.mts#L163)
 
 ___
 
@@ -350,4 +326,26 @@ Set a value at the given property path
 
 #### Defined in
 
-[fntags.d.mts:175](https://github.com/srfnstack/fntags/blob/9b92bb0/src/fntags.d.mts#L175)
+[fntags.d.mts:178](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.d.mts#L178)
+
+___
+
+### subscribe
+
+▸ **subscribe**(`subscriber`): `void`
+
+Register a callback that will be executed whenever the state is changed
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `subscriber` | (`newState`: [`PathState`](fnroute.md#pathstate), `oldState`: [`PathState`](fnroute.md#pathstate)) => `void` |
+
+#### Returns
+
+`void`
+
+#### Defined in
+
+[fntags.d.mts:182](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.d.mts#L182)
