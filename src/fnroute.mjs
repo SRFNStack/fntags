@@ -28,7 +28,7 @@ import { fnstate, getAttrs, h, isAttrs, renderNode } from './fntags.mjs'
  *          )
  *      )
  *
- * @param {Object|Node} children The attributes and children of this element.
+ * @param {(Object|Node)[]} children The attributes and children of this element.
  * @returns {HTMLDivElement} A div element that will only be displayed if the current route starts with the path attribute.
  */
 export function route (...children) {
@@ -54,7 +54,7 @@ export function route (...children) {
 /**
  * An element that only renders the first route that matches and updates when the route is changed
  * The primary purpose of this element is to provide catchall routes for not found pages and path variables
- * @param {any} children
+ * @param {(Object|Node)[]} children
  * @returns {Node|(()=>Node)}
  */
 export function routeSwitch (...children) {
@@ -187,7 +187,7 @@ function updatePathParameters () {
 
 /**
  * A link element that is a link to another route in this single page app
- * @param {any} children The attributes of the anchor element and any children
+ * @param {(Object|Node)[]} children The attributes of the anchor element and any children
  * @returns {HTMLAnchorElement} An anchor element that will navigate to the specified route when clicked
  */
 export function fnlink (...children) {

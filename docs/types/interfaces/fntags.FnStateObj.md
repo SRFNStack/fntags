@@ -57,7 +57,7 @@ a state change and is a shortcut for `mystate(Object.assign(mystate(), update))`
 
 #### Defined in
 
-[fntags.mjs:167](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L167)
+[fntags.mjs:167](https://github.com/srfnstack/fntags/blob/1160f40/src/fntags.mjs#L167)
 
 ___
 
@@ -86,7 +86,7 @@ the second parameter (the update function) must be provided and must be a functi
 
 #### Defined in
 
-[fntags.mjs:151](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L151)
+[fntags.mjs:151](https://github.com/srfnstack/fntags/blob/1160f40/src/fntags.mjs#L151)
 
 ___
 
@@ -112,7 +112,7 @@ Bind attribute values to state changes
 
 #### Defined in
 
-[fntags.mjs:159](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L159)
+[fntags.mjs:159](https://github.com/srfnstack/fntags/blob/1160f40/src/fntags.mjs#L159)
 
 ___
 
@@ -142,7 +142,7 @@ If the current value is not an array, this will behave the same as bindAs.
 
 #### Defined in
 
-[fntags.mjs:154](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L154)
+[fntags.mjs:154](https://github.com/srfnstack/fntags/blob/1160f40/src/fntags.mjs#L154)
 
 ___
 
@@ -155,7 +155,7 @@ Shortcut for `mystate.bindAs((current)=> current[prop])`
 
 #### Defined in
 
-[fntags.mjs:157](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L157)
+[fntags.mjs:157](https://github.com/srfnstack/fntags/blob/1160f40/src/fntags.mjs#L157)
 
 ___
 
@@ -182,7 +182,7 @@ Bind selected state to an element
 
 #### Defined in
 
-[fntags.mjs:161](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L161)
+[fntags.mjs:161](https://github.com/srfnstack/fntags/blob/1160f40/src/fntags.mjs#L161)
 
 ___
 
@@ -208,7 +208,7 @@ Bind selected state to an attribute
 
 #### Defined in
 
-[fntags.mjs:162](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L162)
+[fntags.mjs:162](https://github.com/srfnstack/fntags/blob/1160f40/src/fntags.mjs#L162)
 
 ___
 
@@ -234,7 +234,7 @@ Bind style values to state changes
 
 #### Defined in
 
-[fntags.mjs:160](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L160)
+[fntags.mjs:160](https://github.com/srfnstack/fntags/blob/1160f40/src/fntags.mjs#L160)
 
 ___
 
@@ -262,7 +262,7 @@ will not be reflected correctly.
 
 #### Defined in
 
-[fntags.mjs:169](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L169)
+[fntags.mjs:169](https://github.com/srfnstack/fntags/blob/1160f40/src/fntags.mjs#L169)
 
 ___
 
@@ -274,7 +274,7 @@ A flag to indicate that this is a fnstate object
 
 #### Defined in
 
-[fntags.mjs:175](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L175)
+[fntags.mjs:175](https://github.com/srfnstack/fntags/blob/1160f40/src/fntags.mjs#L175)
 
 ___
 
@@ -300,7 +300,7 @@ Remove all of the observers and optionally reset the value to it's initial value
 
 #### Defined in
 
-[fntags.mjs:174](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L174)
+[fntags.mjs:174](https://github.com/srfnstack/fntags/blob/1160f40/src/fntags.mjs#L174)
 
 ___
 
@@ -328,7 +328,7 @@ This causes the bound select functions to be executed.
 
 #### Defined in
 
-[fntags.mjs:163](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L163)
+[fntags.mjs:163](https://github.com/srfnstack/fntags/blob/1160f40/src/fntags.mjs#L163)
 
 ___
 
@@ -348,7 +348,7 @@ Get the currently selected key
 
 #### Defined in
 
-[fntags.mjs:166](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L166)
+[fntags.mjs:166](https://github.com/srfnstack/fntags/blob/1160f40/src/fntags.mjs#L166)
 
 ___
 
@@ -376,7 +376,7 @@ Set a value at the given property path
 
 #### Defined in
 
-[fntags.mjs:172](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L172)
+[fntags.mjs:172](https://github.com/srfnstack/fntags/blob/1160f40/src/fntags.mjs#L172)
 
 ___
 
@@ -402,4 +402,4 @@ Register a callback that will be executed whenever the state is changed
 
 #### Defined in
 
-[fntags.mjs:173](https://github.com/srfnstack/fntags/blob/a2ca817/src/fntags.mjs#L173)
+[fntags.mjs:173](https://github.com/srfnstack/fntags/blob/1160f40/src/fntags.mjs#L173)

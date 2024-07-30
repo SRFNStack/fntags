@@ -22,17 +22,17 @@
  *          )
  *      )
  *
- * @param {Object|Node} children The attributes and children of this element.
+ * @param {(Object|Node)[]} children The attributes and children of this element.
  * @returns {HTMLDivElement} A div element that will only be displayed if the current route starts with the path attribute.
  */
-export function route(...children: any | Node): HTMLDivElement;
+export function route(...children: (any | Node)[]): HTMLDivElement;
 /**
  * An element that only renders the first route that matches and updates when the route is changed
  * The primary purpose of this element is to provide catchall routes for not found pages and path variables
- * @param {any} children
+ * @param {(Object|Node)[]} children
  * @returns {Node|(()=>Node)}
  */
-export function routeSwitch(...children: any): Node | (() => Node);
+export function routeSwitch(...children: (any | Node)[]): Node | (() => Node);
 /**
  * The main function of this library. It will load the route at the specified path and render it into the container element.
  * @param {object} options
@@ -54,10 +54,10 @@ export function modRouter({ routePath, attrs, onerror, frame, sendRawPath, forma
 }): HTMLElement;
 /**
  * A link element that is a link to another route in this single page app
- * @param {any} children The attributes of the anchor element and any children
+ * @param {(Object|Node)[]} children The attributes of the anchor element and any children
  * @returns {HTMLAnchorElement} An anchor element that will navigate to the specified route when clicked
  */
-export function fnlink(...children: any): HTMLAnchorElement;
+export function fnlink(...children: (any | Node)[]): HTMLAnchorElement;
 /**
  * A function to navigate to the specified route
  * @param {string} route The route to navigate to
