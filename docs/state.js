@@ -412,43 +412,6 @@ data.bindChildren(
     ))
   ),
   contentSection(
-    'Custom Handling',
-    'If you want to perform extra shenanigans, you can get a handle on the element by passing an update function. This disables the normal handling of replacing the' +
-    ' element when it changes.',
-    prismCode(
-      `name.bindAs(
-   input(
-       {
-           value: name(),
-           oninput:
-               ( e ) => name( e.target.value )
-       }
-   ),
-   ( el ) => el.value = name()
-)`
-      ,
-      div(
-        (() => {
-          const name = fnstate('Jerry')
-          return div(
-            name.bindAs(() => div(name())),
-            name.bindAs(
-              input(
-                {
-                  value: name(),
-                  oninput:
-                    (e) => name(e.target.value)
-                }
-              ),
-              (el) => { el.value = name() }
-            )
-          )
-        })()
-      )
-    )
-  ),
-
-  contentSection(
     'Binding State at Any Scope',
     'As long as you have a handle on the state object you can bind to it. This means that states can be imported, used as global vars, or set on window.',
     prismCode(`

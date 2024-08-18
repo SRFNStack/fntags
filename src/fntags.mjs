@@ -148,18 +148,17 @@ export function fntemplate (templateFn) {
 /**
  * @template T The type of data stored in the state container
  * @typedef FnStateObj A container for a state value that can be bound to.
- * @property {(element: Node|any|(()=>Node|any), update?: (Node)=>void) => Node|(() => Node)} bindAs Bind this state to the given element. This causes the element to update when state changes.
- * If called with no parameters, the state's value will be rendered as an element. If the first parameters is not a function,
- * the second parameter (the update function) must be provided and must be a function. This function receives the node the state is bound to.
- * @property {(parent: Node|any|(()=>Node|any),element: Node|any|(()=>Node|any), update?: (Node)=>void)=> Node|(()=> Node)} bindChildren Bind the values of this state to the given element.
+ * @property {(element?: ()=>(Node|any))=>Node} bindAs Bind this state to the given element function. This causes the element to be replaced when state changes.
+ * If called with no parameters, the state's value will be rendered as an element.
+ * @property {(parent: ()=>(Node|any)|any|Node, element: (childState: FnState)=>(Node|any))=>Node} bindChildren Bind the values of this state to the given element.
  * Values are items/elements of an array.
  * If the current value is not an array, this will behave the same as bindAs.
- * @property {((prop: string)=>Node)|(()=>Node)} bindProp Bind to a property of an object stored in this state instead of the state itself.
+ * @property {(prop: string)=>Node} bindProp Bind to a property of an object stored in this state instead of the state itself.
  * Shortcut for `mystate.bindAs((current)=> current[prop])`
- * @property {(attribute: string)=>any} bindAttr Bind attribute values to state changes
- * @property {(style: string)=> string} bindStyle Bind style values to state changes
- * @property {(element: Node|any|(()=>Node|any), update?: ((Node)=>void))=>Node|(()=>Node)} bindSelect Bind selected state to an element
- * @property {(attribute: string)=>any} bindSelectAttr Bind selected state to an attribute
+ * @property {(attribute?: ()=>(string|any))=>any} bindAttr Bind attribute values to state changes
+ * @property {(style?: ()=>string) => string} bindStyle Bind style values to state changes
+ * @property {(element?: ()=>(Node|any))=>Node} bindSelect Bind selected state to an element
+ * @property {(attribute?: ()=>(string|any))=>any} bindSelectAttr Bind selected state to an attribute
  * @property {(key: any)=>void} select Mark the element with the given key as selected
  * where the key is identified using the mapKey function passed on creation of the fnstate.
  * This causes the bound select functions to be executed.
@@ -216,22 +215,21 @@ export function fnstate (initialValue, mapKey) {
   /**
    * Bind this state to the given element
    *
-   * @param [element] The element to bind to. If not a function, an update function must be passed. If not passed, defaults to the state's value
-   * @param [update] If passed this will be executed directly when the state changes with no other intervention
-   * @returns {(HTMLDivElement|Text)[]|HTMLDivElement|Text}
+   * @param {((T)=>(Node|any))?} [element] The element to bind to. If not a function, an update function must be passed. If not passed, defaults to the state's value
+   * @returns {()=>Node}
    */
-  ctx.state.bindAs = (element, update) => doBindAs(ctx, element ?? ctx.state, update)
+  ctx.state.bindAs = (element) => doBindAs(ctx, element ?? ctx.state)
 
   /**
    * Bind the values of this state to the given element.
    * Values are items/elements of an array.
    * If the current value is not an array, this will behave the same as bindAs.
    *
-   * @param parent The parent to bind the children to.
-   * @param element The element to bind to. If not a function, an update function must be passed
-   * @param update If passed this will be executed directly when the state of any value changes with no other intervention
+   * @param {(()=>(Node|any)) | Node | any} parent The parent to bind the children to.
+   * @param {(childState: FnState)=>(Node|any)} element A function that receives each element wrapped as a fnstate and produces an element
+   * @returns {Node}
    */
-  ctx.state.bindChildren = (parent, element, update) => doBindChildren(ctx, parent, element, update)
+  ctx.state.bindChildren = (parent, element) => doBindChildren(ctx, parent, element)
 
   /**
    * Bind to a property of an object stored in this state instead of the state itself.
@@ -239,35 +237,35 @@ export function fnstate (initialValue, mapKey) {
    * Shortcut for `mystate.bindAs((current)=> current[prop])`
    *
    * @param {string} prop The object property to bind as
-   * @returns {(HTMLDivElement|Text)[]|HTMLDivElement|Text}
+   * @returns {()=>Node}
    */
   ctx.state.bindProp = (prop) => doBindAs(ctx, (st) => st[prop])
 
   /**
    * Bind attribute values to state changes
-   * @param [attribute] A function that returns an attribute value. If not passed, defaults to the state's value
-   * @returns {()=>Node} A function that calls the passed function, with some extra metadata
+   * @param {(()=>(string|any))?} [attribute] A function that returns an attribute value. If not passed, defaults to the state's value
+   * @returns {()=>(string|any)} A function that calls the passed function, with some extra metadata
    */
   ctx.state.bindAttr = (attribute) => doBindAttr(ctx.state, attribute ?? ctx.state)
 
   /**
    * Bind style values to state changes
-   * @param [style] A function that returns a style's value. If not passed, defaults to the state's value
+   * @param {(()=>string)?} [style] A function that returns a style's value. If not passed, defaults to the state's value
    * @returns {()=>Node} A function that calls the passed function, with some extra metadata
    */
   ctx.state.bindStyle = (style) => doBindStyle(ctx.state, style ?? ctx.state)
 
   /**
    * Bind select and deselect to an element
-   * @param [element] The element to bind to. If not a function, an update function must be passed. If not passed, defaults to the state's value
-   * @param update If passed this will be executed directly when the state changes with no other intervention
+   * @param {(()=>(Node|any))?} [element] The element to bind to. If not passed, defaults to the state's value
+   * @returns {()=>Node}
    */
-  ctx.state.bindSelect = (element, update) => doBindSelect(ctx, element ?? ctx.state, update)
+  ctx.state.bindSelect = (element) => doBindSelect(ctx, element ?? ctx.state)
 
   /**
    * Bind select and deselect to an attribute
-   * @param [attribute] A function that returns an attribute value. If not passed, defaults to the state's value
-   * @returns {()=>any} A function that calls the passed function, with some extra metadata
+   * @param {(()=>(string|any))?} [attribute] A function that returns an attribute value. If not passed, defaults to the state's value
+   * @returns {()=>(string|any)} A function that calls the passed function, with some extra metadata
    */
   ctx.state.bindSelectAttr = (attribute) => doBindSelectAttr(ctx, attribute ?? ctx.state)
 
@@ -286,6 +284,7 @@ export function fnstate (initialValue, mapKey) {
 
   /**
    * Perform an Object.assign() on the current state using the provided update
+   * @param {T} [update]
    */
   ctx.state.assign = (update) => ctx.state(Object.assign(ctx.currentValue, update))
 
@@ -294,6 +293,7 @@ export function fnstate (initialValue, mapKey) {
    *
    * This returns a reference to the real current value. If you perform any modifications to the object, be sure to call setPath after you're done or the changes
    * will not be reflected correctly.
+   * @param {string} [path] a json path type path that points to a property
    */
   ctx.state.getPath = (path) => {
     if (typeof path !== 'string') {
@@ -318,9 +318,9 @@ export function fnstate (initialValue, mapKey) {
 
   /**
    * Set a value at the given property path
-   * @param path The JSON path of the value to set
-   * @param value The value to set the path to
-   * @param fillWithObjects Whether to non object values with new empty objects.
+   * @param {string} path The JSON path of the value to set
+   * @param {any} value The value to set the path to
+   * @param {boolean} fillWithObjects Whether to non object values with new empty objects.
    */
   ctx.state.setPath = (path, value, fillWithObjects = false) => {
     const s = path.split('.')
@@ -346,12 +346,14 @@ export function fnstate (initialValue, mapKey) {
 
   /**
    * Register a callback that will be executed whenever the state is changed
-   * @return a function to stop the subscription
+   * @param {(newValue:T,oldValue:T)=>void} callback
+   * @return {()=>void} a function to stop the subscription
    */
   ctx.state.subscribe = (callback) => doSubscribe(ctx, ctx.observers, callback)
 
   /**
    * Remove all the observers and optionally reset the value to it's initial value
+   * @param {boolean} reInit whether to reset the state to it's initial value
    */
   ctx.state.reset = (reInit) => doReset(ctx, reInit, initialValue)
 
@@ -428,13 +430,13 @@ function doSelect (ctx, key) {
   }
 }
 
-function doBindChildren (ctx, parent, element, update) {
+function doBindChildren (ctx, parent, element) {
   parent = renderNode(parent)
   if (parent === undefined || parent.nodeType === undefined) {
     throw new Error('You must provide a parent element to bind the children to. aka Need Bukkit.')
   }
-  if (typeof element !== 'function' && typeof update !== 'function') {
-    throw new Error('You must pass an update function when passing a non function element')
+  if (typeof element !== 'function') {
+    throw new Error('You must pass a function to produce child elements.')
   }
   if (typeof ctx.mapKey !== 'function') {
     console.warn('Using value index as key, may not work correctly when moving items...')
@@ -445,8 +447,8 @@ function doBindChildren (ctx, parent, element, update) {
     throw new Error('You can only use bindChildren with a state that contains an array. try myState([mystate]) before calling this function.')
   }
   ctx.currentValue = ctx.currentValue.map(v => v.isFnState ? v : fnstate(v))
-  ctx.bindContexts.push({ element, update, parent })
-  ctx.state.subscribe((newState, oldState) => {
+  ctx.bindContexts.push({ element, parent })
+  ctx.state.subscribe((_, oldState) => {
     if (!Array.isArray(ctx.currentValue)) {
       console.warn('A state used with bindChildren was updated to a non array value. This will be converted to an array of 1 and the state will be updated.')
       new Promise((resolve) => {
@@ -467,19 +469,13 @@ function doBindChildren (ctx, parent, element, update) {
   return parent
 }
 
-const doBind = function (ctx, element, update, handleUpdate, handleReplace) {
-  if (typeof element !== 'function' && typeof update !== 'function') {
-    throw new Error('You must pass an update function when passing a non function element')
+const doBind = function (ctx, element, handleReplace) {
+  if (typeof element !== 'function') {
+    throw new Error('You must pass a function to bind with')
   }
-  if (typeof update === 'function') {
-    const boundElement = renderNode(evaluateElement(element, ctx.currentValue))
-    handleUpdate(boundElement)
-    return boundElement
-  } else {
-    const elCtx = { current: renderNode(evaluateElement(element, ctx.currentValue)) }
-    handleReplace(elCtx)
-    return () => elCtx.current
-  }
+  const elCtx = { current: renderNode(evaluateElement(element, ctx.currentValue)) }
+  handleReplace(elCtx)
+  return () => elCtx.current
 }
 
 const updateReplacer = (ctx, element, elCtx) => () => {
@@ -509,25 +505,11 @@ const updateReplacer = (ctx, element, elCtx) => () => {
   }
 }
 
-const doBindSelect = (ctx, element, update) =>
-  doBind(ctx, element, update,
-    boundElement =>
-      subscribeSelect(ctx, () => update(boundElement)),
-    (elCtx) =>
-      subscribeSelect(
-        ctx,
-        updateReplacer(ctx, element, elCtx)
-      )
-  )
+const doBindSelect = (ctx, element) =>
+  doBind(ctx, element, (elCtx) => subscribeSelect(ctx, updateReplacer(ctx, element, elCtx)))
 
-const doBindAs = (ctx, element, update) =>
-  doBind(ctx, element, update,
-    boundElement => {
-      ctx.state.subscribe(() => update(boundElement))
-    },
-    (elCtx) =>
-      ctx.state.subscribe(updateReplacer(ctx, element, elCtx))
-  )
+const doBindAs = (ctx, element) =>
+  doBind(ctx, element, (elCtx) => ctx.state.subscribe(updateReplacer(ctx, element, elCtx)))
 
 /**
  * Reconcile the state of the current array value with the state of the bound elements

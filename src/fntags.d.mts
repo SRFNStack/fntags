@@ -42,18 +42,17 @@ export function fntemplate(templateFn: (any: any) => Node): (any: any) => Node;
 /**
  * @template T The type of data stored in the state container
  * @typedef FnStateObj A container for a state value that can be bound to.
- * @property {(element: Node|any|(()=>Node|any), update?: (Node)=>void) => Node|(() => Node)} bindAs Bind this state to the given element. This causes the element to update when state changes.
- * If called with no parameters, the state's value will be rendered as an element. If the first parameters is not a function,
- * the second parameter (the update function) must be provided and must be a function. This function receives the node the state is bound to.
- * @property {(parent: Node|any|(()=>Node|any),element: Node|any|(()=>Node|any), update?: (Node)=>void)=> Node|(()=> Node)} bindChildren Bind the values of this state to the given element.
+ * @property {(element?: ()=>(Node|any))=>Node} bindAs Bind this state to the given element function. This causes the element to be replaced when state changes.
+ * If called with no parameters, the state's value will be rendered as an element.
+ * @property {(parent: ()=>(Node|any)|any|Node, element: (childState: FnState)=>(Node|any))=>Node} bindChildren Bind the values of this state to the given element.
  * Values are items/elements of an array.
  * If the current value is not an array, this will behave the same as bindAs.
- * @property {((prop: string)=>Node)|(()=>Node)} bindProp Bind to a property of an object stored in this state instead of the state itself.
+ * @property {(prop: string)=>Node} bindProp Bind to a property of an object stored in this state instead of the state itself.
  * Shortcut for `mystate.bindAs((current)=> current[prop])`
- * @property {(attribute: string)=>any} bindAttr Bind attribute values to state changes
- * @property {(style: string)=> string} bindStyle Bind style values to state changes
- * @property {(element: Node|any|(()=>Node|any), update?: ((Node)=>void))=>Node|(()=>Node)} bindSelect Bind selected state to an element
- * @property {(attribute: string)=>any} bindSelectAttr Bind selected state to an attribute
+ * @property {(attribute?: ()=>(string|any))=>any} bindAttr Bind attribute values to state changes
+ * @property {(style?: ()=>string) => string} bindStyle Bind style values to state changes
+ * @property {(element?: ()=>(Node|any))=>Node} bindSelect Bind selected state to an element
+ * @property {(attribute?: ()=>(string|any))=>any} bindSelectAttr Bind selected state to an attribute
  * @property {(key: any)=>void} select Mark the element with the given key as selected
  * where the key is identified using the mapKey function passed on creation of the fnstate.
  * This causes the bound select functions to be executed.
@@ -119,38 +118,37 @@ export function styled<T extends HTMLElement | SVGElement>(style: object | strin
  */
 export type FnStateObj<T> = {
     /**
-     * Bind this state to the given element. This causes the element to update when state changes.
-     * If called with no parameters, the state's value will be rendered as an element. If the first parameters is not a function,
-     * the second parameter (the update function) must be provided and must be a function. This function receives the node the state is bound to.
+     * Bind this state to the given element function. This causes the element to be replaced when state changes.
+     * If called with no parameters, the state's value will be rendered as an element.
      */
-    bindAs: (element: Node | any | (() => Node | any), update?: (Node: any) => void) => Node | (() => Node);
+    bindAs: (element?: () => (Node | any)) => Node;
     /**
      * Bind the values of this state to the given element.
      * Values are items/elements of an array.
      * If the current value is not an array, this will behave the same as bindAs.
      */
-    bindChildren: (parent: Node | any | (() => Node | any), element: Node | any | (() => Node | any), update?: (Node: any) => void) => Node | (() => Node);
+    bindChildren: (parent: () => (Node | any) | any | Node, element: (childState: any) => (Node | any)) => Node;
     /**
      * Bind to a property of an object stored in this state instead of the state itself.
      * Shortcut for `mystate.bindAs((current)=> current[prop])`
      */
-    bindProp: ((prop: string) => Node) | (() => Node);
+    bindProp: (prop: string) => Node;
     /**
      * Bind attribute values to state changes
      */
-    bindAttr: (attribute: string) => any;
+    bindAttr: (attribute?: () => (string | any)) => any;
     /**
      * Bind style values to state changes
      */
-    bindStyle: (style: string) => string;
+    bindStyle: (style?: () => string) => string;
     /**
      * Bind selected state to an element
      */
-    bindSelect: (element: Node | any | (() => Node | any), update?: (Node: any) => void) => Node | (() => Node);
+    bindSelect: (element?: () => (Node | any)) => Node;
     /**
      * Bind selected state to an attribute
      */
-    bindSelectAttr: (attribute: string) => any;
+    bindSelectAttr: (attribute?: () => (string | any)) => any;
     /**
      * Mark the element with the given key as selected
      * where the key is identified using the mapKey function passed on creation of the fnstate.
