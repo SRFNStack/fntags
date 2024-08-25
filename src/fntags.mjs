@@ -150,7 +150,7 @@ export function fntemplate (templateFn) {
  * @typedef FnStateObj A container for a state value that can be bound to.
  * @property {(element?: ()=>(Node|any))=>Node} bindAs Bind this state to the given element function. This causes the element to be replaced when state changes.
  * If called with no parameters, the state's value will be rendered as an element.
- * @property {(parent: ()=>(Node|any)|any|Node, element: (childState: FnState)=>(Node|any))=>Node} bindChildren Bind the values of this state to the given element.
+ * @property {(parent: (()=>(Node|any))|any|Node, element: (childState: FnState)=>(Node|any))=>Node} bindChildren Bind the values of this state to the given element.
  * Values are items/elements of an array.
  * If the current value is not an array, this will behave the same as bindAs.
  * @property {(prop: string)=>Node} bindProp Bind to a property of an object stored in this state instead of the state itself.
