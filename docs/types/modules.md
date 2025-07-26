@@ -1,4 +1,4 @@
-[@srfnstack/fntags](README.md) / Exports
+[@srfnstack/fntags](README.md) / Modules
 
 # @srfnstack/fntags
 

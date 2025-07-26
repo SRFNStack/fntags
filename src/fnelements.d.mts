@@ -464,9 +464,9 @@ export const tt: (...children: (Node | any)[]) => HTMLElement;
  */
 export const u: (...children: (Node | any)[]) => HTMLElement;
 /**
- * @type {(children: (Node|Object)[])=>HTMLUListElement}
+ * @type {(...children: (Node|Object)[])=>HTMLUListElement}
  */
-export const ul: (children: (Node | any)[]) => HTMLUListElement;
+export const ul: (...children: (Node | any)[]) => HTMLUListElement;
 /**
  * name conflicts with js syntax
  *

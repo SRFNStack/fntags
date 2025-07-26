@@ -1,4 +1,4 @@
-@srfnstack/fntags / [Exports](modules.md)
+@srfnstack/fntags / [Modules](modules.md)
 
 <p align="center">
   <img alt="fntags header" src="https://raw.githubusercontent.com/SRFNStack/fntags/master/docs/fntags_header.gif">

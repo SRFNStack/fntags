@@ -612,7 +612,7 @@ export const tt = (...children) => h('tt', ...children)
 export const u = (...children) => h('u', ...children)
 
 /**
- * @type {(children: (Node|Object)[])=>HTMLUListElement}
+ * @type {(...children: (Node|Object)[])=>HTMLUListElement}
  */
 export const ul = (...children) => h('ul', ...children)
 
