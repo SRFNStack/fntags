@@ -33,7 +33,7 @@ export const routeNavItems = () =>
             'font-weight': 400,
             'font-size': '18px',
             'text-decoration': 'none',
-            color: pathState.bindStyle(() => pathState().currentRoute.startsWith(r.url) ? secondaryColor : 'inherit')
+            color: pathState.bindStyle(() => pathState().currentPath.startsWith(r.url) ? secondaryColor : 'inherit')
           }
         },
         r.linkText

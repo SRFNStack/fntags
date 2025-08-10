@@ -57,7 +57,7 @@ a state change and is a shortcut for `mystate(Object.assign(mystate(), update))`
 
 #### Defined in
 
-[fntags.mjs:166](https://github.com/SRFNStack/fntags/blob/e31e872/src/fntags.mjs#L166)
+[fntags.mjs:166](https://github.com/SRFNStack/fntags/blob/0c329ca/src/fntags.mjs#L166)
 
 ___
 
@@ -84,7 +84,7 @@ If called with no parameters, the state's value will be rendered as an element.
 
 #### Defined in
 
-[fntags.mjs:151](https://github.com/SRFNStack/fntags/blob/e31e872/src/fntags.mjs#L151)
+[fntags.mjs:151](https://github.com/SRFNStack/fntags/blob/0c329ca/src/fntags.mjs#L151)
 
 ___
 
@@ -110,7 +110,7 @@ Bind attribute values to state changes
 
 #### Defined in
 
-[fntags.mjs:158](https://github.com/SRFNStack/fntags/blob/e31e872/src/fntags.mjs#L158)
+[fntags.mjs:158](https://github.com/SRFNStack/fntags/blob/0c329ca/src/fntags.mjs#L158)
 
 ___
 
@@ -139,7 +139,7 @@ If the current value is not an array, this will behave the same as bindAs.
 
 #### Defined in
 
-[fntags.mjs:153](https://github.com/SRFNStack/fntags/blob/e31e872/src/fntags.mjs#L153)
+[fntags.mjs:153](https://github.com/SRFNStack/fntags/blob/0c329ca/src/fntags.mjs#L153)
 
 ___
 
@@ -166,7 +166,7 @@ Shortcut for `mystate.bindAs((current)=> current[prop])`
 
 #### Defined in
 
-[fntags.mjs:156](https://github.com/SRFNStack/fntags/blob/e31e872/src/fntags.mjs#L156)
+[fntags.mjs:156](https://github.com/SRFNStack/fntags/blob/0c329ca/src/fntags.mjs#L156)
 
 ___
 
@@ -192,7 +192,7 @@ Bind selected state to an element
 
 #### Defined in
 
-[fntags.mjs:160](https://github.com/SRFNStack/fntags/blob/e31e872/src/fntags.mjs#L160)
+[fntags.mjs:160](https://github.com/SRFNStack/fntags/blob/0c329ca/src/fntags.mjs#L160)
 
 ___
 
@@ -218,7 +218,7 @@ Bind selected state to an attribute
 
 #### Defined in
 
-[fntags.mjs:161](https://github.com/SRFNStack/fntags/blob/e31e872/src/fntags.mjs#L161)
+[fntags.mjs:161](https://github.com/SRFNStack/fntags/blob/0c329ca/src/fntags.mjs#L161)
 
 ___
 
@@ -244,7 +244,7 @@ Bind style values to state changes
 
 #### Defined in
 
-[fntags.mjs:159](https://github.com/SRFNStack/fntags/blob/e31e872/src/fntags.mjs#L159)
+[fntags.mjs:159](https://github.com/SRFNStack/fntags/blob/0c329ca/src/fntags.mjs#L159)
 
 ___
 
@@ -272,7 +272,7 @@ will not be reflected correctly.
 
 #### Defined in
 
-[fntags.mjs:168](https://github.com/SRFNStack/fntags/blob/e31e872/src/fntags.mjs#L168)
+[fntags.mjs:168](https://github.com/SRFNStack/fntags/blob/0c329ca/src/fntags.mjs#L168)
 
 ___
 
@@ -284,7 +284,7 @@ A flag to indicate that this is a fnstate object
 
 #### Defined in
 
-[fntags.mjs:174](https://github.com/SRFNStack/fntags/blob/e31e872/src/fntags.mjs#L174)
+[fntags.mjs:174](https://github.com/SRFNStack/fntags/blob/0c329ca/src/fntags.mjs#L174)
 
 ___
 
@@ -310,7 +310,7 @@ Remove all of the observers and optionally reset the value to it's initial value
 
 #### Defined in
 
-[fntags.mjs:173](https://github.com/SRFNStack/fntags/blob/e31e872/src/fntags.mjs#L173)
+[fntags.mjs:173](https://github.com/SRFNStack/fntags/blob/0c329ca/src/fntags.mjs#L173)
 
 ___
 
@@ -338,7 +338,7 @@ This causes the bound select functions to be executed.
 
 #### Defined in
 
-[fntags.mjs:162](https://github.com/SRFNStack/fntags/blob/e31e872/src/fntags.mjs#L162)
+[fntags.mjs:162](https://github.com/SRFNStack/fntags/blob/0c329ca/src/fntags.mjs#L162)
 
 ___
 
@@ -358,7 +358,7 @@ Get the currently selected key
 
 #### Defined in
 
-[fntags.mjs:165](https://github.com/SRFNStack/fntags/blob/e31e872/src/fntags.mjs#L165)
+[fntags.mjs:165](https://github.com/SRFNStack/fntags/blob/0c329ca/src/fntags.mjs#L165)
 
 ___
 
@@ -386,7 +386,7 @@ Set a value at the given property path
 
 #### Defined in
 
-[fntags.mjs:171](https://github.com/SRFNStack/fntags/blob/e31e872/src/fntags.mjs#L171)
+[fntags.mjs:171](https://github.com/SRFNStack/fntags/blob/0c329ca/src/fntags.mjs#L171)
 
 ___
 
@@ -412,4 +412,4 @@ Register a callback that will be executed whenever the state is changed
 
 #### Defined in
 
-[fntags.mjs:172](https://github.com/SRFNStack/fntags/blob/e31e872/src/fntags.mjs#L172)
+[fntags.mjs:172](https://github.com/SRFNStack/fntags/blob/0c329ca/src/fntags.mjs#L172)

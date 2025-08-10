@@ -1,107 +1,8 @@
-import { a, code, div, hr, p } from './lib/fnelements.mjs'
+import { code, div, p } from './lib/fnelements.mjs'
 import contentSection from './contentSection.js'
 import prismCode from './prismCode.js'
 
 export default div(
-  contentSection(
-    'Dynamic Path Based Routing: modRouter',
-    'The modRouter enables directory based routing in the ui by lazy loading routes using dynamic module imports.' +
-        ' This means it\'s un-necessary to define routes, as they are resolved to paths on the server instead.',
-    'To use modRouter, first, set the root path of your app to the appropriate root. This will ensure that paths resolve correctly, though is not strictly necessary.',
-    prismCode(`
-import { modRouter, setRootPath } 
-    from './lib/fnroute.mjs'
-
-setRootPath('/')
-`),
-    'Then, create a mod router and place it wherever you would normally place an html element.',
-    prismCode(`document.body.append(
-    modRouter( { routePath: '/ui' } )
-)`),
-    'The routePath is used to resolve modules for the route. When the location changes, the current route is appended to the routePath and dynamically imported. ' +
-        'For example, if the application\'s rootPath is set to "/" and modRouter\'s routePath is set to "/ui", ' +
-        'when the user navigates to /foo/bar, the module located at /ui/foo/bar will be imported and loaded.',
-    hr(),
-    'If you need to modify the path in any way (i.e. add a .js suffix), set a formatPath function. The function gets ' +
-        'the path and should return the formatted path. ',
-    prismCode(
-            `document.body.append(
-    modRouter( {
-        routePath: '/ui',
-        formatPath: path => path + '.js'
-    } )
-)`),
-    div('This will cause issues if you use index.js files as default files. To get around this, either use a backend that supports ' +
-        'resolving files without their extensions (i.e. ', a({ href: 'https://srfnstack.github.io/spliffy' }, 'spliffy'),
-    ') or move your index.js files up a directory and name them after the directory. For example, user/index.js -> user.js'),
-    hr(),
-    'The route module\'s default export must be an html element, or a function that returns one in order for the route to load.',
-    'For example serving the following file at /ui/hello:',
-    prismCode(`
-import {div} from '../lib/fnelements.mjs'
-export default div('hello world')
-`),
-    'would cause the default hello world div to be loaded when a user navigates to /hello.',
-    hr(),
-    'Usually you want the route be rebuilt each time time it\'s navigated to, to do this make the default export a function.',
-    prismCode(`
-import {div} from '../lib/fnelements.mjs'
-export default ()=>div('hello world')
-`),
-    hr(),
-    'When using ', a({ href: '#Path%20Parameters' }, 'path parameters'), 'only the name of the parameter is used in the path by default. For example:',
-    prismCode('/app/user/id:1234'),
-    'gets imported from the backed using the following path',
-    prismCode('/app/user/id'),
-    'To disable this, set sendRawPath true on modRouter.',
-    prismCode('modRouter({routePath: \'/ui\', sendRawPath: true})'),
-    hr(),
-    'To wrap the route with common elements like navigation, set the frame option to a function.',
-    'The frame function receives the rendered element as the first argument, and the module object as the second. This function must return an element, or function that returns an element.',
-    prismCode(`modRouter({
-    routePath: '/ui',
-    frame: ( route, module ) => div(
-        'menu', 
-        route,
-        module.extraElements
-    )
-})`),
-    'For authentication, it\'s recommended that the route modules export a const like requiresAuth and an array for roles or other identifying information. This allows you to ' +
-        'redirect or display an error if needed during the frame execution. An example implementation might look this:',
-    prismCode(`
-modRouter({
-    routePath: '/ui',
-    frame: (route, module) => {
-        if( !authenticated() 
-            && pathState().currentRoute !== '/login' 
-            && module.requiresAuth
-        ) {
-            redirectToLogin()
-            return
-        }
-        if( module.roles 
-            && !hasAnyRole(userRoles(), module.roles)
-        ) {
-            return forbidden()
-        }
-        return div(
-            'menu', 
-            route,
-            module.extraElements
-        )
-    }
-})
-`),
-    'To handle errors during import, or errors rendering the route, pass an onerror function. It receives the error, the container div, and can return an ',
-    prismCode(`modRouter({
-    routePath: '/ui',
-    onerror: ( route, module ) => div(
-        'menu', 
-        route, 
-        module.extraElements
-    )
-})`)
-  ),
   contentSection(
     'Static Pattern Routing: Route Elements',
     'Static routes are created by using the fntags route element. They have a single required attribute, path. path can be a regular expression.',
@@ -148,12 +49,12 @@ modRouter({
     prismCode(
       'pathState() ~== {\n' +
             '    rootPath: \'\',\n' +
-            '    currentRoute: \'/\',\n' +
+            '    currentPath: \'/\',\n' +
             '    context: \'secret data\'\n' +
             '}'
     ),
     'rootPath is the path the app is served from. The default is the current window path when fntags.mjs is loaded.',
-    'currentRoute is the route the user is currently at. More precisely, it\'s the remainder of the current path after removing the root path prefix.',
+    'currentPath is the route the user is currently at. More precisely, it\'s the remainder of the current path after removing the root path prefix.',
     'context is the data passed as the context to fnlink or goto verbatim'
   ),
   contentSection(

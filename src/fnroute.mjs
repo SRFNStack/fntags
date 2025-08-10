@@ -70,6 +70,7 @@ export function routeSwitch (...children) {
         if (path) {
           const shouldDisplay = shouldDisplayRoute(path, !!child.absolute || child.getAttribute('absolute') === 'true')
           if (shouldDisplay) {
+            routeState.currentRoute = path
             updatePathParameters()
             child.updateRoute(true)
             sw.append(child)
@@ -81,105 +82,19 @@ export function routeSwitch (...children) {
   )
 }
 
-function stripParameterValues (currentRoute) {
-  return removeTrailingSlash(currentRoute.substring(1)).split('/').reduce((res, part) => {
-    const paramStart = part.indexOf(':')
-    let value = part
-    if (paramStart > -1) {
-      value = part.substring(0, paramStart)
-    }
-    return `${res}/${value}`
-  }, '')
-}
-
-const moduleCache = {}
-
-/**
- * The main function of this library. It will load the route at the specified path and render it into the container element.
- * @param {object} options
- * @param {string} options.routePath The path to the root of the routes. This is used to resolve the paths of the routes.
- * @param {object} options.attrs The attributes of the container element
- * @param {(error: Error, newPathState: object)=>void|Node} options.onerror A function that will be called if the route fails to load. The function receives the error and the current pathState object. Should return an error to display if it's not handled.
- * @param {(node: Node, module: object)=>Node} options.frame A function that will be called with the rendered route element and the module that was loaded. The function should return a new element to be rendered.
- * @param {boolean} options.sendRawPath If true, the raw path will be sent to the route. Otherwise, the path will be stripped of parameter values.
- * @param {(path: string)=>string} options.formatPath A function that will be called with the raw path before it is used to load the route. The function should return a new path.
- * @return {HTMLElement} The container element
- */
-export function modRouter ({ routePath, attrs, onerror, frame, sendRawPath, formatPath }) {
-  const container = h('div', attrs || {})
-  if (!routePath) {
-    throw new Error('You must provide a root url for modRouter. Routes in the ui will be looked up relative to this url.')
-  }
-  const loadRoute = (newPathState) => {
-    let path = newPathState.currentRoute
-    if (!sendRawPath) {
-      path = stripParameterValues(newPathState.currentRoute)
-    }
-    if (typeof formatPath === 'function') {
-      path = formatPath(path)
-    }
-    const filePath = path ? routePath + ensureOnlyLeadingSlash(path) : routePath
-
-    const p = moduleCache[filePath]
-      ? Promise.resolve(moduleCache[filePath])
-      : import(filePath).then(m => {
-        moduleCache[filePath] = m
-        return m
-      })
-
-    p.then(module => {
-      const route = module.default
-      if (route) {
-        while (container.firstChild) {
-          container.removeChild(container.firstChild)
-        }
-        let node = renderNode(route)
-        if (typeof frame === 'function') {
-          node = renderNode(frame(node, module))
-        }
-        if (node) {
-          container.append(node)
-        }
-      }
-    })
-      .catch(err => {
-        while (container.firstChild) {
-          container.removeChild(container.firstChild)
-        }
-        if (typeof onerror === 'function') {
-          err = onerror(err, newPathState)
-          if (err) {
-            container.append(err)
-          }
-        } else {
-          console.error('Failed to load route: ', err)
-          container.append('Failed to load route.')
-        }
-      })
-  }
-  listenFor(afterRouteChange, loadRoute)
-  updatePathParameters()
-  loadRoute(pathState())
-  return container
-}
-
 function updatePathParameters () {
-  const path = pathState().currentRoute
+  const path = routeState.currentRoute
+  const currentPath = pathState().currentPath
   const pathParts = path.split('/')
+  const currentPathParts = currentPath.split('/')
 
   const parameters = {
     idx: []
   }
   for (let i = 0; i < pathParts.length; i++) {
     const part = pathParts[i]
-    const paramStart = part.indexOf(':')
-    if (paramStart > -1) {
-      const paramName = part.substring(0, paramStart)
-      const paramValue = part.substring(paramStart + 1)
-      parameters.idx.push(paramValue)
-      if (paramName) {
-        parameters[paramName] = paramValue
-      }
+    if (part.startsWith(':')) {
+      parameters[part.substring(1)] = currentPathParts[i]
     }
   }
   pathParameters(parameters)
@@ -224,7 +139,7 @@ export function goTo (route, context = {}, replace = false, silent = false) {
   const newPath = window.location.origin + makePath(route)
 
   const patch = {
-    currentRoute: route.split(/[#?]/)[0],
+    currentPath: route.split(/[#?]/)[0],
     context
   }
 
@@ -246,10 +161,9 @@ export function goTo (route, context = {}, replace = false, silent = false) {
 
   setTimeout(() => {
     pathState.assign({
-      currentRoute: route.split(/[#?]/)[0],
+      currentPath: route.split(/[#?]/)[0],
       context
     })
-    updatePathParameters()
     if (!silent) {
       emit(afterRouteChange, newPathState, oldPathState)
     }
@@ -276,25 +190,29 @@ const removeTrailingSlash = part => part.endsWith('/') && part.length > 1 ? part
 
 /**
  * The path parameters of the current route
- * @type {import("./fntags.mjs").FnState<PathParameters>}
+ * @type {import('./fntags.mjs').FnState<PathParameters>}
  */
 export const pathParameters = fnstate({})
 
 /**
  * The path information for a route
- * @typedef {{currentRoute: string, rootPath: string, context: any}} PathState
+ * @typedef {{currentPath: string, rootPath: string, context: any}} PathState
  */
 
 /**
  * The current path state
- * @type {import("./fntags.mjs").FnState<PathState>}
+ * @type {import('./fntags.mjs').FnState<PathState>}
  */
 export const pathState = fnstate(
   {
     rootPath: ensureOnlyLeadingSlash(window.location.pathname),
-    currentRoute: ensureOnlyLeadingSlash(window.location.pathname),
+    currentPath: ensureOnlyLeadingSlash(window.location.pathname),
     context: null
   })
+
+const routeState = {
+  currentRoute: null
+}
 
 /**
  * @typedef {string} RouteEvent
@@ -351,7 +269,7 @@ export function listenFor (event, handler) {
 export function setRootPath (rootPath) {
   return pathState.assign({
     rootPath: ensureOnlyLeadingSlash(rootPath),
-    currentRoute: ensureOnlyLeadingSlash(window.location.pathname.replace(new RegExp('^' + rootPath), '')) || '/'
+    currentPath: ensureOnlyLeadingSlash(window.location.pathname.replace(new RegExp('^' + rootPath), '')) || '/'
   })
 }
 
@@ -360,18 +278,17 @@ window.addEventListener(
   () => {
     const oldPathState = pathState()
     const patch = {
-      currentRoute: ensureOnlyLeadingSlash(window.location.pathname.replace(new RegExp('^' + pathState().rootPath), '')) || '/'
+      currentPath: ensureOnlyLeadingSlash(window.location.pathname.replace(new RegExp('^' + pathState().rootPath), '')) || '/'
     }
     const newPathState = Object.assign({}, oldPathState, patch)
     try {
       emit(beforeRouteChange, newPathState, oldPathState)
     } catch (e) {
       console.trace('Path change cancelled', e)
-      goTo(oldPathState.currentRoute, oldPathState.context, true, true)
+      goTo(oldPathState.currentPath, oldPathState.context, true, true)
       return
     }
     pathState.assign(patch)
-    updatePathParameters()
     emit(afterRouteChange, newPathState, oldPathState)
     emit(routeChangeComplete, newPathState, oldPathState)
   }
@@ -379,13 +296,24 @@ window.addEventListener(
 
 const makePath = path => (pathState().rootPath === '/' ? '' : pathState().rootPath) + ensureOnlyLeadingSlash(path)
 
+const makePathPattern = (path, absolute) => {
+  const pathParts = path.replace(/[?#].*/, '').replace(/\/$/, '').split('/')
+  return '^' + pathParts.map(part => {
+    if (part.startsWith(':')) {
+      return '([^/]+)'
+    } else {
+      return part
+    }
+  }).join('/') + (absolute ? '/?$' : '(/.*|$)')
+}
+
 const shouldDisplayRoute = (route, isAbsolute) => {
   const path = makePath(route)
   const currPath = window.location.pathname
+  const pattern = makePathPattern(path, isAbsolute)
   if (isAbsolute) {
-    return currPath === path || currPath === (path + '/') || currPath.match((path).replace(/\/\$[^/]+(\/?)/g, '/[^/]+$1') + '$')
+    return currPath === path || currPath === (path + '/') || currPath.match(pattern)
   } else {
-    const pattern = path.replace(/\/\$[^/]+(\/|$)/, '/[^/]+$1').replace(/^(.*)\/([^/]*)$/, '$1/?$2([/?#]|$)')
     return !!currPath.match(pattern)
   }
 }

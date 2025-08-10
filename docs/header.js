@@ -32,7 +32,7 @@ export default header({ class: 'container text-center' },
           style: {
             fontSize: '24px',
             color:
-              pathState().currentRoute === '/' || pathState().currentRoute === pathState().rootPath
+              pathState().currentPath === '/' || pathState().currentPath === pathState().rootPath
                 ? secondaryColor
                 : ''
           }
