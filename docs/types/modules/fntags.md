@@ -38,7 +38,7 @@ A container for a state value that can be bound to.
 
 #### Defined in
 
-[fntags.mjs:179](https://github.com/SRFNStack/fntags/blob/f91a049/src/fntags.mjs#L179)
+[fntags.mjs:179](https://github.com/SRFNStack/fntags/blob/e31e872/src/fntags.mjs#L179)
 
 ## Functions
 
@@ -72,7 +72,7 @@ or the changes won't be reflected correctly and binding updates won't be trigger
 
 #### Defined in
 
-[fntags.mjs:193](https://github.com/SRFNStack/fntags/blob/f91a049/src/fntags.mjs#L193)
+[fntags.mjs:193](https://github.com/SRFNStack/fntags/blob/e31e872/src/fntags.mjs#L193)
 
 ___
 
@@ -117,7 +117,7 @@ A function that takes a context object and returns a rendered node.
 
 #### Defined in
 
-[fntags.mjs:91](https://github.com/SRFNStack/fntags/blob/f91a049/src/fntags.mjs#L91)
+[fntags.mjs:91](https://github.com/SRFNStack/fntags/blob/e31e872/src/fntags.mjs#L91)
 
 ___
 
@@ -141,7 +141,7 @@ the attr object or an empty object
 
 #### Defined in
 
-[fntags.mjs:762](https://github.com/SRFNStack/fntags/blob/f91a049/src/fntags.mjs#L762)
+[fntags.mjs:762](https://github.com/SRFNStack/fntags/blob/e31e872/src/fntags.mjs#L762)
 
 ___
 
@@ -183,7 +183,7 @@ an html element
 
 #### Defined in
 
-[fntags.mjs:24](https://github.com/SRFNStack/fntags/blob/f91a049/src/fntags.mjs#L24)
+[fntags.mjs:24](https://github.com/SRFNStack/fntags/blob/e31e872/src/fntags.mjs#L24)
 
 ___
 
@@ -207,7 +207,7 @@ true if the value is an object that can be used as attributes
 
 #### Defined in
 
-[fntags.mjs:753](https://github.com/SRFNStack/fntags/blob/f91a049/src/fntags.mjs#L753)
+[fntags.mjs:753](https://github.com/SRFNStack/fntags/blob/e31e872/src/fntags.mjs#L753)
 
 ___
 
@@ -231,7 +231,7 @@ The rendered node
 
 #### Defined in
 
-[fntags.mjs:639](https://github.com/SRFNStack/fntags/blob/f91a049/src/fntags.mjs#L639)
+[fntags.mjs:639](https://github.com/SRFNStack/fntags/blob/e31e872/src/fntags.mjs#L639)
 
 ___
 
@@ -264,4 +264,4 @@ The styled element
 
 #### Defined in
 
-[fntags.mjs:777](https://github.com/SRFNStack/fntags/blob/f91a049/src/fntags.mjs#L777)
+[fntags.mjs:777](https://github.com/SRFNStack/fntags/blob/e31e872/src/fntags.mjs#L777)

@@ -41,7 +41,7 @@
 
 #### Defined in
 
-[fnroute.mjs:274](https://github.com/SRFNStack/fntags/blob/f91a049/src/fnroute.mjs#L274)
+[fnroute.mjs:274](https://github.com/SRFNStack/fntags/blob/e31e872/src/fnroute.mjs#L274)
 
 ___
 
@@ -59,7 +59,7 @@ ___
 
 #### Defined in
 
-[fnroute.mjs:285](https://github.com/SRFNStack/fntags/blob/f91a049/src/fnroute.mjs#L285)
+[fnroute.mjs:285](https://github.com/SRFNStack/fntags/blob/e31e872/src/fnroute.mjs#L285)
 
 ___
 
@@ -69,7 +69,7 @@ ___
 
 #### Defined in
 
-[fnroute.mjs:300](https://github.com/SRFNStack/fntags/blob/f91a049/src/fnroute.mjs#L300)
+[fnroute.mjs:300](https://github.com/SRFNStack/fntags/blob/e31e872/src/fnroute.mjs#L300)
 
 ## Variables
 
@@ -81,7 +81,7 @@ After the route is changed
 
 #### Defined in
 
-[fnroute.mjs:311](https://github.com/SRFNStack/fntags/blob/f91a049/src/fnroute.mjs#L311)
+[fnroute.mjs:311](https://github.com/SRFNStack/fntags/blob/e31e872/src/fnroute.mjs#L311)
 
 ___
 
@@ -93,7 +93,7 @@ Before the route is changed
 
 #### Defined in
 
-[fnroute.mjs:306](https://github.com/SRFNStack/fntags/blob/f91a049/src/fnroute.mjs#L306)
+[fnroute.mjs:306](https://github.com/SRFNStack/fntags/blob/e31e872/src/fnroute.mjs#L306)
 
 ___
 
@@ -105,7 +105,7 @@ After the route is changed and the route element is rendered
 
 #### Defined in
 
-[fnroute.mjs:316](https://github.com/SRFNStack/fntags/blob/f91a049/src/fnroute.mjs#L316)
+[fnroute.mjs:316](https://github.com/SRFNStack/fntags/blob/e31e872/src/fnroute.mjs#L316)
 
 ## Functions
 
@@ -129,13 +129,13 @@ An anchor element that will navigate to the specified route when clicked
 
 #### Defined in
 
-[fnroute.mjs:193](https://github.com/SRFNStack/fntags/blob/f91a049/src/fnroute.mjs#L193)
+[fnroute.mjs:193](https://github.com/SRFNStack/fntags/blob/e31e872/src/fnroute.mjs#L193)
 
 ___
 
 ### goTo
 
-▸ **goTo**(`route`, `context`, `replace?`, `silent?`): `void`
+▸ **goTo**(`route`, `context?`, `replace?`, `silent?`): `void`
 
 A function to navigate to the specified route
 
@@ -144,7 +144,7 @@ A function to navigate to the specified route
 | Name | Type | Default value | Description |
 | :------ | :------ | :------ | :------ |
 | `route` | `string` | `undefined` | The route to navigate to |
-| `context` | `any` | `undefined` | Data related to the route change |
+| `context` | `any` | `{}` | Data related to the route change |
 | `replace` | `boolean` | `false` | Whether to replace the state or push it. pushState is used by default. |
 | `silent` | `boolean` | `false` | Prevent route change events from being emitted for this route change |
 
@@ -154,7 +154,7 @@ A function to navigate to the specified route
 
 #### Defined in
 
-[fnroute.mjs:223](https://github.com/SRFNStack/fntags/blob/f91a049/src/fnroute.mjs#L223)
+[fnroute.mjs:223](https://github.com/SRFNStack/fntags/blob/e31e872/src/fnroute.mjs#L223)
 
 ___
 
@@ -185,7 +185,7 @@ a function to stop listening with the passed handler.
 
 #### Defined in
 
-[fnroute.mjs:334](https://github.com/SRFNStack/fntags/blob/f91a049/src/fnroute.mjs#L334)
+[fnroute.mjs:334](https://github.com/SRFNStack/fntags/blob/e31e872/src/fnroute.mjs#L334)
 
 ___
 
@@ -215,7 +215,7 @@ The container element
 
 #### Defined in
 
-[fnroute.mjs:108](https://github.com/SRFNStack/fntags/blob/f91a049/src/fnroute.mjs#L108)
+[fnroute.mjs:108](https://github.com/SRFNStack/fntags/blob/e31e872/src/fnroute.mjs#L108)
 
 ___
 
@@ -237,7 +237,7 @@ The path parameters of the current route
 
 #### Defined in
 
-[fntags.d.mts:193](https://github.com/SRFNStack/fntags/blob/f91a049/src/fntags.d.mts#L193)
+[fntags.d.mts:193](https://github.com/SRFNStack/fntags/blob/e31e872/src/fntags.d.mts#L193)
 
 ___
 
@@ -259,7 +259,7 @@ The current path state
 
 #### Defined in
 
-[fntags.d.mts:193](https://github.com/SRFNStack/fntags/blob/f91a049/src/fntags.d.mts#L193)
+[fntags.d.mts:193](https://github.com/SRFNStack/fntags/blob/e31e872/src/fntags.d.mts#L193)
 
 ___
 
@@ -304,7 +304,7 @@ A div element that will only be displayed if the current route starts with the p
 
 #### Defined in
 
-[fnroute.mjs:34](https://github.com/SRFNStack/fntags/blob/f91a049/src/fnroute.mjs#L34)
+[fnroute.mjs:34](https://github.com/SRFNStack/fntags/blob/e31e872/src/fnroute.mjs#L34)
 
 ___
 
@@ -327,7 +327,7 @@ The primary purpose of this element is to provide catchall routes for not found 
 
 #### Defined in
 
-[fnroute.mjs:60](https://github.com/SRFNStack/fntags/blob/f91a049/src/fnroute.mjs#L60)
+[fnroute.mjs:60](https://github.com/SRFNStack/fntags/blob/e31e872/src/fnroute.mjs#L60)
 
 ___
 
@@ -349,4 +349,4 @@ Set the root path of the app. This is necessary to make deep linking work in cas
 
 #### Defined in
 
-[fnroute.mjs:351](https://github.com/SRFNStack/fntags/blob/f91a049/src/fnroute.mjs#L351)
+[fnroute.mjs:351](https://github.com/SRFNStack/fntags/blob/e31e872/src/fnroute.mjs#L351)

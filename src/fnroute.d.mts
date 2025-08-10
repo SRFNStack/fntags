@@ -65,7 +65,7 @@ export function fnlink(...children: (any | Node)[]): HTMLAnchorElement;
  * @param {boolean} replace Whether to replace the state or push it. pushState is used by default.
  * @param {boolean} silent Prevent route change events from being emitted for this route change
  */
-export function goTo(route: string, context: any, replace?: boolean, silent?: boolean): void;
+export function goTo(route: string, context?: any, replace?: boolean, silent?: boolean): void;
 /**
  * Listen for routing events
  * @param event a string event to listen for
