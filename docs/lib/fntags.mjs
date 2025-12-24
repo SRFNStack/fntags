@@ -73,79 +73,6 @@ function hasNs (val) {
 }
 
 /**
- * Create a compiled template function. The returned function takes a single object that contains the properties
- * defined in the template.
- *
- * This allows fast rendering by pre-creating a dom element with the entire template structure then cloning and populating
- * the clone with data from the provided context. This avoids the work of having to re-execute the tag functions
- * one by one and can speed up situations where a similar element is created many times.
- *
- * You cannot bind state to the initial template. If you attempt to, the state will be read, but the elements will
- * not be updated when the state changes because they will not be bound to the cloned element.
- * All state bindings must be passed in the context to the compiled template to work correctly.
- *
- * @param {(any)=>Node} templateFn A function that returns a html node.
- * @return {(any)=>Node} A function that takes a context object and returns a rendered node.
- *
- */
-export function fntemplate (templateFn) {
-  if (typeof templateFn !== 'function') {
-    throw new Error('You must pass a function to fntemplate. The function must return an html node.')
-  }
-  const placeholders = {}
-  let id = 1
-  const initContext = prop => {
-    if (!prop || typeof prop !== 'string') {
-      throw new Error('You must pass a non empty string prop name to the context function.')
-    }
-    const placeholder = (element, type, attrOrStyle) => {
-      let selector = element.__fnselector
-      if (!selector) {
-        selector = `fntpl-${id++}`
-        element.__fnselector = selector
-        element.classList.add(selector)
-      }
-      if (!placeholders[selector]) placeholders[selector] = []
-      placeholders[selector].push({ prop, type, attrOrStyle })
-    }
-    placeholder.isTemplatePlaceholder = true
-    return placeholder
-  }
-  // The initial render is cloned to prevent invalid state bindings from changing it
-  const compiled = templateFn(initContext).cloneNode(true)
-  return ctx => {
-    const clone = compiled.cloneNode(true)
-    for (const selectorClass in placeholders) {
-      let targetElement = clone.getElementsByClassName(selectorClass)[0]
-      if (!targetElement) {
-        if (clone.classList.contains(selectorClass)) {
-          targetElement = clone
-        } else {
-          throw new Error(`Cannot find template element for selectorClass ${selectorClass}`)
-        }
-      }
-      targetElement.classList.remove(selectorClass)
-      for (const placeholder of placeholders[selectorClass]) {
-        switch (placeholder.type) {
-          case 'node':
-            targetElement.replaceWith(renderNode(ctx[placeholder.prop]))
-            break
-          case 'attr':
-            setAttribute(placeholder.attrOrStyle, ctx[placeholder.prop], targetElement)
-            break
-          case 'style':
-            setStyle(placeholder.attrOrStyle, ctx[placeholder.prop], targetElement)
-            break
-          default:
-            throw new Error(`Unexpected bindType ${placeholder.type}`)
-        }
-      }
-    }
-    return clone
-  }
-}
-
-/**
  * @template T The type of data stored in the state container
  * @typedef FnStateObj A container for a state value that can be bound to.
  * @property {(element?: ()=>(Node|any))=>Node} bindAs Bind this state to the given element function. This causes the element to be replaced when state changes.
@@ -709,9 +636,6 @@ const setAttribute = function (attrName, attr, element) {
     for (const style in attr) {
       setStyle(style, attr[style], element)
     }
-  } else if (element.__fnselector && element.className && attrName === 'class') {
-    // special handling for class to ensure the selector classes from fntemplate don't get overwritten
-    element.className += ` ${attr}`
   } else if (attrName === 'value') {
     element.setAttribute('value', attr)
     // html5 nodes like range don't update unless the value property on the object is set

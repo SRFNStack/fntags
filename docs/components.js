@@ -1,22 +1,7 @@
-import { a, b, code, div, h4, input, p, span, strong } from './lib/fnelements.mjs'
+import { a, b, div, h4, p, span, strong } from './lib/fnelements.mjs'
 import contentSection from './contentSection.js'
 import prismCode from './prismCode.js'
-import { fntemplate, fnstate } from './lib/fntags.mjs'
 
-const hello = fntemplate(ctx =>
-  div(
-    'hello ',
-    span({
-      id: ctx('id'),
-      style: { color: ctx('color') }
-    },
-    ctx('name')
-    )
-  )
-)
-const nameState = fnstate('banana')
-const colorState = fnstate('green')
-const idState = fnstate('green-banana')
 export default div(
   contentSection(
     'Templating',
@@ -71,61 +56,6 @@ export default div(
       )
         .then(res => res.text())
         .then(joke => div(joke))
-    )
-    )
-  ),
-  contentSection('fntemplate',
-    'The fntemplate function allows creating high performance re-usable templates for situations where elements with the same structure are created over and over again.',
-    'It works by executing the provided template function to create a compiled element, then cloning that element when the compiled template function is called.',
-    p('The passed in function receives a single argument typically called ', code('ctx'), '. This ctx function is used to set placeholders in the template that will be replaced when the template is rendered with a context.'),
-    'You cannot bind state during the template compile, as the binding will be lost when the new cloned element is created. All state binding should be passed in the context.',
-    'This example shows a simple static value binding to a template',
-    prismCode(`
-// Create the compiled template function
-const hello = fntemplate(ctx => 
-  div(
-    'hello ', 
-    span( {
-        id: ctx('id'),
-        style: { color: ctx('color') }
-      },
-      ctx('name') 
-    )
-  )
-)
-// Render the function with a context
-hello({
-  id: 'hello-world',
-  name: 'world',
-  color: 'blue'
-})
-`, hello({ id: 'hello-world', name: 'world', color: 'blue' })),
-    'State bindings can be passed in the context when the template is rendered. ' +
-    'All bind types work (i.e. bindAttr, bindStyle, bindAs). You must ensure the correct type is passed for each placeholder in order for the bindings to work correctly.',
-    prismCode(`
-const nameState = fnstate('banana')
-const colorState = fnstate('green')
-const idState = fnstate('green-banana')
-div(
-  hello({
-    id: idState.bindAttr(),
-    name: nameState.bindAs(),
-    color: colorState.bindStyle()
-  }),
-  input({
-    value: nameState.bindAttr(),
-    oninput(e){ nameState(e.target.value) }
-  })
-)`, div(
-      hello({
-        id: idState.bindAttr(),
-        name: nameState.bindAs(),
-        color: colorState.bindStyle()
-      }),
-      input({
-        value: nameState.bindAttr(),
-        oninput (e) { nameState(e.target.value) }
-      })
     )
     )
   ),

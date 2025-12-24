@@ -23,23 +23,6 @@
  */
 export function h<T extends HTMLElement | SVGElement>(tag: string, ...children: Node | any): T;
 /**
- * Create a compiled template function. The returned function takes a single object that contains the properties
- * defined in the template.
- *
- * This allows fast rendering by pre-creating a dom element with the entire template structure then cloning and populating
- * the clone with data from the provided context. This avoids the work of having to re-execute the tag functions
- * one by one and can speed up situations where a similar element is created many times.
- *
- * You cannot bind state to the initial template. If you attempt to, the state will be read, but the elements will
- * not be updated when the state changes because they will not be bound to the cloned element.
- * All state bindings must be passed in the context to the compiled template to work correctly.
- *
- * @param {(any)=>Node} templateFn A function that returns a html node.
- * @return {(any)=>Node} A function that takes a context object and returns a rendered node.
- *
- */
-export function fntemplate(templateFn: (any: any) => Node): (any: any) => Node;
-/**
  * @template T The type of data stored in the state container
  * @typedef FnStateObj A container for a state value that can be bound to.
  * @property {(element?: ()=>(Node|any))=>Node} bindAs Bind this state to the given element function. This causes the element to be replaced when state changes.
