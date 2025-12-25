@@ -49,12 +49,12 @@ export function fnlink(...children: (any | Node)[]): HTMLAnchorElement;
 export function goTo(route: string, context?: any, replace?: boolean, silent?: boolean): void;
 /**
  * Listen for routing events
- * @param event a string event to listen for
+ * @param {string} event a string event to listen for
  * @param handler A function that will be called when the event occurs.
  *                  The function receives the new and old pathState objects, in that order.
  * @return {()=>void} a function to stop listening with the passed handler.
  */
-export function listenFor(event: any, handler: any): () => void;
+export function listenFor(event: string, handler: any): () => void;
 /**
  * Set the root path of the app. This is necessary to make deep linking work in cases where the same html file is served from all paths.
  * @param {string} rootPath The root path of the app

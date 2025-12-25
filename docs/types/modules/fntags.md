@@ -37,7 +37,7 @@ A container for a state value that can be bound to.
 
 #### Defined in
 
-[fntags.mjs:106](https://github.com/SRFNStack/fntags/blob/bd8472b/src/fntags.mjs#L106)
+[fntags.mjs:106](https://github.com/SRFNStack/fntags/blob/2959003/src/fntags.mjs#L106)
 
 ## Functions
 
@@ -71,7 +71,7 @@ or the changes won't be reflected correctly and binding updates won't be trigger
 
 #### Defined in
 
-[fntags.mjs:120](https://github.com/SRFNStack/fntags/blob/bd8472b/src/fntags.mjs#L120)
+[fntags.mjs:120](https://github.com/SRFNStack/fntags/blob/2959003/src/fntags.mjs#L120)
 
 ___
 
@@ -95,7 +95,7 @@ the attr object or an empty object
 
 #### Defined in
 
-[fntags.mjs:686](https://github.com/SRFNStack/fntags/blob/bd8472b/src/fntags.mjs#L686)
+[fntags.mjs:686](https://github.com/SRFNStack/fntags/blob/2959003/src/fntags.mjs#L686)
 
 ___
 
@@ -127,7 +127,7 @@ The rest of the arguments will be considered children of this element and append
 | Name | Type | Description |
 | :------ | :------ | :------ |
 | `tag` | `string` | html tag to use when created the element |
-| `...children` | `any` | optional attributes object and children for the element |
+| `...children` | `any`[] | optional attributes object and children for the element |
 
 #### Returns
 
@@ -137,7 +137,7 @@ an html element
 
 #### Defined in
 
-[fntags.mjs:24](https://github.com/SRFNStack/fntags/blob/bd8472b/src/fntags.mjs#L24)
+[fntags.mjs:24](https://github.com/SRFNStack/fntags/blob/2959003/src/fntags.mjs#L24)
 
 ___
 
@@ -161,7 +161,7 @@ true if the value is an object that can be used as attributes
 
 #### Defined in
 
-[fntags.mjs:677](https://github.com/SRFNStack/fntags/blob/bd8472b/src/fntags.mjs#L677)
+[fntags.mjs:677](https://github.com/SRFNStack/fntags/blob/2959003/src/fntags.mjs#L677)
 
 ___
 
@@ -185,7 +185,7 @@ The rendered node
 
 #### Defined in
 
-[fntags.mjs:566](https://github.com/SRFNStack/fntags/blob/bd8472b/src/fntags.mjs#L566)
+[fntags.mjs:566](https://github.com/SRFNStack/fntags/blob/2959003/src/fntags.mjs#L566)
 
 ___
 
@@ -218,4 +218,4 @@ The styled element
 
 #### Defined in
 
-[fntags.mjs:701](https://github.com/SRFNStack/fntags/blob/bd8472b/src/fntags.mjs#L701)
+[fntags.mjs:701](https://github.com/SRFNStack/fntags/blob/2959003/src/fntags.mjs#L701)
