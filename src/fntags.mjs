@@ -306,9 +306,12 @@ const subscribeSelect = (ctx, callback) => {
 }
 
 const doBindSelectAttr = function (ctx, attribute) {
-  const boundAttr = createBoundAttr(attribute)
+  const attrFn = (attribute && !attribute.isFnState && typeof attribute === 'function')
+    ? (...args) => attribute(args.length > 0 ? args[0] : ctx.selected)
+    : attribute
+  const boundAttr = createBoundAttr(attrFn)
   boundAttr.init = (attrName, element) =>
-    subscribeSelect(ctx, () => setAttribute(attrName, attribute(), element))
+    subscribeSelect(ctx, (selectedKey) => setAttribute(attrName, attribute.isFnState ? attribute() : attribute(selectedKey), element))
   return boundAttr
 }
 
@@ -324,7 +327,10 @@ function createBoundAttr (attr) {
 
 function doBindAttr (state, attribute) {
   const boundAttr = createBoundAttr(attribute)
-  boundAttr.init = (attrName, element) => state.subscribe(() => setAttribute(attrName, attribute(), element))
+  boundAttr.init = (attrName, element) => {
+    setAttribute(attrName, attribute.isFnState ? attribute() : attribute(state()), element)
+    state.subscribe((newState, oldState) => setAttribute(attrName, attribute.isFnState ? attribute() : attribute(newState, oldState), element))
+  }
   return boundAttr
 }
 
@@ -334,7 +340,10 @@ function doBindStyle (state, style) {
   }
   const boundStyle = () => style()
   boundStyle.isBoundStyle = true
-  boundStyle.init = (styleName, element) => state.subscribe(() => { element.style[styleName] = style() })
+  boundStyle.init = (styleName, element) => {
+    element.style[styleName] = style.isFnState ? style() : style(state())
+    state.subscribe((newState, oldState) => { element.style[styleName] = style.isFnState ? style() : style(newState, oldState) })
+  }
   return boundStyle
 }
 
@@ -350,10 +359,10 @@ function doSelect (ctx, key) {
   const currentSelected = ctx.selected
   ctx.selected = key
   if (ctx.selectObservers[currentSelected] !== undefined) {
-    for (const obs of ctx.selectObservers[currentSelected]) obs()
+    for (const obs of ctx.selectObservers[currentSelected]) obs(ctx.selected)
   }
   if (ctx.selectObservers[ctx.selected] !== undefined) {
-    for (const obs of ctx.selectObservers[ctx.selected]) obs()
+    for (const obs of ctx.selectObservers[ctx.selected]) obs(ctx.selected)
   }
 }
 
@@ -470,10 +479,25 @@ function arrangeElements (ctx, bindContext, oldState) {
 
   const keys = {}
   const keysArr = []
+  const oldStateMap = oldState && oldState.reduce((acc, v) => {
+    const key = keyMapper(ctx.mapKey, v.isFnState ? v() : v)
+    acc[key] = v
+    return acc
+  }, {})
+
   for (const i in ctx.currentValue) {
     let valueState = ctx.currentValue[i]
+    // if the value is not a fnstate, we need to wrap it
     if (valueState === null || valueState === undefined || !valueState.isFnState) {
-      valueState = ctx.currentValue[i] = fnstate(valueState)
+      // check if we have an old state for this key
+      const key = keyMapper(ctx.mapKey, valueState)
+      if (oldStateMap && oldStateMap[key]) {
+        const newValue = valueState
+        valueState = ctx.currentValue[i] = oldStateMap[key]
+        valueState(newValue)
+      } else {
+        valueState = ctx.currentValue[i] = fnstate(valueState)
+      }
     }
     const key = keyMapper(ctx.mapKey, valueState())
     if (keys[key]) {
