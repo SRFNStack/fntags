@@ -4,80 +4,102 @@
 
 ---
 
-## What the f?
-fntags primary goal is to make the developer experience pleasant while providing high performance and neato features.
+# fntags
 
-- No dependencies and no build tools
-  <br> - Import the framework directly from your favorite cdn and start building.
+A lightweight, no-build ES6 framework for building fast and reactive web applications.
 
-- Everything is javascript
-  <br> - There's no special templating language to learn, and you won't be writing html. <br> - This removes the template+functionality duality and helps keep you focused by removing context switching.
+fntags allows you to build complex, interactive web apps using standard JavaScript and HTML5. No special syntax, no build steps, and no magic.
 
-- Real DOM elements
-  <br> - Every element is a real dom element, there's no virtual dom and no wrapper objects.
+## Why fntags?
 
-- It's familiar
-  <br> - fntags was inspired by React, and the state management is similar to react hooks.
+- **No Build Step**: Import the framework directly from a CDN or your file system. No Webpack, no Babel, no headaches.
+- **Granular State**: Bind only what needs to change—text, attributes, or styles—for high-performance updates.
+- **Standards Based**: Just standard ES6 JavaScript and HTML5. Zero magic syntax to learn.
+- **Effortless Debugging**: In fntags, there is no black box. Errors produce clean stack traces that point exactly to your source code.
+- **TypeScript Support**: Includes TypeScript definitions out of the box. No need to install separate `@types` packages.
+- **Real DOM Elements**: Every element is a real DOM element. No virtual DOM and no wrapper objects.
+- **Dynamic Routing**: Built-in path-based routing that only loads files required by each route.
 
-- [State binding is explicit and granular](https://srfnstack.github.io/fntags/state#Binding%20State)
-  <br> - Bind only the text of an element, an attribute, or a style. You control the binding, replace as much or as little as you want.
+## Documentation
 
-- State exists without components
-  <br> - This allows app wide states to be maintained using export/import and removes the need for complex state management like redux.
-  
-- [Dynamic routing](https://srfnstack.github.io/fntags/routing#Dynamic%20Path%20Based%20Routing%3A%20modRouter)
-  <br> - The modRouter only loads the files required by each route and doesn't require bundling.
-  <br> - Bye bye fat bundles, hello highly cacheable routes.
+Check out the [full documentation](https://srfnstack.github.io/fntags) to learn more!
 
-- [Async Rendering](https://srfnstack.github.io/fntags/components#Async%20Rendering)
-  <br> - fntags will resolve promises that are passed to element functions, no special handling required. 
+## Getting Started
 
-## [Documentation](https://srfnstack.github.io/fntags)
-Check out the [documentation](https://srfnstack.github.io/fntags) to learn more!
+### Option 1: CDN (Recommended for prototyping)
 
-### f'n examples
-<hr>
+You can use fntags directly in your browser without downloading anything:
 
-Start a new app with one file
 ```html
-<html><body>
-<script type="module">
-import { div } from 'https://cdn.jsdelivr.net/npm/@srfnstack/fntags@0.4.1/src/fnelements.min.mjs'
-  
-document.body.append(div('Hello World!'))
-</script>
-</body></html>
+<!DOCTYPE html>
+<html lang="en">
+<body>
+    <script type="module">
+        import { div } from 'https://cdn.jsdelivr.net/npm/@srfnstack/fntags@1.0.0/src/fnelements.mjs'
+        
+        document.body.append(
+            div("Hello, World!")
+        )
+    </script>
+</body>
+</html>
 ```
 
-Make re-usable, customizable components using plain js functions
-```javascript
-const hello = name => div('Hello ', name)
+### Option 2: NPM
 
-document.body.append( hello('world!') )
+Install via npm:
+
+```bash
+npm install @srfnstack/fntags
 ```
 
-Explicit two-way state binding
+Then import it in your code:
+
 ```javascript
-import { fnstate } from 'https://cdn.jsdelivr.net/npm/@srfnstack/fntags@0.4.1/src/fntags.min.mjs'
-import { div, input, br } from 'https://cdn.jsdelivr.net/npm/@srfnstack/fntags@0.4.1/src/fnelements.min.mjs'
+import { div } from '@srfnstack/fntags'
+```
 
-const helloInput = () => {
-  const name = fnstate('World')
+## Examples
 
-  const nameInput = input({
-    value: name.bindAttr(),
-    oninput (){ name(nameInput.value) }
-  })
+### Re-usable Components
 
-  return div(
-    div('Hello ', name.bindAs(), '!'),
-    br(),
-    nameInput
-  )
+Components in fntags are just functions that return HTML elements.
+
+```javascript
+import { div, b } from '@srfnstack/fntags'
+
+// A simple component
+const Greeting = (name) => {
+    return div( "Hello, ", b(name), "!")
 }
 
-document.body.append(helloInput())
+document.body.append(
+    Greeting("Developer")
+)
+```
+
+### Explicit State Binding
+
+State binding is explicit and granular. You control exactly what updates.
+
+```javascript
+import { fnstate } from '@srfnstack/fntags'
+import { div, button } from '@srfnstack/fntags'
+
+const Counter = () => {
+    const count = fnstate(0)
+
+    return div(
+        div('Count: ', count.bindAs()),
+        button({
+            onclick: () => count(count() + 1)
+        }, 'Increment')
+    )
+}
+
+document.body.append(Counter())
 ```
 
 ### Benchmark
+
 Check the latest benchmark results in the widely used [JS Web Frameworks Benchmark](https://krausest.github.io/js-framework-benchmark/current.html)!
