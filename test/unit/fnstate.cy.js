@@ -43,12 +43,23 @@ describe('fnstate', () => {
   })
 
   describe('bindChildren', () => {
+    it('should bind array to children', () => {
+      const s = fnstate(['a'])
+      const el = h('div', s.bindChildren(h('div'), (child) => h('span', child())))
+      expect(el.innerText).to.eq('a')
+
+      // Update with removal and addition
+      s(['c'])
+      expect(el.innerText).to.eq('c')
+
+      // Update with addition
+      s(['c', 'd'])
+      expect(el.innerText).to.eq('cd')
+    })
+
     it('should handle reordering', () => {
       const s = fnstate([1, 2, 3])
       const container = h('div')
-      // Using direct binding to check if elements are reused/moved could be tricky without keys,
-      // but fnstate uses keys if provided or index.
-      // Let's rely on text content for now.
       s.bindChildren(container, (i) => h('div', i()))
       expect(container.innerText).to.eq('123')
       s([3, 2, 1])
@@ -68,8 +79,26 @@ describe('fnstate', () => {
 
       // Update item 1
       s([{ id: 1, val: 'aa' }, { id: 2, val: 'b' }])
-      expect(container.children[0]).to.eq(firstEl) // Should be same element
+      expect(container.children[0]).to.eq(firstEl) // Should be same element reference
       expect(container.children[0].innerText).to.eq('aa')
+    })
+  })
+
+  describe('nested state', () => {
+    it('should bind to nested properties', () => {
+      const s = fnstate({ user: { name: 'Alice', address: { city: 'Wonderland' } } })
+      const el = h('div',
+        h('span', { id: 'name' }, s.bindAs(st => st.user.name)),
+        h('span', { id: 'city' }, s.bindAs(st => st.user.address.city))
+      )
+
+      expect(el.querySelector('#name').innerText).to.eq('Alice')
+      expect(el.querySelector('#city').innerText).to.eq('Wonderland')
+
+      s.assign({ user: { name: 'Bob', address: { city: 'Builderland' } } })
+
+      expect(el.querySelector('#name').innerText).to.eq('Bob')
+      expect(el.querySelector('#city').innerText).to.eq('Builderland')
     })
   })
 
