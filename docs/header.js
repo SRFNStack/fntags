@@ -1,8 +1,9 @@
 import { fnlink, pathState } from './lib/fnroute.mjs'
-import { div, header, nav, span } from './lib/fnelements.mjs'
+import { div, header, nav, span, style } from './lib/fnelements.mjs'
 import { primaryColor, secondaryColor } from './constants.js'
 import { routeNavItems } from './routes.js'
 import { fnstate } from './lib/fntags.mjs'
+import { searchBar } from './search.js'
 
 const headings = [
   'an awesome f\'n framework',
@@ -40,6 +41,17 @@ export default header({ class: 'container text-center' },
       ))),
     div({ style: 'font-size: 18px; margin-left: 5px' }, currentHeading.bindAs(() => headings[currentHeading()]))
   ),
-  nav({ class: 'flex-center', style: 'border-bottom: solid 1px darkgray; background-color: ' + primaryColor },
-    div({ class: 'flex-center noselect' }, ...routeNavItems()))
+  nav({
+    class: 'flex-center',
+    style: `border-bottom: solid 1px darkgray; background-color: ${primaryColor}; position: relative; padding: 0 10px;`
+  },
+  div({ class: 'flex-center noselect', style: 'flex-grow: 1; flex-wrap: wrap;' }, ...routeNavItems()),
+  div({ style: 'position: absolute; right: 10px;' }, searchBar())
+  ), // Add mobile layout adjustment
+  style(`
+    @media (max-width: 600px) {
+        nav { flex-direction: column !important; padding-bottom: 10px !important; }
+        nav > div:last-child { position: static !important; margin-top: 10px; }
+    }
+  `)
 )

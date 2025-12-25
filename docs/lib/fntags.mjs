@@ -17,7 +17,7 @@
  *
  * @template {HTMLElement|SVGElement} T
  * @param {string} tag html tag to use when created the element
- * @param {Node|Object} children optional attributes object and children for the element
+ * @param {...(Node|Object)} children optional attributes object and children for the element
  * @return {T} an html element
  *
  */
@@ -75,17 +75,17 @@ function hasNs (val) {
 /**
  * @template T The type of data stored in the state container
  * @typedef FnStateObj A container for a state value that can be bound to.
- * @property {(element?: ()=>(Node|any))=>Node} bindAs Bind this state to the given element function. This causes the element to be replaced when state changes.
+ * @property {(element?: (newValue: T, oldValue: T)=>(Node|any))=>Node} bindAs Bind this state to the given element function. This causes the element to be replaced when the state changes.
  * If called with no parameters, the state's value will be rendered as an element.
  * @property {(parent: (()=>(Node|any))|any|Node, element: (childState: FnState)=>(Node|any))=>Node} bindChildren Bind the values of this state to the given element.
  * Values are items/elements of an array.
  * If the current value is not an array, this will behave the same as bindAs.
  * @property {(prop: string)=>Node} bindProp Bind to a property of an object stored in this state instead of the state itself.
  * Shortcut for `mystate.bindAs((current)=> current[prop])`
- * @property {(attribute?: ()=>(string|any))=>any} bindAttr Bind attribute values to state changes
- * @property {(style?: ()=>string) => string} bindStyle Bind style values to state changes
- * @property {(element?: ()=>(Node|any))=>Node} bindSelect Bind selected state to an element
- * @property {(attribute?: ()=>(string|any))=>any} bindSelectAttr Bind selected state to an attribute
+ * @property {(attribute?: (newValue: T, oldValue: T)=>(string|any))=>any} bindAttr Bind attribute values to state changes
+ * @property {(style?: (newValue: T, oldValue: T)=>string) => string} bindStyle Bind style values to state changes
+ * @property {(element?: (selectedKey: any)=>(Node|any))=>Node} bindSelect Bind selected state to an element
+ * @property {(attribute?: (selectedKey: any)=>(string|any))=>any} bindSelectAttr Bind selected state to an attribute
  * @property {(key: any)=>void} select Mark the element with the given key as selected
  * where the key is identified using the mapKey function passed on creation of the fnstate.
  * This causes the bound select functions to be executed.
@@ -247,7 +247,7 @@ export function fnstate (initialValue, mapKey) {
    * Set a value at the given property path
    * @param {string} path The JSON path of the value to set
    * @param {any} value The value to set the path to
-   * @param {boolean} fillWithObjects Whether to non object values with new empty objects.
+   * @param {boolean} fillWithObjects Whether to replace non object values with new empty objects.
    */
   ctx.state.setPath = (path, value, fillWithObjects = false) => {
     const s = path.split('.')
@@ -306,9 +306,12 @@ const subscribeSelect = (ctx, callback) => {
 }
 
 const doBindSelectAttr = function (ctx, attribute) {
-  const boundAttr = createBoundAttr(attribute)
+  const attrFn = (attribute && !attribute.isFnState && typeof attribute === 'function')
+    ? (...args) => attribute(args.length > 0 ? args[0] : ctx.selected)
+    : attribute
+  const boundAttr = createBoundAttr(attrFn)
   boundAttr.init = (attrName, element) =>
-    subscribeSelect(ctx, () => setAttribute(attrName, attribute(), element))
+    subscribeSelect(ctx, (selectedKey) => setAttribute(attrName, attribute.isFnState ? attribute() : attribute(selectedKey), element))
   return boundAttr
 }
 
@@ -324,7 +327,10 @@ function createBoundAttr (attr) {
 
 function doBindAttr (state, attribute) {
   const boundAttr = createBoundAttr(attribute)
-  boundAttr.init = (attrName, element) => state.subscribe(() => setAttribute(attrName, attribute(), element))
+  boundAttr.init = (attrName, element) => {
+    setAttribute(attrName, attribute.isFnState ? attribute() : attribute(state()), element)
+    state.subscribe((newState, oldState) => setAttribute(attrName, attribute.isFnState ? attribute() : attribute(newState, oldState), element))
+  }
   return boundAttr
 }
 
@@ -334,7 +340,10 @@ function doBindStyle (state, style) {
   }
   const boundStyle = () => style()
   boundStyle.isBoundStyle = true
-  boundStyle.init = (styleName, element) => state.subscribe(() => { element.style[styleName] = style() })
+  boundStyle.init = (styleName, element) => {
+    element.style[styleName] = style.isFnState ? style() : style(state())
+    state.subscribe((newState, oldState) => { element.style[styleName] = style.isFnState ? style() : style(newState, oldState) })
+  }
   return boundStyle
 }
 
@@ -350,10 +359,10 @@ function doSelect (ctx, key) {
   const currentSelected = ctx.selected
   ctx.selected = key
   if (ctx.selectObservers[currentSelected] !== undefined) {
-    for (const obs of ctx.selectObservers[currentSelected]) obs()
+    for (const obs of ctx.selectObservers[currentSelected]) obs(ctx.selected)
   }
   if (ctx.selectObservers[ctx.selected] !== undefined) {
-    for (const obs of ctx.selectObservers[ctx.selected]) obs()
+    for (const obs of ctx.selectObservers[ctx.selected]) obs(ctx.selected)
   }
 }
 
@@ -405,8 +414,8 @@ const doBind = function (ctx, element, handleReplace) {
   return () => elCtx.current
 }
 
-const updateReplacer = (ctx, element, elCtx) => () => {
-  let rendered = renderNode(evaluateElement(element, ctx.currentValue))
+const updateReplacer = (ctx, element, elCtx) => (_, oldValue) => {
+  let rendered = renderNode(evaluateElement(element, ctx.currentValue, oldValue))
   if (rendered !== undefined) {
     if (elCtx.current.key !== undefined) {
       rendered.current.key = elCtx.current.key
@@ -470,10 +479,25 @@ function arrangeElements (ctx, bindContext, oldState) {
 
   const keys = {}
   const keysArr = []
+  const oldStateMap = oldState && oldState.reduce((acc, v) => {
+    const key = keyMapper(ctx.mapKey, v.isFnState ? v() : v)
+    acc[key] = v
+    return acc
+  }, {})
+
   for (const i in ctx.currentValue) {
     let valueState = ctx.currentValue[i]
+    // if the value is not a fnstate, we need to wrap it
     if (valueState === null || valueState === undefined || !valueState.isFnState) {
-      valueState = ctx.currentValue[i] = fnstate(valueState)
+      // check if we have an old state for this key
+      const key = keyMapper(ctx.mapKey, valueState)
+      if (oldStateMap && oldStateMap[key]) {
+        const newValue = valueState
+        valueState = ctx.currentValue[i] = oldStateMap[key]
+        valueState(newValue)
+      } else {
+        valueState = ctx.currentValue[i] = fnstate(valueState)
+      }
     }
     const key = keyMapper(ctx.mapKey, valueState())
     if (keys[key]) {
@@ -550,11 +574,11 @@ function arrangeElements (ctx, bindContext, oldState) {
   }
 }
 
-const evaluateElement = (element, value) => {
+const evaluateElement = (element, value, oldValue) => {
   if (element.isFnState) {
     return element()
   } else {
-    return typeof element === 'function' ? element(value) : element
+    return typeof element === 'function' ? element(value, oldValue) : element
   }
 }
 

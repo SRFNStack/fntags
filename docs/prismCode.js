@@ -1,7 +1,7 @@
 import { fnstate } from './lib/fntags.mjs'
 import { button, code, div, pre } from './lib/fnelements.mjs'
 
-export default (sourceCode, demo, width = '450px') => {
+export default (sourceCode, demo, width = '500px') => {
   const isDemo = fnstate(false)
 
   const src = pre({
@@ -11,7 +11,8 @@ export default (sourceCode, demo, width = '450px') => {
       width: '100%',
       display: isDemo.bindStyle(() => isDemo() ? 'none' : 'block'),
       boxSizing: 'border-box',
-      boxShadow: '0px 0px 3px 0px rgba(0,0,0,0.75)'
+      boxShadow: '0px 0px 3px 0px rgba(0,0,0,0.75)',
+      overflowX: 'auto'
     }
   },
   code(sourceCode.trim()))
@@ -27,8 +28,10 @@ export default (sourceCode, demo, width = '450px') => {
 
   Prism.highlightElement(src)
 
-  return div({ style: `margin: auto; display: flex; flex-direction: column; align-items: flex-end; padding-bottom: 15px;width: ${width}; max-width: 94vw;` },
-    (demo &&
+  return div({
+    style: `margin: auto; display: flex; flex-direction: column; align-items: flex-end; padding-bottom: 15px; width: ${width}; max-width: 100%;`
+  },
+  (demo &&
       button({
         onclick: () => {
           const style = window.getComputedStyle(src)
@@ -41,8 +44,8 @@ export default (sourceCode, demo, width = '450px') => {
       },
       isDemo.bindAs(() => isDemo() ? 'Code' : 'Demo')
       )
-    ) || '',
-    demoDiv,
-    src
+  ) || '',
+  demoDiv,
+  src
   )
 }

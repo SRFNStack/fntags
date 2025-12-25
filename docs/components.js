@@ -1,78 +1,223 @@
-import { a, b, div, h4, p, span, strong } from './lib/fnelements.mjs'
+import { div, h4, p, span, strong, code, flexCol, flexRow, flexCenteredCol, h1, button } from './lib/fnelements.mjs'
+import { h } from './lib/fntags.mjs'
 import contentSection from './contentSection.js'
 import prismCode from './prismCode.js'
 
 export default div(
   contentSection(
-    'Templating',
-    p('fntags provides tags for every html tag, meaning everything is written in pure es6 and does not require compilation.'),
-    prismCode('div(\'hello world\')'),
-    'Each tag function takes an optional attributes object and a rest parameter of child elements. Children can be a string, a dom node, or a promise that returns either of those.',
-    'Other types will be coerced to a string. If a child is an array, each element of the array will be appended.',
-    prismCode('div(span({class: \'hello\'}, [\'hello \', \'world\']))'),
-    'To parameterize your element, declare your element as a function with parameters.',
-    prismCode(
-      '(name) => div(\'Aloha \', span(name), \'!\')\n',
-      ((name) => div('Aloha, ', span(name), '!'))('Jerry')),
-    'This function can now be exported to be used as a shared and reusable component.',
-    prismCode('export const yo = (name) => div(\'Yo, \', name, \'!\')'),
-    'A rest parameter is recommended for including children in the parameters.',
+    'Components',
+    p('In fntags, a component is simply a function that returns an HTML element. There are no class-based components, specific lifecycle hooks, or "magical" props.'),
+    p('fntags exports a function for every standard HTML5 tag (e.g., ', code('div'), ', ', code('span'), ', ', code('h1'), ', etc.).')
+  ),
 
-    prismCode('(name, ...children) =>\n' +
-      '    div(\n' +
-      '        \'Watch \', name, ...children\n' +
-      '    )',
-    ((name, ...children) => div('Watch ', name, ...children))('Jerry', span(' of'), b(' the'), strong(' day'))
-    )
-  ),
   contentSection(
-    'Attributes',
-    'To set attributes and event handlers, pass an object as the first parameter to a tag.',
-    'String properties of the object become the attributes of the element.',
-    'Functions get added as event listeners for the property name less the \'on\' prefix.',
-    'Other types get set as properties of the element.',
+    'Basic Usage',
+    p('Tag functions take an optional attributes object as the first argument, followed by any number of child elements.'),
     prismCode(
-      'div({style: "color: limegreen"},\n' +
-      '    "こんにちは ", div("world!")\n' +
-      ')',
-      div({ style: 'color: limegreen' }, 'こんにちは ', div('world!'))
-    )
-  ),
-  contentSection('Async Rendering',
-    'A promise can be passed to h or any fnelement function and fntags will place the element on the page when the promise resolves.',
-    'The promise should resolve to any valid input to h. Promises will continue to be resolved until a non promise is returned.',
-    prismCode(`div(
-   fetch(
-       'https://icanhazdadjoke.com/',
-       { headers: { accept: 'text/plain' } }
-   )
-       .then( res => res.text() )
-       .then( div )
+`// Simple text content
+div('Hello World')`,
+div('Hello World')
+    ),
+    prismCode(
+`// With attributes
+div(
+    {
+        class: 'greeting',
+        style: 'color: blue'
+    },
+    'Hello World'
 )`,
+div({ class: 'greeting', style: 'color: blue' }, 'Hello World')
+    ),
+    prismCode(
+`// Nesting elements
+div(
+    h1('Title'),
+    p('This is a paragraph.')
+)`,
+div(
+  h1('Title'),
+  p('This is a paragraph.')
+)
+    ),
+    p('Children can be strings, numbers, other DOM nodes, or even arrays of these.')
+  ),
+
+  contentSection(
+    'Reusable Components',
+    p('To create a reusable component, define a function that accepts parameters (like props) and returns an element.'),
+    prismCode(
+`const Greeting = (name) =>
     div(
-      fetch(
-        'https://icanhazdadjoke.com/',
-        { headers: { accept: 'text/plain' } }
-      )
-        .then(res => res.text())
-        .then(joke => div(joke))
+        'Hello, ',
+        strong(name),
+        '!'
     )
+
+// Usage
+div(
+    Greeting('Alice'),
+    Greeting('Bob')
+)`,
+(function () {
+  const Greeting = (name) => div('Hello, ', strong(name), '!')
+  return div(
+    Greeting('Alice'),
+    div(), // spacer
+    Greeting('Bob')
+  )
+})()
+    ),
+    p('It is common practice to accept a rest parameter ', code('...children'), ' to allow your component to wrap other content.'),
+    prismCode(
+`const Card = (title, ...children) => 
+    div(
+        {
+            style: 'border: 1px solid #ccc;' +
+                   'padding: 10px;' +
+                   'margin: 5px;'
+        },
+        h4(title),
+        div(...children)
+    )
+
+// Usage
+Card(
+    'User Profile',
+    p('Name: Alice'),
+    button('Edit')
+)`,
+(function () {
+  const Card = (title, ...children) =>
+    div({ style: 'border: 1px solid #ccc; padding: 10px; margin: 5px;' },
+      h4(title),
+      div(...children)
+    )
+  return Card('User Profile',
+    p('Name: Alice'),
+    button('Edit')
+  )
+})()
     )
   ),
+
+  contentSection(
+    'Attributes & Events',
+    p('The first argument to any tag function is the attributes object. Properties map directly to HTML attributes.'),
+    p('Event listeners are added by using the standard ', code('on[event]'), ' naming convention.'),
+    prismCode(
+`button(
+    {
+        class: 'btn-primary',
+        onclick: (e) => alert('Clicked!'),
+        style: {
+            backgroundColor: 'blue',
+            color: 'white',
+            padding: '10px'
+        }
+    },
+    'Click Me'
+)`,
+button({
+  class: 'btn-primary',
+  onclick: (e) => alert('Clicked!'),
+  style: {
+    backgroundColor: 'blue',
+    color: 'white',
+    padding: '10px'
+  }
+}, 'Click Me')
+    ),
+    p('Note: Style properties can be strings or objects. If an object is provided, camelCase properties are converted to kebab-case CSS properties.')
+  ),
+
+  contentSection(
+    'Layout Helpers',
+    p('fntags provides several convenience wrappers around flexbox to make layout easier.'),
+    prismCode(
+`import {
+    flexCol,
+    flexRow,
+    flexCenteredCol
+} from './lib/fnelements.mjs'
+
+div(
+    // display: flex; flex-direction: column
+    flexCol(
+        div('Item 1'),
+        div('Item 2')
+    ),
+
+    // display: flex; flex-direction: row
+    flexRow(
+        div('Left'),
+        div('Right')
+    ),
+
+    // Centered column
+    flexCenteredCol(
+        div('Centered Item')
+    )
+)`,
+div(
+  flexCol({ style: 'border:1px solid #eee; margin:5px; padding:5px' },
+    div('Item 1'),
+    div('Item 2')
+  ),
+  flexRow({ style: 'border:1px solid #eee; margin:5px; padding:5px; gap: 5px;' },
+    div('Left'),
+    div('Right')
+  ),
+  flexCenteredCol({ style: 'border:1px solid #eee; margin:5px; padding:5px' },
+    div('Centered Item')
+  )
+)
+    )
+  ),
+
+  contentSection('Async Rendering',
+    p('fntags has built-in support for Promises. If you pass a Promise as a child, fntags will render a placeholder and replace it with the resolved value when it becomes available.'),
+    prismCode(
+`const AsyncJoke = () => 
+    div(
+        'Here is a joke: ',
+        fetch(
+            'https://icanhazdadjoke.com/',
+            { headers: { accept: 'text/plain' } }
+        )
+        .then(res => res.text())
+        .then(joke =>
+            span({ style: 'font-style: italic' }, joke)
+        )
+    )
+`,
+(function () {
+  const AsyncJoke = () =>
+    div(
+      'Here is a joke: ',
+      fetch('https://icanhazdadjoke.com/', { headers: { accept: 'text/plain' } })
+        .then(res => res.text())
+        .then(joke => span({ style: 'font-style: italic' }, joke))
+    )
+  return AsyncJoke()
+})()
+    )
+  ),
+
   contentSection(
     'The h() function',
-    p('fntags provides an h function much like ', a({ href: '' }, 'Hyperscript'), '.'),
-    'You can use this directly and avoid loading the fnelements file.',
+    p('Under the hood, all tag functions use the ', code('h()'), ' function. You can use it directly if you prefer hyperscript style or need to create elements with dynamic tag names.'),
     prismCode(
-      'h( \'div\', {style:\'font-size: 20px;\'},\n' +
-      '    \'hello!\',\n' +
-      '    h( \'span\', { style: \'color: green\' },\n' +
-      '    \' world!\')\n' +
-      ')',
-      div({ style: 'font-size: 20px;' }, 'hello!', span({ style: 'color: green' }, ' world!'))
-    ),
-    h4('Hyperscript Differences'),
-    'fntags does not support setting the id or class via the tag, you must pass an attributes object with an id or class property.',
-    'fntags uses setAttribute for string properties instead of setting the property on the element and does not set them on the element object.'
+`import { h } from './lib/fntags.mjs'
+
+h('div', { id: 'app' },
+    h('h1', 'Hello'),
+    h('p', 'World')
+)`,
+h('div', { id: 'app' },
+  h('h1', 'Hello'),
+  h('p', 'World')
+)
+    )
   )
 )

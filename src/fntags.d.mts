@@ -25,17 +25,17 @@ export function h<T extends HTMLElement | SVGElement>(tag: string, ...children: 
 /**
  * @template T The type of data stored in the state container
  * @typedef FnStateObj A container for a state value that can be bound to.
- * @property {(element?: (value: T)=>(Node|any))=>Node} bindAs Bind this state to the given element function. This causes the element to be replaced when state changes.
+ * @property {(element?: (newValue: T, oldValue: T)=>(Node|any))=>Node} bindAs Bind this state to the given element function. This causes the element to be replaced when the state changes.
  * If called with no parameters, the state's value will be rendered as an element.
  * @property {(parent: (()=>(Node|any))|any|Node, element: (childState: FnState)=>(Node|any))=>Node} bindChildren Bind the values of this state to the given element.
  * Values are items/elements of an array.
  * If the current value is not an array, this will behave the same as bindAs.
  * @property {(prop: string)=>Node} bindProp Bind to a property of an object stored in this state instead of the state itself.
  * Shortcut for `mystate.bindAs((current)=> current[prop])`
- * @property {(attribute?: (value: T, oldValue: T)=>(string|any))=>any} bindAttr Bind attribute values to state changes
- * @property {(style?: (value: T, oldValue: T)=>string) => string} bindStyle Bind style values to state changes
- * @property {(element?: (value: T)=>(Node|any))=>Node} bindSelect Bind selected state to an element
- * @property {(attribute?: (value: T)=>(string|any))=>any} bindSelectAttr Bind selected state to an attribute
+ * @property {(attribute?: (newValue: T, oldValue: T)=>(string|any))=>any} bindAttr Bind attribute values to state changes
+ * @property {(style?: (newValue: T, oldValue: T)=>string) => string} bindStyle Bind style values to state changes
+ * @property {(element?: (selectedKey: any)=>(Node|any))=>Node} bindSelect Bind selected state to an element
+ * @property {(attribute?: (selectedKey: any)=>(string|any))=>any} bindSelectAttr Bind selected state to an attribute
  * @property {(key: any)=>void} select Mark the element with the given key as selected
  * where the key is identified using the mapKey function passed on creation of the fnstate.
  * This causes the bound select functions to be executed.
@@ -101,10 +101,10 @@ export function styled<T extends HTMLElement | SVGElement>(style: object | strin
  */
 export type FnStateObj<T> = {
     /**
-     * Bind this state to the given element function. This causes the element to be replaced when state changes.
+     * Bind this state to the given element function. This causes the element to be replaced when the state changes.
      * If called with no parameters, the state's value will be rendered as an element.
      */
-    bindAs: (element?: (value: T) => (Node | any)) => Node;
+    bindAs: (element?: (newValue: T, oldValue: T) => (Node | any)) => Node;
     /**
      * Bind the values of this state to the given element.
      * Values are items/elements of an array.
@@ -119,19 +119,19 @@ export type FnStateObj<T> = {
     /**
      * Bind attribute values to state changes
      */
-    bindAttr: (attribute?: (value: T, oldValue: T) => (string | any)) => any;
+    bindAttr: (attribute?: (newValue: T, oldValue: T) => (string | any)) => any;
     /**
      * Bind style values to state changes
      */
-    bindStyle: (style?: (value: T, oldValue: T) => string) => string;
+    bindStyle: (style?: (newValue: T, oldValue: T) => string) => string;
     /**
      * Bind selected state to an element
      */
-    bindSelect: (element?: (value: T) => (Node | any)) => Node;
+    bindSelect: (element?: (selectedKey: any) => (Node | any)) => Node;
     /**
      * Bind selected state to an attribute
      */
-    bindSelectAttr: (attribute?: (value: T) => (string | any)) => any;
+    bindSelectAttr: (attribute?: (selectedKey: any) => (string | any)) => any;
     /**
      * Mark the element with the given key as selected
      * where the key is identified using the mapKey function passed on creation of the fnstate.

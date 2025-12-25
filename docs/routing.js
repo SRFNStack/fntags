@@ -4,85 +4,156 @@ import prismCode from './prismCode.js'
 
 export default div(
   contentSection(
-    'Static Pattern Routing: Route Elements',
-    'Static routes are created by using the fntags route element. They have a single required attribute, path. path can be a regular expression.',
-    'If the currentRoute starts with the path followed by any of: ?, /, #, or the end of the string, the route is displayed.',
-    prismCode('route( { path: \'/home\' })'),
-    'To require that the currentRoute matches the path exactly, set absolute: true on the attributes object',
-    prismCode('route( { path: \'/\', absolute: true })'),
-    'Children of route elements can be functions. This is useful for re-loading dynamic content on route change.',
-    prismCode(`route(
-    { path: '/', absolute: true },
-    ()=>new Date().toString()
-)`)
+    'Routing',
+    p('fntags provides a lightweight, history-API based router. It supports static routes, parameterized routes, and deep linking.'),
+    p('The router is element-based, meaning you define routes as part of your component tree.')
   ),
+
   contentSection(
-    'Static Pattern Routing: Route Switch Element',
-    'To only display the first route of a set that is displayable for the currentRoute, use a routeSwitch element.',
+    'Defining Routes',
+    p('Use the ', code('route'), ' element to define a section of the page that only renders when the URL matches a path.'),
     prismCode(
-      'routeSwitch(\n' +
-            '    route( { path: \'/\', absolute: true }, \'roooot\' ),\n' +
-            '    route( { path: \'/hello\' }, \'world\' ),\n' +
-            '    route( { path: \'/.*\' },\n' +
-            '        h3( \'404 Page not found\' )\n' +
-            '    )\n' +
-            ')')
-  ),
-  contentSection(
-    'Navigating',
-    'To navigate within the app, either create an fnlink element or import and call the goTo function.',
-    'fnlink has a single required attribute, \'to\' that is the route to navigate to. You can additionally provide a context property that can be accessed from the pathState.',
-    prismCode(`fnlink( {
-        to: '/home',
-        context: { key:'this is handy' }
+`import { route } from './lib/fnroute.mjs'
+
+div(
+    route(
+        { path: '/home' },
+        h1('Home Page')
+    ),
+    route(
+        { path: '/about' },
+        h1('About Page')
+    )
+)`
+    ),
+    p('By default, `path` matches if the current URL starts with the path. To enforce an exact match, use ', code('absolute: true'), '.'),
+    prismCode(
+`route(
+    {
+        path: '/',
+        absolute: true
     },
     'Home'
-)`),
-    'goTo takes the route to navigate to and optionally a context as the second.',
-    prismCode('goTo(\'/home\', {\'some\':\'datazzz\')')
-  ),
-  contentSection(
-    'Path State',
-    'pathState can be imported and bound to in order to listen to path changes.',
-    prismCode('import { pathState } from \'./fntags.mjs\''),
-    'pathState is a state function that contains information about the path',
-    prismCode(
-      'pathState() ~== {\n' +
-            '    rootPath: \'\',\n' +
-            '    currentPath: \'/\',\n' +
-            '    context: \'secret data\'\n' +
-            '}'
-    ),
-    'rootPath is the path the app is served from. The default is the current window path when fntags.mjs is loaded.',
-    'currentPath is the route the user is currently at. More precisely, it\'s the remainder of the current path after removing the root path prefix.',
-    'context is the data passed as the context to fnlink or goto verbatim'
-  ),
-  contentSection(
-    'Path Parameters',
-    'Path parameters can be used for any route that does not allow unlimited slashes in the path (pretty much anything without a .*).',
-    'Path parameters are represented in the path directly using a colon as a key value separator. This scheme was chosen in accordance with https://tools.ietf.org/html/rfc1738#page-3',
-    'The same key value separated by a colon is used for auth, setting the precedent to use it here.',
-    prismCode('route( { path: \'/some/:snak\' } )'),
-    'When used like the example above, the parameter will be accessible in an array called ',
-    code('pathParameters().idx'),
-    ' and are accessible based position. I.e.',
-    'In the example above, ',
-    code('pathParameters().idx[0] === "snak"'),
-    'To name the parameters, add the name before the colon',
-    prismCode('route( { path: \'/some/foo:bar\' } )'),
-    'this results in the "foo" property of pathParameters to be set this way: ',
-    code('pathParameters().foo === "bar"'),
-    prismCode('goTo(\'/some/taco\')'),
-    prismCode(
-      'import {pathParameters} from \'fntags\'\n' +
-            'alert(pathParameters().snak === \'taco\')'
+)`
     )
   ),
+
   contentSection(
-    'Deep Links',
-    'Deep linking will not work correctly in cases where the same html file is served from every path.',
-    p('For instance, when using ', code('try_files $uri index.html'), ' in nginx.'),
-    'To fix this, import and call setRootPath with the appropriate root path.',
-    prismCode('import { setRootPath ] from \'./fntags.mjs\'\nsetRootPath(\'/\')')
+    'Route Switch',
+    p('Use ', code('routeSwitch'), ' to display exactly one route from a list (like a switch statement). It renders the first route that matches.'),
+    prismCode(
+`import {
+    routeSwitch,
+    route
+} from './lib/fnroute.mjs'
+
+routeSwitch(
+    route(
+        { path: '/', absolute: true },
+        'Home'
+    ),
+    route(
+        { path: '/user' },
+        'User Profile'
+    ),
+    // Catch-all 404
+    route(
+        { path: '.*' },
+        'Page Not Found'
+    )
+)`
+    )
+  ),
+
+  contentSection(
+    'Navigation',
+    p('Use ', code('fnlink'), ' to create standard anchor tags that navigate without reloading the page.'),
+    prismCode(
+`import { fnlink } from './lib/fnroute.mjs'
+
+fnlink(
+    { to: '/about' },
+    'Go to About'
+)`
+    ),
+    p('Programmatic navigation is done via ', code('goTo'), '.'),
+    prismCode(
+`import { goTo } from './lib/fnroute.mjs'
+
+goTo('/profile')`
+    )
+  ),
+
+  contentSection(
+    'Path Parameters',
+    p('You can define dynamic path segments using the standard ', code(':param'), ' syntax.'),
+    prismCode(
+`route(
+    { path: '/user/:id' },
+    UserComponent
+)`
+    ),
+    p('Access the parameters using the ', code('pathParameters'), ' state.'),
+    prismCode(
+`import { pathParameters } from './lib/fnroute.mjs'
+
+const UserComponent = () =>
+    div(
+        'User ID: ',
+        pathParameters.bindProp('id')
+    )`
+    )
+  ),
+
+  contentSection(
+    'Path State',
+    p('The `pathState` object contains information about the current location.'),
+    prismCode(
+`import { pathState } from './lib/fnroute.mjs'
+
+// pathState() structure:
+// {
+//    // The app root
+//    rootPath: '',
+//
+//    // The active route path
+//    currentPath: '/',
+//
+//    // Optional data passed via goTo
+//    context: null
+// }`
+    )
+  ),
+
+  contentSection(
+    'Routing Events',
+    p('You can listen for navigation events using ', code('listenFor'), '.'),
+    prismCode(
+`import {
+    listenFor,
+    beforeRouteChange,
+    afterRouteChange
+} from './lib/fnroute.mjs'
+
+listenFor(
+    beforeRouteChange,
+    (newPath, oldPath) => {
+        console.log(
+            'Navigating to:',
+            newPath.currentPath
+        )
+    }
+)`
+    )
+  ),
+
+  contentSection(
+    'Deep Links & SPAs',
+    p('If your app is hosted in a subdirectory or if your server returns the same index.html for all paths (SPA mode), you may need to configure the root path.'),
+    prismCode(
+`import { setRootPath } from './lib/fnroute.mjs'
+
+setRootPath('/my-app/')`
+    )
   )
 )

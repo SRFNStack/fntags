@@ -2,17 +2,19 @@ import components from './components.js'
 import home from './home.js'
 import state from './state.js'
 import routing from './routing.js'
-// import tutorial from './tutorial.js'
+import gettingStarted from './gettingStarted.js'
+import api from './api.js'
 
 import { fnlink, pathState, route } from './lib/fnroute.mjs'
 import { secondaryColor } from './constants.js'
 
-const routes = [
+export const routes = [
   { url: '/', component: home, absolute: true },
+  { url: '/getting-started', linkText: 'Getting Started', component: gettingStarted },
   { url: '/components', linkText: 'Components', component: components },
-  // { url: '/tutorial', linkText: 'Tutorial', component: tutorial },
   { url: '/state', linkText: 'State', component: state },
   { url: '/routing', linkText: 'Routing', component: routing },
+  { url: '/api', linkText: 'API', component: api },
 
   // {url: "/reference", linkText: 'Reference', component: reference},
   { url: '.*', component: home }

@@ -3,6 +3,6 @@ describe('routing page', () => {
     cy.visit('/')
     cy.get('#Routing-link').click()
     cy.url().should('match', /.*\/routing$/)
-    cy.get('#Navigating').should('be.visible')
+    cy.get('#Routing').should('be.visible')
   })
 })

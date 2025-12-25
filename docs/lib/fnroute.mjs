@@ -244,7 +244,7 @@ const emit = (event, newPathState, oldPathState) => {
 
 /**
  * Listen for routing events
- * @param event a string event to listen for
+ * @param {string} event a string event to listen for
  * @param handler A function that will be called when the event occurs.
  *                  The function receives the new and old pathState objects, in that order.
  * @return {()=>void} a function to stop listening with the passed handler.

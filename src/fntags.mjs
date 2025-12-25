@@ -75,17 +75,17 @@ function hasNs (val) {
 /**
  * @template T The type of data stored in the state container
  * @typedef FnStateObj A container for a state value that can be bound to.
- * @property {(element?: (value: T)=>(Node|any))=>Node} bindAs Bind this state to the given element function. This causes the element to be replaced when state changes.
+ * @property {(element?: (newValue: T, oldValue: T)=>(Node|any))=>Node} bindAs Bind this state to the given element function. This causes the element to be replaced when the state changes.
  * If called with no parameters, the state's value will be rendered as an element.
  * @property {(parent: (()=>(Node|any))|any|Node, element: (childState: FnState)=>(Node|any))=>Node} bindChildren Bind the values of this state to the given element.
  * Values are items/elements of an array.
  * If the current value is not an array, this will behave the same as bindAs.
  * @property {(prop: string)=>Node} bindProp Bind to a property of an object stored in this state instead of the state itself.
  * Shortcut for `mystate.bindAs((current)=> current[prop])`
- * @property {(attribute?: (value: T, oldValue: T)=>(string|any))=>any} bindAttr Bind attribute values to state changes
- * @property {(style?: (value: T, oldValue: T)=>string) => string} bindStyle Bind style values to state changes
- * @property {(element?: (value: T)=>(Node|any))=>Node} bindSelect Bind selected state to an element
- * @property {(attribute?: (value: T)=>(string|any))=>any} bindSelectAttr Bind selected state to an attribute
+ * @property {(attribute?: (newValue: T, oldValue: T)=>(string|any))=>any} bindAttr Bind attribute values to state changes
+ * @property {(style?: (newValue: T, oldValue: T)=>string) => string} bindStyle Bind style values to state changes
+ * @property {(element?: (selectedKey: any)=>(Node|any))=>Node} bindSelect Bind selected state to an element
+ * @property {(attribute?: (selectedKey: any)=>(string|any))=>any} bindSelectAttr Bind selected state to an attribute
  * @property {(key: any)=>void} select Mark the element with the given key as selected
  * where the key is identified using the mapKey function passed on creation of the fnstate.
  * This causes the bound select functions to be executed.
@@ -414,8 +414,8 @@ const doBind = function (ctx, element, handleReplace) {
   return () => elCtx.current
 }
 
-const updateReplacer = (ctx, element, elCtx) => () => {
-  let rendered = renderNode(evaluateElement(element, ctx.currentValue))
+const updateReplacer = (ctx, element, elCtx) => (_, oldValue) => {
+  let rendered = renderNode(evaluateElement(element, ctx.currentValue, oldValue))
   if (rendered !== undefined) {
     if (elCtx.current.key !== undefined) {
       rendered.current.key = elCtx.current.key
@@ -574,11 +574,11 @@ function arrangeElements (ctx, bindContext, oldState) {
   }
 }
 
-const evaluateElement = (element, value) => {
+const evaluateElement = (element, value, oldValue) => {
   if (element.isFnState) {
     return element()
   } else {
-    return typeof element === 'function' ? element(value) : element
+    return typeof element === 'function' ? element(value, oldValue) : element
   }
 }
 
