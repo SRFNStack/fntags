@@ -1,6 +1,6 @@
 {
   "name": "@srfnstack/fntags",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": "Robert Kempton <r@snow87.com>",
   "private": false,
   "homepage": "https://github.com/srfnstack/fntags",
@@ -52,8 +52,8 @@
   "scripts": {
     "test": "cp src/*.mjs docs/lib/ && npm run lint && cypress run --spec \"test/**\" --headless -b chrome",
     "cypress": "cypress run --headed --spec test/** -b chrome",
-    "lint": "standard --env browser src && standard --env browser --env jest --global Prism --global cy test docs",
-    "lint:fix": "standard --env browser --fix src && standard --env browser --env jest --global Prism --global cy --fix test docs",
+    "lint": "standard --env browser src && standard --env browser --env jest --global Prism --global cy test",
+    "lint:fix": "standard --env browser --fix src && standard --env browser --env jest --global Prism --global cy --fix test",
     "typedef": "rm -rf src/*.mts* && tsc",
     "docs": "typedoc --plugin typedoc-plugin-markdown --out docs/types --json docs/types.json ./src/*.mjs && node scripts/generateApi.js",
     "generate-api": "node scripts/generateApi.js",

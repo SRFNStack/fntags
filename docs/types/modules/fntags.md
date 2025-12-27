@@ -15,6 +15,7 @@
 ### Functions
 
 - [fnstate](fntags.md#fnstate-1)
+- [fntemplate](fntags.md#fntemplate)
 - [getAttrs](fntags.md#getattrs)
 - [h](fntags.md#h)
 - [isAttrs](fntags.md#isattrs)
@@ -37,7 +38,7 @@ A container for a state value that can be bound to.
 
 #### Defined in
 
-[fntags.mjs:105](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.mjs#L105)
+[fntags.mjs:105](https://github.com/SRFNStack/fntags/blob/7bee495/src/fntags.mjs#L105)
 
 ## Functions
 
@@ -71,7 +72,52 @@ or the changes won't be reflected correctly and binding updates won't be trigger
 
 #### Defined in
 
-[fntags.mjs:119](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.mjs#L119)
+[fntags.mjs:119](https://github.com/SRFNStack/fntags/blob/7bee495/src/fntags.mjs#L119)
+
+___
+
+### fntemplate
+
+▸ **fntemplate**(`templateFn`): (`any`: `any`) => `Node`
+
+Create a compiled template function. The returned function takes a single object that contains the properties
+defined in the template.
+
+This allows fast rendering by pre-creating a dom element with the entire template structure then cloning and populating
+the clone with data from the provided context. This avoids the work of having to re-execute the tag functions
+one by one and can speed up situations where a similar element is created many times.
+
+You cannot bind state to the initial template. If you attempt to, the state will be read, but the elements will
+not be updated when the state changes because they will not be bound to the cloned element.
+All state bindings must be passed in the context to the compiled template to work correctly.
+
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `templateFn` | (`any`: `any`) => `Node` | A function that returns a html node. |
+
+#### Returns
+
+`fn`
+
+A function that takes a context object and returns a rendered node.
+
+▸ (`any`): `Node`
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `any` | `any` |
+
+##### Returns
+
+`Node`
+
+#### Defined in
+
+[fntags.mjs:779](https://github.com/SRFNStack/fntags/blob/7bee495/src/fntags.mjs#L779)
 
 ___
 
@@ -95,7 +141,7 @@ the attr object or an empty object
 
 #### Defined in
 
-[fntags.mjs:729](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.mjs#L729)
+[fntags.mjs:729](https://github.com/SRFNStack/fntags/blob/7bee495/src/fntags.mjs#L729)
 
 ___
 
@@ -137,7 +183,7 @@ an html element
 
 #### Defined in
 
-[fntags.mjs:24](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.mjs#L24)
+[fntags.mjs:24](https://github.com/SRFNStack/fntags/blob/7bee495/src/fntags.mjs#L24)
 
 ___
 
@@ -161,7 +207,7 @@ true if the value is an object that can be used as attributes
 
 #### Defined in
 
-[fntags.mjs:720](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.mjs#L720)
+[fntags.mjs:720](https://github.com/SRFNStack/fntags/blob/7bee495/src/fntags.mjs#L720)
 
 ___
 
@@ -185,7 +231,7 @@ The rendered node
 
 #### Defined in
 
-[fntags.mjs:609](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.mjs#L609)
+[fntags.mjs:609](https://github.com/SRFNStack/fntags/blob/7bee495/src/fntags.mjs#L609)
 
 ___
 
@@ -218,4 +264,4 @@ The styled element
 
 #### Defined in
 
-[fntags.mjs:744](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.mjs#L744)
+[fntags.mjs:744](https://github.com/SRFNStack/fntags/blob/7bee495/src/fntags.mjs#L744)

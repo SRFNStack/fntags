@@ -40,7 +40,7 @@
 
 #### Defined in
 
-[fnroute.mjs:188](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fnroute.mjs#L188)
+[fnroute.mjs:188](https://github.com/SRFNStack/fntags/blob/7bee495/src/fnroute.mjs#L188)
 
 ___
 
@@ -58,7 +58,7 @@ ___
 
 #### Defined in
 
-[fnroute.mjs:199](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fnroute.mjs#L199)
+[fnroute.mjs:199](https://github.com/SRFNStack/fntags/blob/7bee495/src/fnroute.mjs#L199)
 
 ___
 
@@ -68,7 +68,7 @@ ___
 
 #### Defined in
 
-[fnroute.mjs:218](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fnroute.mjs#L218)
+[fnroute.mjs:218](https://github.com/SRFNStack/fntags/blob/7bee495/src/fnroute.mjs#L218)
 
 ## Variables
 
@@ -80,7 +80,7 @@ After the route is changed
 
 #### Defined in
 
-[fnroute.mjs:229](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fnroute.mjs#L229)
+[fnroute.mjs:229](https://github.com/SRFNStack/fntags/blob/7bee495/src/fnroute.mjs#L229)
 
 ___
 
@@ -92,7 +92,7 @@ Before the route is changed
 
 #### Defined in
 
-[fnroute.mjs:224](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fnroute.mjs#L224)
+[fnroute.mjs:224](https://github.com/SRFNStack/fntags/blob/7bee495/src/fnroute.mjs#L224)
 
 ___
 
@@ -104,7 +104,7 @@ After the route is changed and the route element is rendered
 
 #### Defined in
 
-[fnroute.mjs:234](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fnroute.mjs#L234)
+[fnroute.mjs:234](https://github.com/SRFNStack/fntags/blob/7bee495/src/fnroute.mjs#L234)
 
 ## Functions
 
@@ -128,7 +128,7 @@ An anchor element that will navigate to the specified route when clicked
 
 #### Defined in
 
-[fnroute.mjs:108](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fnroute.mjs#L108)
+[fnroute.mjs:108](https://github.com/SRFNStack/fntags/blob/7bee495/src/fnroute.mjs#L108)
 
 ___
 
@@ -153,7 +153,7 @@ A function to navigate to the specified route
 
 #### Defined in
 
-[fnroute.mjs:138](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fnroute.mjs#L138)
+[fnroute.mjs:138](https://github.com/SRFNStack/fntags/blob/7bee495/src/fnroute.mjs#L138)
 
 ___
 
@@ -184,7 +184,7 @@ a function to stop listening with the passed handler.
 
 #### Defined in
 
-[fnroute.mjs:252](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fnroute.mjs#L252)
+[fnroute.mjs:252](https://github.com/SRFNStack/fntags/blob/7bee495/src/fnroute.mjs#L252)
 
 ___
 
@@ -206,7 +206,7 @@ The path parameters of the current route
 
 #### Defined in
 
-[fntags.d.mts:171](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.d.mts#L171)
+[fntags.d.mts:188](https://github.com/SRFNStack/fntags/blob/7bee495/src/fntags.d.mts#L188)
 
 ___
 
@@ -228,7 +228,7 @@ The current path state
 
 #### Defined in
 
-[fntags.d.mts:171](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.d.mts#L171)
+[fntags.d.mts:188](https://github.com/SRFNStack/fntags/blob/7bee495/src/fntags.d.mts#L188)
 
 ___
 
@@ -273,7 +273,7 @@ A div element that will only be displayed if the current route starts with the p
 
 #### Defined in
 
-[fnroute.mjs:34](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fnroute.mjs#L34)
+[fnroute.mjs:34](https://github.com/SRFNStack/fntags/blob/7bee495/src/fnroute.mjs#L34)
 
 ___
 
@@ -296,7 +296,7 @@ The primary purpose of this element is to provide catchall routes for not found 
 
 #### Defined in
 
-[fnroute.mjs:60](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fnroute.mjs#L60)
+[fnroute.mjs:60](https://github.com/SRFNStack/fntags/blob/7bee495/src/fnroute.mjs#L60)
 
 ___
 
@@ -318,4 +318,4 @@ Set the root path of the app. This is necessary to make deep linking work in cas
 
 #### Defined in
 
-[fnroute.mjs:269](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fnroute.mjs#L269)
+[fnroute.mjs:269](https://github.com/SRFNStack/fntags/blob/7bee495/src/fnroute.mjs#L269)

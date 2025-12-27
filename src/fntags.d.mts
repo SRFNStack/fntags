@@ -96,6 +96,23 @@ export function getAttrs(children: any): object;
  */
 export function styled<T extends HTMLElement | SVGElement>(style: object | string, tag: string, children: object[] | Node[]): T;
 /**
+ * Create a compiled template function. The returned function takes a single object that contains the properties
+ * defined in the template.
+ *
+ * This allows fast rendering by pre-creating a dom element with the entire template structure then cloning and populating
+ * the clone with data from the provided context. This avoids the work of having to re-execute the tag functions
+ * one by one and can speed up situations where a similar element is created many times.
+ *
+ * You cannot bind state to the initial template. If you attempt to, the state will be read, but the elements will
+ * not be updated when the state changes because they will not be bound to the cloned element.
+ * All state bindings must be passed in the context to the compiled template to work correctly.
+ *
+ * @param {(any)=>Node} templateFn A function that returns a html node.
+ * @return {(any)=>Node} A function that takes a context object and returns a rendered node.
+ *
+ */
+export function fntemplate(templateFn: (any: any) => Node): (any: any) => Node;
+/**
  * A container for a state value that can be bound to.
  */
 export type FnStateObj<T> = {

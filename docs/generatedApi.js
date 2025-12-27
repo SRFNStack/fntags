@@ -2,107 +2,112 @@ import { div, h3, p, code, ul, li, strong, a } from './lib/fnelements.mjs'
 import contentSection from './contentSection.js'
 
 export default div(
-  contentSection('Module: fntags',
-    h3(code('fnstate(initialValue, mapKey)')),
-    p('Create a state object that can be bound to.'),
-    ul(
-      li(strong('initialValue'), ': T', ' - The initial state'),
-      li(strong('mapKey'), ': object', ' - A map function to extract a key from an element in the array. Receives the array value to extract the key from.\nA key can be any unique value.')
+    contentSection('Module: fntags',
+        h3(code('fnstate(initialValue, mapKey)')),
+        p("Create a state object that can be bound to."),
+        ul(
+            li(strong('initialValue'), ': T', " - The initial state"),
+            li(strong('mapKey'), ': object', " - A map function to extract a key from an element in the array. Receives the array value to extract the key from.\nA key can be any unique value."),
+        ),
+        h3(code('fntemplate(templateFn)')),
+        p("Create a compiled template function. The returned function takes a single object that contains the properties\ndefined in the template.\n\nThis allows fast rendering by pre-creating a dom element with the entire template structure then cloning and populating\nthe clone with data from the provided context. This avoids the work of having to re-execute the tag functions\none by one and can speed up situations where a similar element is created many times.\n\nYou cannot bind state to the initial template. If you attempt to, the state will be read, but the elements will\nnot be updated when the state changes because they will not be bound to the cloned element.\nAll state bindings must be passed in the context to the compiled template to work correctly."),
+        ul(
+            li(strong('templateFn'), ': object', " - A function that returns a html node."),
+        ),
+        h3(code('getAttrs(children)')),
+        p("helper to get the attr object"),
+        ul(
+            li(strong('children'), ': any', ""),
+        ),
+        h3(code('h(tag, ...children)')),
+        p("A function to create dom elements with the given attributes and children.\n\nThe first element of the children array can be an object containing element attributes.\nThe attribute names are the standard attribute names used in html, and should all be lower case as usual.\n\nAny attribute starting with 'on' that is a function is added as an event listener with the 'on' removed.\ni.e. { onclick: fn } gets added to the element as element.addEventListener('click', fn)\n\nThe style attribute can be an object and the properties of the object will be added as style properties to the element.\ni.e. { style: { color: blue } } becomes element.style.color = blue\n\nThe rest of the arguments will be considered children of this element and appended to it in the same order as passed."),
+        ul(
+            li(strong('tag'), ': string', " - html tag to use when created the element"),
+            li(strong('children'), ': any[]', " - optional attributes object and children for the element"),
+        ),
+        h3(code('isAttrs(val)')),
+        p("Check if the given value is an object that can be used as attributes"),
+        ul(
+            li(strong('val'), ': any', " - The value to check"),
+        ),
+        h3(code('renderNode(node)')),
+        p("Convert non objects (objects are assumed to be nodes) to text nodes and allow promises to resolve to nodes"),
+        ul(
+            li(strong('node'), ': any', " - The node to render"),
+        ),
+        h3(code('styled(style, tag, children)')),
+        p("A function to create an element with a pre-defined style.\nFor example, the flex* elements in fnelements."),
+        ul(
+            li(strong('style'), ': any', " - The style to apply to the element"),
+            li(strong('tag'), ': string', " - The tag to use when creating the element"),
+            li(strong('children'), ': any[] | Node[]', " - The children to append to the element"),
+        ),
     ),
-    h3(code('getAttrs(children)')),
-    p('helper to get the attr object'),
-    ul(
-      li(strong('children'), ': any', '')
+    contentSection('Module: fnroute',
+        h3(code('afterRouteChange')),
+        p("After the route is changed"),
+        h3(code('beforeRouteChange')),
+        p("Before the route is changed"),
+        h3(code('routeChangeComplete')),
+        p("After the route is changed and the route element is rendered"),
+        h3(code('fnlink(...children)')),
+        p("A link element that is a link to another route in this single page app"),
+        ul(
+            li(strong('children'), ': any[]', " - The attributes of the anchor element and any children"),
+        ),
+        h3(code('goTo(route, context, replace, silent)')),
+        p("A function to navigate to the specified route"),
+        ul(
+            li(strong('route'), ': string', " - The route to navigate to"),
+            li(strong('context'), ': any', " - Data related to the route change"),
+            li(strong('replace'), ': boolean', " - Whether to replace the state or push it. pushState is used by default."),
+            li(strong('silent'), ': boolean', " - Prevent route change events from being emitted for this route change"),
+        ),
+        h3(code('listenFor(event, handler)')),
+        p("Listen for routing events"),
+        ul(
+            li(strong('event'), ': string', " - a string event to listen for"),
+            li(strong('handler'), ': any', " - A function that will be called when the event occurs.\n                 The function receives the new and old pathState objects, in that order."),
+        ),
+        h3(code('pathParameters(newState)')),
+        p("The path parameters of the current route"),
+        ul(
+            li(strong('newState'), ': any', ""),
+        ),
+        h3(code('pathState(newState)')),
+        p("The current path state"),
+        ul(
+            li(strong('newState'), ': PathState', ""),
+        ),
+        h3(code('route(...children)')),
+        p("An element that is displayed only if the current route starts with elements path attribute.\n\nFor example,\n route({path: \"/proc\"},\n     div(\n         \"proc\",\n         div({path: \"/cpuinfo\"},\n             \"cpuinfo\"\n             )\n         )\n     )\n\n You can override this behavior by setting the attribute, absolute to any value\n\n route({path: \"/usr\"},\n     div(\n         \"proc\",\n         div({path: \"/cpuinfo\", absolute: true},\n             \"cpuinfo\"\n             )\n         )\n     )"),
+        ul(
+            li(strong('children'), ': any[]', " - The attributes and children of this element."),
+        ),
+        h3(code('routeSwitch(...children)')),
+        p("An element that only renders the first route that matches and updates when the route is changed\nThe primary purpose of this element is to provide catchall routes for not found pages and path variables"),
+        ul(
+            li(strong('children'), ': any[]', ""),
+        ),
+        h3(code('setRootPath(rootPath)')),
+        p("Set the root path of the app. This is necessary to make deep linking work in cases where the same html file is served from all paths."),
+        ul(
+            li(strong('rootPath'), ': string', " - The root path of the app"),
+        ),
     ),
-    h3(code('h(tag, ...children)')),
-    p("A function to create dom elements with the given attributes and children.\n\nThe first element of the children array can be an object containing element attributes.\nThe attribute names are the standard attribute names used in html, and should all be lower case as usual.\n\nAny attribute starting with 'on' that is a function is added as an event listener with the 'on' removed.\ni.e. { onclick: fn } gets added to the element as element.addEventListener('click', fn)\n\nThe style attribute can be an object and the properties of the object will be added as style properties to the element.\ni.e. { style: { color: blue } } becomes element.style.color = blue\n\nThe rest of the arguments will be considered children of this element and appended to it in the same order as passed."),
-    ul(
-      li(strong('tag'), ': string', ' - html tag to use when created the element'),
-      li(strong('children'), ': any[]', ' - optional attributes object and children for the element')
+    contentSection('Module: fnelements',
+        p('This module exports functions for all standard HTML elements.'),
+        p('For a full list of available elements, see the ', a({target: 'blank', href: 'https://developer.mozilla.org/en-US/docs/Web/HTML/Element'}, 'MDN Documentation'), '.'),
+        h3('Helper Functions'),
+        p('In addition to standard tags, this module provides the following helpers:'),
+        p('No helper functions currently exported.'),
+        h3(code('flexCenteredCol(...children)')),
+        h3(code('flexCenteredRow(...children)')),
+        h3(code('flexCol(...children)')),
+        h3(code('flexRow(...children)')),
     ),
-    h3(code('isAttrs(val)')),
-    p('Check if the given value is an object that can be used as attributes'),
-    ul(
-      li(strong('val'), ': any', ' - The value to check')
+    contentSection('Module: svgelements',
+        p('This module exports functions for all standard SVG elements.'),
+        p('For a full list of available elements, see the ', a({target: 'blank', href: 'https://developer.mozilla.org/en-US/docs/Web/SVG/Element'}, 'MDN Documentation'), '.'),
     ),
-    h3(code('renderNode(node)')),
-    p('Convert non objects (objects are assumed to be nodes) to text nodes and allow promises to resolve to nodes'),
-    ul(
-      li(strong('node'), ': any', ' - The node to render')
-    ),
-    h3(code('styled(style, tag, children)')),
-    p('A function to create an element with a pre-defined style.\nFor example, the flex* elements in fnelements.'),
-    ul(
-      li(strong('style'), ': any', ' - The style to apply to the element'),
-      li(strong('tag'), ': string', ' - The tag to use when creating the element'),
-      li(strong('children'), ': any[] | Node[]', ' - The children to append to the element')
-    )
-  ),
-  contentSection('Module: fnroute',
-    h3(code('afterRouteChange')),
-    p('After the route is changed'),
-    h3(code('beforeRouteChange')),
-    p('Before the route is changed'),
-    h3(code('routeChangeComplete')),
-    p('After the route is changed and the route element is rendered'),
-    h3(code('fnlink(...children)')),
-    p('A link element that is a link to another route in this single page app'),
-    ul(
-      li(strong('children'), ': any[]', ' - The attributes of the anchor element and any children')
-    ),
-    h3(code('goTo(route, context, replace, silent)')),
-    p('A function to navigate to the specified route'),
-    ul(
-      li(strong('route'), ': string', ' - The route to navigate to'),
-      li(strong('context'), ': any', ' - Data related to the route change'),
-      li(strong('replace'), ': boolean', ' - Whether to replace the state or push it. pushState is used by default.'),
-      li(strong('silent'), ': boolean', ' - Prevent route change events from being emitted for this route change')
-    ),
-    h3(code('listenFor(event, handler)')),
-    p('Listen for routing events'),
-    ul(
-      li(strong('event'), ': string', ' - a string event to listen for'),
-      li(strong('handler'), ': any', ' - A function that will be called when the event occurs.\n                 The function receives the new and old pathState objects, in that order.')
-    ),
-    h3(code('pathParameters(newState)')),
-    p('The path parameters of the current route'),
-    ul(
-      li(strong('newState'), ': any', '')
-    ),
-    h3(code('pathState(newState)')),
-    p('The current path state'),
-    ul(
-      li(strong('newState'), ': PathState', '')
-    ),
-    h3(code('route(...children)')),
-    p('An element that is displayed only if the current route starts with elements path attribute.\n\nFor example,\n route({path: "/proc"},\n     div(\n         "proc",\n         div({path: "/cpuinfo"},\n             "cpuinfo"\n             )\n         )\n     )\n\n You can override this behavior by setting the attribute, absolute to any value\n\n route({path: "/usr"},\n     div(\n         "proc",\n         div({path: "/cpuinfo", absolute: true},\n             "cpuinfo"\n             )\n         )\n     )'),
-    ul(
-      li(strong('children'), ': any[]', ' - The attributes and children of this element.')
-    ),
-    h3(code('routeSwitch(...children)')),
-    p('An element that only renders the first route that matches and updates when the route is changed\nThe primary purpose of this element is to provide catchall routes for not found pages and path variables'),
-    ul(
-      li(strong('children'), ': any[]', '')
-    ),
-    h3(code('setRootPath(rootPath)')),
-    p('Set the root path of the app. This is necessary to make deep linking work in cases where the same html file is served from all paths.'),
-    ul(
-      li(strong('rootPath'), ': string', ' - The root path of the app')
-    )
-  ),
-  contentSection('Module: fnelements',
-    p('This module exports functions for all standard HTML elements.'),
-    p('For a full list of available elements, see the ', a({ target: 'blank', href: 'https://developer.mozilla.org/en-US/docs/Web/HTML/Element' }, 'MDN Documentation'), '.'),
-    h3('Helper Functions'),
-    p('In addition to standard tags, this module provides the following helpers:'),
-    p('No helper functions currently exported.'),
-    h3(code('flexCenteredCol(...children)')),
-    h3(code('flexCenteredRow(...children)')),
-    h3(code('flexCol(...children)')),
-    h3(code('flexRow(...children)'))
-  ),
-  contentSection('Module: svgelements',
-    p('This module exports functions for all standard SVG elements.'),
-    p('For a full list of available elements, see the ', a({ target: 'blank', href: 'https://developer.mozilla.org/en-US/docs/Web/SVG/Element' }, 'MDN Documentation'), '.')
-  )
 )

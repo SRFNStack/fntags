@@ -1,5 +1,5 @@
 import { div, h4, p, span, strong, code, flexCol, flexRow, flexCenteredCol, h1, button } from './lib/fnelements.mjs'
-import { h } from './lib/fntags.mjs'
+import { h, fntemplate, fnstate } from './lib/fntags.mjs'
 import contentSection from './contentSection.js'
 import prismCode from './prismCode.js'
 
@@ -200,6 +200,52 @@ div(
         .then(joke => span({ style: 'font-style: italic' }, joke))
     )
   return AsyncJoke()
+})()
+    )
+  ),
+
+  contentSection(
+    'fntemplate for Efficient State Binding',
+    p('The ', code('fntemplate'), ' function provides an efficient way to create reusable component templates that can be re-rendered with different contexts without re-creating the entire DOM structure. This is particularly powerful when combined with ', code('fnstate'), ' for reactive updates.'),
+    p('When you pass an ', code('fnstate'), ' object to a ', code('fntemplate'), ' context, and then bind to it using ', code('ctx(key)'), ', fntags automatically sets up a subscription. This means any changes to the ', code('fnstate'), ' object will automatically update the corresponding parts of the rendered template, minimizing direct DOM manipulation and improving performance.'),
+    prismCode(
+`const count = fnstate(0);
+
+const CounterTemplate = fntemplate((ctx) =>
+  div(
+    p('Count: ', ctx('currentCount')),
+    button(
+      { onclick: () => ctx('increment')() },
+      'Increment'
+    )
+  )
+);
+
+// Usage: Pass the state and action to the context
+const MyCounter = CounterTemplate({
+  // Bind the current value of count
+  currentCount: count.bindAs(),
+  increment: () => count(count() + 1)
+});
+
+document.body.append(MyCounter);`,
+(function () {
+  const count = fnstate(0);
+
+  const CounterTemplate = fntemplate((ctx) =>
+    div(
+      p('Count: ', ctx('currentCount')),
+      button(
+        { onclick: ctx('increment') },
+        'Increment'
+      )
+    )
+  );
+
+  return CounterTemplate({
+    currentCount: count.bindAs(),
+    increment: () => count(count() + 1)
+  })
 })()
     )
   ),

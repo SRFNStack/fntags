@@ -759,3 +759,81 @@ const stringifyStyle = style =>
   typeof style === 'string'
     ? style
     : Object.keys(style).map(prop => `${prop}:${style[prop]}`).join(';')
+
+/**
+ * Create a compiled template function. The returned function takes a single object that contains the properties
+ * defined in the template.
+ *
+ * This allows fast rendering by pre-creating a dom element with the entire template structure then cloning and populating
+ * the clone with data from the provided context. This avoids the work of having to re-execute the tag functions
+ * one by one and can speed up situations where a similar element is created many times.
+ *
+ * You cannot bind state to the initial template. If you attempt to, the state will be read, but the elements will
+ * not be updated when the state changes because they will not be bound to the cloned element.
+ * All state bindings must be passed in the context to the compiled template to work correctly.
+ *
+ * @param {(any)=>Node} templateFn A function that returns a html node.
+ * @return {(any)=>Node} A function that takes a context object and returns a rendered node.
+ *
+ */
+export function fntemplate (templateFn) {
+  if (typeof templateFn !== 'function') {
+    throw new Error('You must pass a function to fntemplate.')
+  }
+
+  const bindingsByPath = []
+
+  const initContext = prop => {
+    const placeholder = (element, type, attr) => {
+      if (!element._tpl_bind) element._tpl_bind = []
+      element._tpl_bind.push({ prop, type, attr })
+    }
+    placeholder.isTemplatePlaceholder = true
+    return placeholder
+  }
+
+  const root = templateFn(initContext)
+
+  const traverse = (node, path) => {
+    if (node._tpl_bind) {
+      bindingsByPath.push({ path: [...path], binds: node._tpl_bind })
+      delete node._tpl_bind
+    }
+
+    let child = node.firstChild
+    let i = 0
+    while (child) {
+      traverse(child, [...path, i])
+      child = child.nextSibling
+      i++
+    }
+  }
+
+  traverse(root, [])
+
+  return (context) => {
+    const clone = root.cloneNode(true)
+    for (let i = 0; i < bindingsByPath.length; i++) {
+      const entry = bindingsByPath[i]
+      let target = clone
+      const path = entry.path
+      for (let j = 0; j < path.length; j++) {
+        target = target.childNodes[path[j]]
+      }
+
+      const binds = entry.binds
+      for (let j = 0; j < binds.length; j++) {
+        const b = binds[j]
+        const val = context[b.prop]
+        if (b.type === 'node') {
+          target.replaceWith(renderNode(val))
+        } else if (b.type === 'attr') {
+          setAttribute(b.attr, val, target)
+        } else if (b.type === 'style') {
+          setStyle(b.attr, val, target)
+        }
+      }
+    }
+    return clone
+  }
+}
