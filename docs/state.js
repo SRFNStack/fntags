@@ -302,31 +302,5 @@ ul(
   )
 })()
     )
-  ),
-
-  contentSection(
-    'Resetting State',
-    p('You can reset the state value to its initial state by calling the state function with the initial value.'),
-    p('You can also remove all listeners by calling ', code('reset(true)'), '.'),
-    prismCode(
-`const count = fnstate(0)
-
-// Reset value (keeps listeners)
-count(0)
-
-// Stop updates (removes listeners)
-count.reset(true)`,
-(function () {
-  const count = fnstate(0)
-  return div(
-    div('Count: ', count.bindAs()),
-    div({ style: 'display: flex; gap: 5px;' },
-      button({ onclick: () => count(count() + 1) }, 'Inc'),
-      button({ onclick: () => count(0) }, 'Reset Value'),
-      button({ onclick: () => count.reset(true) }, 'Stop Updates')
-    )
-  )
-})()
-    )
   )
 )

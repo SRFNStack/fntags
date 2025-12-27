@@ -23,7 +23,6 @@ The path parameters of the current route
 - [bindSelectAttr](fnroute.pathParameters.md#bindselectattr)
 - [bindStyle](fnroute.pathParameters.md#bindstyle)
 - [getPath](fnroute.pathParameters.md#getpath)
-- [reset](fnroute.pathParameters.md#reset)
 - [select](fnroute.pathParameters.md#select)
 - [selected](fnroute.pathParameters.md#selected)
 - [setPath](fnroute.pathParameters.md#setpath)
@@ -39,7 +38,7 @@ A flag to indicate that this is a fnstate object
 
 #### Defined in
 
-[fntags.d.mts:171](https://github.com/SRFNStack/fntags/blob/b4cd870/src/fntags.d.mts#L171)
+[fntags.d.mts:166](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.d.mts#L166)
 
 ## Functions
 
@@ -62,7 +61,7 @@ a state change and is a shortcut for `mystate(Object.assign(mystate(), update))`
 
 #### Defined in
 
-[fntags.d.mts:149](https://github.com/SRFNStack/fntags/blob/b4cd870/src/fntags.d.mts#L149)
+[fntags.d.mts:148](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.d.mts#L148)
 
 ___
 
@@ -85,7 +84,7 @@ If called with no parameters, the state's value will be rendered as an element.
 
 #### Defined in
 
-[fntags.d.mts:107](https://github.com/SRFNStack/fntags/blob/b4cd870/src/fntags.d.mts#L107)
+[fntags.d.mts:106](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.d.mts#L106)
 
 ___
 
@@ -107,7 +106,7 @@ Bind attribute values to state changes
 
 #### Defined in
 
-[fntags.d.mts:122](https://github.com/SRFNStack/fntags/blob/b4cd870/src/fntags.d.mts#L122)
+[fntags.d.mts:121](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.d.mts#L121)
 
 ___
 
@@ -132,7 +131,7 @@ If the current value is not an array, this will behave the same as bindAs.
 
 #### Defined in
 
-[fntags.d.mts:113](https://github.com/SRFNStack/fntags/blob/b4cd870/src/fntags.d.mts#L113)
+[fntags.d.mts:112](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.d.mts#L112)
 
 ___
 
@@ -155,7 +154,7 @@ Shortcut for `mystate.bindAs((current)=> current[prop])`
 
 #### Defined in
 
-[fntags.d.mts:118](https://github.com/SRFNStack/fntags/blob/b4cd870/src/fntags.d.mts#L118)
+[fntags.d.mts:117](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.d.mts#L117)
 
 ___
 
@@ -177,7 +176,7 @@ Bind selected state to an element
 
 #### Defined in
 
-[fntags.d.mts:130](https://github.com/SRFNStack/fntags/blob/b4cd870/src/fntags.d.mts#L130)
+[fntags.d.mts:129](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.d.mts#L129)
 
 ___
 
@@ -199,7 +198,7 @@ Bind selected state to an attribute
 
 #### Defined in
 
-[fntags.d.mts:134](https://github.com/SRFNStack/fntags/blob/b4cd870/src/fntags.d.mts#L134)
+[fntags.d.mts:133](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.d.mts#L133)
 
 ___
 
@@ -221,7 +220,7 @@ Bind style values to state changes
 
 #### Defined in
 
-[fntags.d.mts:126](https://github.com/SRFNStack/fntags/blob/b4cd870/src/fntags.d.mts#L126)
+[fntags.d.mts:125](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.d.mts#L125)
 
 ___
 
@@ -245,29 +244,7 @@ will not be reflected correctly.
 
 #### Defined in
 
-[fntags.d.mts:155](https://github.com/SRFNStack/fntags/blob/b4cd870/src/fntags.d.mts#L155)
-
-___
-
-### reset
-
-▸ **reset**(`reinit`): `Object`
-
-Remove all of the observers and optionally reset the value to it's initial value
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `reinit` | `boolean` |
-
-#### Returns
-
-`Object`
-
-#### Defined in
-
-[fntags.d.mts:167](https://github.com/SRFNStack/fntags/blob/b4cd870/src/fntags.d.mts#L167)
+[fntags.d.mts:154](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.d.mts#L154)
 
 ___
 
@@ -291,7 +268,7 @@ This causes the bound select functions to be executed.
 
 #### Defined in
 
-[fntags.d.mts:140](https://github.com/SRFNStack/fntags/blob/b4cd870/src/fntags.d.mts#L140)
+[fntags.d.mts:139](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.d.mts#L139)
 
 ___
 
@@ -307,7 +284,7 @@ Get the currently selected key
 
 #### Defined in
 
-[fntags.d.mts:144](https://github.com/SRFNStack/fntags/blob/b4cd870/src/fntags.d.mts#L144)
+[fntags.d.mts:143](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.d.mts#L143)
 
 ___
 
@@ -331,7 +308,7 @@ Set a value at the given property path
 
 #### Defined in
 
-[fntags.d.mts:159](https://github.com/SRFNStack/fntags/blob/b4cd870/src/fntags.d.mts#L159)
+[fntags.d.mts:158](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.d.mts#L158)
 
 ___
 
@@ -353,4 +330,4 @@ Register a callback that will be executed whenever the state is changed
 
 #### Defined in
 
-[fntags.d.mts:163](https://github.com/SRFNStack/fntags/blob/b4cd870/src/fntags.d.mts#L163)
+[fntags.d.mts:162](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.d.mts#L162)

@@ -47,7 +47,6 @@ export function h<T extends HTMLElement | SVGElement>(tag: string, ...children: 
  * will not be reflected correctly.
  * @property {(path: string, value: any, fillWithObjects: boolean)=>void} setPath Set a value at the given property path
  * @property {(subscriber: (newState: T, oldState: T)=>void) => void} subscribe Register a callback that will be executed whenever the state is changed
- * @property {(reinit: boolean)=>{}} reset Remove all of the observers and optionally reset the value to it's initial value
  * @property {boolean} isFnState A flag to indicate that this is a fnstate object
  */
 /**
@@ -161,10 +160,6 @@ export type FnStateObj<T> = {
      * Register a callback that will be executed whenever the state is changed
      */
     subscribe: (subscriber: (newState: T, oldState: T) => void) => void;
-    /**
-     * Remove all of the observers and optionally reset the value to it's initial value
-     */
-    reset: (reinit: boolean) => {};
     /**
      * A flag to indicate that this is a fnstate object
      */

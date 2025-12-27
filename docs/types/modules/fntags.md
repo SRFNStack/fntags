@@ -37,7 +37,7 @@ A container for a state value that can be bound to.
 
 #### Defined in
 
-[fntags.mjs:106](https://github.com/SRFNStack/fntags/blob/b4cd870/src/fntags.mjs#L106)
+[fntags.mjs:105](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.mjs#L105)
 
 ## Functions
 
@@ -71,7 +71,7 @@ or the changes won't be reflected correctly and binding updates won't be trigger
 
 #### Defined in
 
-[fntags.mjs:120](https://github.com/SRFNStack/fntags/blob/b4cd870/src/fntags.mjs#L120)
+[fntags.mjs:119](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.mjs#L119)
 
 ___
 
@@ -95,7 +95,7 @@ the attr object or an empty object
 
 #### Defined in
 
-[fntags.mjs:710](https://github.com/SRFNStack/fntags/blob/b4cd870/src/fntags.mjs#L710)
+[fntags.mjs:729](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.mjs#L729)
 
 ___
 
@@ -137,7 +137,7 @@ an html element
 
 #### Defined in
 
-[fntags.mjs:24](https://github.com/SRFNStack/fntags/blob/b4cd870/src/fntags.mjs#L24)
+[fntags.mjs:24](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.mjs#L24)
 
 ___
 
@@ -161,7 +161,7 @@ true if the value is an object that can be used as attributes
 
 #### Defined in
 
-[fntags.mjs:701](https://github.com/SRFNStack/fntags/blob/b4cd870/src/fntags.mjs#L701)
+[fntags.mjs:720](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.mjs#L720)
 
 ___
 
@@ -185,7 +185,7 @@ The rendered node
 
 #### Defined in
 
-[fntags.mjs:590](https://github.com/SRFNStack/fntags/blob/b4cd870/src/fntags.mjs#L590)
+[fntags.mjs:609](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.mjs#L609)
 
 ___
 
@@ -218,4 +218,4 @@ The styled element
 
 #### Defined in
 
-[fntags.mjs:725](https://github.com/SRFNStack/fntags/blob/b4cd870/src/fntags.mjs#L725)
+[fntags.mjs:744](https://github.com/SRFNStack/fntags/blob/a7feb16/src/fntags.mjs#L744)

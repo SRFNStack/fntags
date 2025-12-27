@@ -178,13 +178,4 @@ describe('fnstate', () => {
       expect(s().a.b.c).to.eq(2)
     })
   })
-
-  describe('reset', () => {
-    it('should reset to initial value', () => {
-      const s = fnstate('initial')
-      s('changed')
-      s.reset(true)
-      expect(s()).to.eq('initial')
-    })
-  })
 })
