@@ -267,25 +267,25 @@ function doBindSelectAttr (attribute) {
   const attrFn = (attribute && !attribute.isFnState && typeof attribute === 'function')
     ? (...args) => attribute(args.length > 0 ? args[0] : ctx.selected)
     : attribute
-  const boundAttr = createBoundAttr(attrFn)
+  const boundAttr = createBoundAttr(attrFn, this)
   boundAttr.init = (attrName, element) =>
     subscribeSelect(ctx, (selectedKey) => setAttribute(attrName, attribute.isFnState ? attribute() : attribute(selectedKey), element))
   return boundAttr
 }
 
-function createBoundAttr (attr) {
+function createBoundAttr (attr, state) {
   if (typeof attr !== 'function') {
     throw new Error('You must pass a function to bindAttr')
   }
   // wrap the function to avoid modifying it
-  const boundAttr = () => attr()
+  const boundAttr = () => attr(state())
   boundAttr.isBoundAttribute = true
   return boundAttr
 }
 
 function doBindAttr (attribute) {
   attribute = attribute ?? this
-  const boundAttr = createBoundAttr(attribute)
+  const boundAttr = createBoundAttr(attribute, this)
   boundAttr.init = (attrName, element) => {
     setAttribute(attrName, attribute.isFnState ? attribute() : attribute(this()), element)
     this.subscribe((newState, oldState) => setAttribute(attrName, attribute.isFnState ? attribute() : attribute(newState, oldState), element))

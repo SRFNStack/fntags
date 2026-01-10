@@ -38,7 +38,7 @@ A container for a state value that can be bound to.
 
 #### Defined in
 
-[fntags.mjs:105](https://github.com/SRFNStack/fntags/blob/7bee495/src/fntags.mjs#L105)
+[fntags.mjs:105](https://github.com/SRFNStack/fntags/blob/de90e2a/src/fntags.mjs#L105)
 
 ## Functions
 
@@ -72,7 +72,7 @@ or the changes won't be reflected correctly and binding updates won't be trigger
 
 #### Defined in
 
-[fntags.mjs:119](https://github.com/SRFNStack/fntags/blob/7bee495/src/fntags.mjs#L119)
+[fntags.mjs:119](https://github.com/SRFNStack/fntags/blob/de90e2a/src/fntags.mjs#L119)
 
 ___
 
@@ -117,7 +117,7 @@ A function that takes a context object and returns a rendered node.
 
 #### Defined in
 
-[fntags.mjs:779](https://github.com/SRFNStack/fntags/blob/7bee495/src/fntags.mjs#L779)
+[fntags.mjs:779](https://github.com/SRFNStack/fntags/blob/de90e2a/src/fntags.mjs#L779)
 
 ___
 
@@ -141,7 +141,7 @@ the attr object or an empty object
 
 #### Defined in
 
-[fntags.mjs:729](https://github.com/SRFNStack/fntags/blob/7bee495/src/fntags.mjs#L729)
+[fntags.mjs:729](https://github.com/SRFNStack/fntags/blob/de90e2a/src/fntags.mjs#L729)
 
 ___
 
@@ -183,7 +183,7 @@ an html element
 
 #### Defined in
 
-[fntags.mjs:24](https://github.com/SRFNStack/fntags/blob/7bee495/src/fntags.mjs#L24)
+[fntags.mjs:24](https://github.com/SRFNStack/fntags/blob/de90e2a/src/fntags.mjs#L24)
 
 ___
 
@@ -207,7 +207,7 @@ true if the value is an object that can be used as attributes
 
 #### Defined in
 
-[fntags.mjs:720](https://github.com/SRFNStack/fntags/blob/7bee495/src/fntags.mjs#L720)
+[fntags.mjs:720](https://github.com/SRFNStack/fntags/blob/de90e2a/src/fntags.mjs#L720)
 
 ___
 
@@ -231,7 +231,7 @@ The rendered node
 
 #### Defined in
 
-[fntags.mjs:609](https://github.com/SRFNStack/fntags/blob/7bee495/src/fntags.mjs#L609)
+[fntags.mjs:609](https://github.com/SRFNStack/fntags/blob/de90e2a/src/fntags.mjs#L609)
 
 ___
 
@@ -264,4 +264,4 @@ The styled element
 
 #### Defined in
 
-[fntags.mjs:744](https://github.com/SRFNStack/fntags/blob/7bee495/src/fntags.mjs#L744)
+[fntags.mjs:744](https://github.com/SRFNStack/fntags/blob/de90e2a/src/fntags.mjs#L744)
