@@ -429,7 +429,7 @@ const updateReplacer = (ctx, element, elCtx) => (_, oldValue) => {
   let rendered = renderNode(evaluateElement(element, ctx.currentValue, oldValue))
   if (rendered !== undefined) {
     if (elCtx.current.key !== undefined) {
-      rendered.current.key = elCtx.current.key
+      rendered.key = elCtx.current.key
     }
     if (ctx.parentCtx) {
       for (const bindContext of ctx.parentCtx.bindContexts) {
