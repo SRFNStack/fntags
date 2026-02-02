@@ -393,7 +393,7 @@ function doBindChildren (parent, element) {
   if (!Array.isArray(ctx.currentValue)) {
     throw new Error('You can only use bindChildren with a state that contains an array. try myState([mystate]) before calling this function.')
   }
-  ctx.currentValue = ctx.currentValue.map(v => v.isFnState ? v : fnstate(v))
+
   ctx.bindContexts.push({ element, parent })
   this.subscribe((_, oldState) => {
     if (!Array.isArray(ctx.currentValue)) {
@@ -490,60 +490,79 @@ function arrangeElements (ctx, bindContext, oldState) {
   if (!ctx?.currentValue?.length) {
     bindContext.parent.textContent = ''
     bindContext.boundElementByKey = {}
+    bindContext.elementStates = {}
     ctx.selectObservers = {}
     return
   }
 
+  // Initialize the element state map if it doesn't exist
+  if (!bindContext.elementStates) {
+    bindContext.elementStates = {}
+  }
+
   const keys = {}
   const keysArr = []
-  let oldStateMap = null
-  for (const i in ctx.currentValue) {
-    let valueState = ctx.currentValue[i]
-    // if the value is not a fnstate, we need to wrap it
-    if (valueState === null || valueState === undefined || !valueState.isFnState) {
-      if (oldStateMap === null) {
-        oldStateMap = oldState && oldState.reduce((acc, v) => {
-          const key = keyMapper(ctx.mapKey, v.isFnState ? v() : v)
-          acc[key] = v
-          return acc
-        }, {})
-      }
-      // check if we have an old state for this key
-      const key = keyMapper(ctx.mapKey, valueState)
-      if (oldStateMap && oldStateMap[key]) {
-        const newValue = valueState
-        valueState = ctx.currentValue[i] = oldStateMap[key]
-        valueState(newValue)
-      } else {
-        valueState = ctx.currentValue[i] = fnstate(valueState)
-      }
-    }
-    const key = keyMapper(ctx.mapKey, valueState())
+
+  for (let i = 0; i < ctx.currentValue.length; i++) {
+    const rawValue = ctx.currentValue[i]
+    // Use the raw value to get the key
+    const key = keyMapper(ctx.mapKey, rawValue)
+
     if (keys[key]) {
       if (oldState) ctx.state(oldState)
       throw new Error('Duplicate keys in a bound array are not allowed, state reset to previous value.')
     }
+
     keys[key] = i
     keysArr[i] = key
+
+    // We look up the persistent fnstate for this key, or create it if new
+    let elementState = bindContext.elementStates[key]
+    if (!elementState) {
+      elementState = fnstate(rawValue)
+      // Ensure the parent state is set so child states can listen to selection changes
+      elementState.parentCtx = ctx
+      bindContext.elementStates[key] = elementState
+      // If the user replaces the value of this elementState (e.g. elementState(newObj)),
+      // we must update the original array to keep it in sync.
+      elementState.subscribe((newItem) => {
+        const currentArr = ctx.state()
+        // If the parent is no longer an array, abort
+        if (!Array.isArray(currentArr)) return
+
+        // find the element dynamically because sorting/filtering might have shifted the index
+        const idx = currentArr.findIndex(item => keyMapper(ctx.mapKey, item) === key)
+
+        if (idx > -1 && currentArr[idx] !== newItem) {
+          currentArr[idx] = newItem
+        }
+      })
+    } else {
+      // Update existing state with new raw value.
+      // fnstate handles the equality check (newValue !== oldValue) internally.
+      elementState(rawValue)
+    }
   }
 
   let prev = null
   const parent = bindContext.parent
 
+  // 2. Render Loop
   for (let i = ctx.currentValue.length - 1; i >= 0; i--) {
     const key = keysArr[i]
-    const valueState = ctx.currentValue[i]
+    // Retrieve the element state to pass to the builder
+    const valueState = bindContext.elementStates[key]
+
     let current = bindContext.boundElementByKey[key]
     let isNew = false
-    // ensure the parent state is always set and can be accessed by the child states to listen to the selection change and such
-    if (valueState.parentCtx === undefined) {
-      valueState.parentCtx = ctx
-    }
+
     if (current === undefined) {
       isNew = true
+      // Pass the valueState (the fnstate wrapper) to the user's element builder
       current = bindContext.boundElementByKey[key] = renderNode(evaluateElement(bindContext.element, valueState))
       current.key = key
     }
+
     // place the element in the parent
     if (prev == null) {
       if (!parent.lastChild || parent.lastChild.key !== current.key) {
@@ -560,9 +579,12 @@ function arrangeElements (ctx, bindContext, oldState) {
       } else if (prev.previousSibling.key !== current.key) {
         // the previous was deleted all together, so we will delete it and replace the element
         if (keys[prev.previousSibling.key] === undefined) {
-          delete bindContext.boundElementByKey[prev.previousSibling.key]
-          if (ctx.selectObservers[prev.previousSibling.key] !== undefined && current.insertAdjacentElement !== undefined) {
-            delete ctx.selectObservers[prev.previousSibling.key]
+          const keyToDelete = prev.previousSibling.key
+          delete bindContext.boundElementByKey[keyToDelete]
+          delete bindContext.elementStates[keyToDelete] // Cleanup element state
+
+          if (ctx.selectObservers[keyToDelete] !== undefined && current.insertAdjacentElement !== undefined) {
+            delete ctx.selectObservers[keyToDelete]
           }
           prev.previousSibling.replaceWith(current)
         } else if (isNew) {
@@ -581,11 +603,13 @@ function arrangeElements (ctx, bindContext, oldState) {
     prev = current
   }
 
-  // catch any strays
+  // 3. Catch any strays (Cleanup)
   for (const key in bindContext.boundElementByKey) {
     if (keys[key] === undefined) {
       bindContext.boundElementByKey[key].remove()
       delete bindContext.boundElementByKey[key]
+      delete bindContext.elementStates[key] // Cleanup element state
+
       if (ctx.selectObservers[key] !== undefined) {
         delete ctx.selectObservers[key]
       }
