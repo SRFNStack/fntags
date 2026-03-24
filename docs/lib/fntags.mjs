@@ -1,6 +1,17 @@
 /**
  * @module fntags
  */
+
+// Tracks subscriptions created during a bindAs render so they can be cleaned
+// up when the bindAs re-renders. null means we are not inside a render.
+let activeRenderCleanups = null
+
+function runCleanups (elCtx) {
+  if (!elCtx.cleanups) return
+  for (const unsub of elCtx.cleanups) unsub()
+  elCtx.cleanups = null
+}
+
 /**
  * A function to create dom elements with the given attributes and children.
  *
@@ -247,9 +258,21 @@ function doSubscribe (callback) {
   const ctx = this._ctx
   const id = ctx.nextId++
   ctx.observers.push({ id, fn: callback })
-  return () => {
-    ctx.observers.splice(ctx.observers.findIndex(l => l.id === id), 1)
+  // Idempotent unsub — safe to call multiple times
+  let active = true
+  const unsub = () => {
+    if (!active) return
+    active = false
+    const idx = ctx.observers.findIndex(l => l.id === id)
+    if (idx !== -1) ctx.observers.splice(idx, 1)
   }
+  // If we're inside a bindAs render, register this subscription for cleanup
+  // on the next re-render. This prevents nested bindAs/bindAttr/bindStyle
+  // subscriptions from accumulating when the parent bindAs re-renders.
+  if (activeRenderCleanups !== null) {
+    activeRenderCleanups.push(unsub)
+  }
+  return unsub
 }
 
 const subscribeSelect = (ctx, callback) => {
@@ -420,13 +443,47 @@ const doBind = function (ctx, element, handleReplace) {
   if (typeof element !== 'function') {
     throw new Error('You must pass a function to bind with')
   }
-  const elCtx = { current: renderNode(evaluateElement(element, ctx.currentValue)) }
+
+  // Track subscriptions created during the initial render so they can be
+  // cleaned up if this bindAs itself re-renders (updateReplacer) or when
+  // a parent bindAs re-renders and tears us down entirely.
+  const prevRenderCleanups = activeRenderCleanups
+  const thisRenderCleanups = []
+  activeRenderCleanups = thisRenderCleanups
+  const elCtx = { current: renderNode(evaluateElement(element, ctx.currentValue)), cleanups: thisRenderCleanups }
+  // Suppress tracking during handleReplace — the driving subscription is
+  // registered separately below as part of a cascading cleanup.
+  activeRenderCleanups = null
   handleReplace(elCtx)
+  activeRenderCleanups = prevRenderCleanups
+
+  // If inside a parent bindAs render, register a cascading cleanup that tears
+  // down both the driving subscription and all subscriptions created inside
+  // this bindAs's render, so they don't outlive the parent's re-render.
+  if (prevRenderCleanups !== null && elCtx.drivingUnsub) {
+    prevRenderCleanups.push(() => {
+      elCtx.drivingUnsub()
+      runCleanups(elCtx)
+    })
+  }
+
   return () => elCtx.current
 }
 
 const updateReplacer = (ctx, element, elCtx) => (_, oldValue) => {
+  // Clean up subscriptions from the previous render before re-rendering.
+  // This prevents nested bindAs/bindAttr/bindStyle subscriptions from
+  // accumulating each time the parent state changes.
+  runCleanups(elCtx)
+
+  // Track subscriptions created during this re-render for cleanup next time.
+  const prevRenderCleanups = activeRenderCleanups
+  const thisRenderCleanups = []
+  activeRenderCleanups = thisRenderCleanups
   let rendered = renderNode(evaluateElement(element, ctx.currentValue, oldValue))
+  activeRenderCleanups = prevRenderCleanups
+  elCtx.cleanups = thisRenderCleanups
+
   if (rendered !== undefined) {
     if (elCtx.current.key !== undefined) {
       rendered.key = elCtx.current.key
@@ -438,8 +495,13 @@ const updateReplacer = (ctx, element, elCtx) => (_, oldValue) => {
     }
     // Perform this action on the next event loop to give the parent a chance to render
     new Promise((resolve) => {
-      elCtx.current.replaceWith(rendered)
-      elCtx.current = rendered
+      // Guard: skip replaceWith when the same element is returned (e.g. when
+      // toggling between two pre-built element references). el.replaceWith(el)
+      // is a no-op in the DOM but wastes a microtask.
+      if (rendered !== elCtx.current) {
+        elCtx.current.replaceWith(rendered)
+        elCtx.current = rendered
+      }
       rendered = null
       resolve()
     }).catch(e => {
@@ -461,7 +523,10 @@ function doBindSelect (element) {
 function doBindAs (element) {
   const ctx = this._ctx
   const el = element ?? this
-  return doBind(ctx, el, (elCtx) => this.subscribe(updateReplacer(ctx, el, elCtx)))
+  return doBind(ctx, el, (elCtx) => {
+    // Store so doBind can build a cascading cleanup when nested inside another bindAs
+    elCtx.drivingUnsub = this.subscribe(updateReplacer(ctx, el, elCtx))
+  })
 }
 
 /**
@@ -486,8 +551,22 @@ function keyMapper (mapKey, value) {
   }
 }
 
+function cleanElementSubscriptions (bindContext, key) {
+  const cleanups = bindContext.elementCleanups?.[key]
+  if (!cleanups) return
+  for (const unsub of cleanups) unsub()
+  delete bindContext.elementCleanups[key]
+}
+
 function arrangeElements (ctx, bindContext, oldState) {
   if (!ctx?.currentValue?.length) {
+    // Clean up subscriptions for all existing elements before clearing
+    if (bindContext.elementCleanups) {
+      for (const key in bindContext.elementCleanups) {
+        for (const unsub of bindContext.elementCleanups[key]) unsub()
+      }
+      bindContext.elementCleanups = {}
+    }
     bindContext.parent.textContent = ''
     bindContext.boundElementByKey = {}
     bindContext.elementStates = {}
@@ -558,8 +637,16 @@ function arrangeElements (ctx, bindContext, oldState) {
 
     if (current === undefined) {
       isNew = true
+      // Track subscriptions created during the builder call so they can be
+      // cleaned up when this item is removed from the array.
+      if (!bindContext.elementCleanups) bindContext.elementCleanups = {}
+      const prevCleanups = activeRenderCleanups
+      const thisElementCleanups = []
+      activeRenderCleanups = thisElementCleanups
       // Pass the valueState (the fnstate wrapper) to the user's element builder
       current = bindContext.boundElementByKey[key] = renderNode(evaluateElement(bindContext.element, valueState))
+      activeRenderCleanups = prevCleanups
+      bindContext.elementCleanups[key] = thisElementCleanups
       current.key = key
     }
 
@@ -580,6 +667,7 @@ function arrangeElements (ctx, bindContext, oldState) {
         // the previous was deleted all together, so we will delete it and replace the element
         if (keys[prev.previousSibling.key] === undefined) {
           const keyToDelete = prev.previousSibling.key
+          cleanElementSubscriptions(bindContext, keyToDelete)
           delete bindContext.boundElementByKey[keyToDelete]
           delete bindContext.elementStates[keyToDelete] // Cleanup element state
 
@@ -606,6 +694,7 @@ function arrangeElements (ctx, bindContext, oldState) {
   // 3. Catch any strays (Cleanup)
   for (const key in bindContext.boundElementByKey) {
     if (keys[key] === undefined) {
+      cleanElementSubscriptions(bindContext, key)
       bindContext.boundElementByKey[key].remove()
       delete bindContext.boundElementByKey[key]
       delete bindContext.elementStates[key] // Cleanup element state

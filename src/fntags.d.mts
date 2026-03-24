@@ -1,7 +1,4 @@
 /**
- * @module fntags
- */
-/**
  * A function to create dom elements with the given attributes and children.
  *
  * The first element of the children array can be an object containing element attributes.

@@ -40,9 +40,74 @@ describe('fnstate', () => {
       s(h('div', 'new'))
       expect(el.innerText).to.eq('new')
     })
+
+    it('should not accumulate subscriptions when bindAttr is nested inside bindAs', () => {
+      const outer = fnstate('a')
+      const inner = fnstate('red')
+      // Each time outer re-renders it creates a new inner.bindAttr subscription.
+      // With the fix, old subscriptions are cleaned up on each re-render so the
+      // observer count stays at 1 regardless of how many times outer changes.
+      const el = h('div', outer.bindAs(() => h('span', { class: inner.bindAttr() })))
+      expect(inner._ctx.observers.length).to.eq(1)
+      outer('b')
+      expect(inner._ctx.observers.length).to.eq(1)
+      outer('c')
+      expect(inner._ctx.observers.length).to.eq(1)
+      // The surviving subscription still works
+      inner('blue')
+      expect(el.querySelector('span').className).to.eq('blue')
+    })
+
+    it('should clean up nested bindAs subscriptions when parent re-renders', () => {
+      const outer = fnstate('a')
+      const middle = fnstate('x')
+      const inner = fnstate('1')
+      // Three levels: outer.bindAs → middle.bindAs → inner.bindAttr
+      h('div', outer.bindAs(() => middle.bindAs(() => h('span', { id: inner.bindAttr() }))))
+      expect(inner._ctx.observers.length).to.eq(1)
+      expect(middle._ctx.observers.length).to.eq(1)
+      outer('b')
+      // After outer re-renders: middle's driving sub AND inner's sub should be cleaned up
+      expect(middle._ctx.observers.length).to.eq(1)
+      expect(inner._ctx.observers.length).to.eq(1)
+    })
   })
 
   describe('bindChildren', () => {
+    it('should clean up subscriptions when items are removed from the array', () => {
+      const items = fnstate([{ id: 1 }, { id: 2 }, { id: 3 }], o => o.id)
+      const color = fnstate('red')
+      const container = h('div')
+      items.bindChildren(container, () => h('span', { class: color.bindAttr() }))
+      // One bindAttr subscription per item
+      expect(color._ctx.observers.length).to.eq(3)
+
+      // Remove one item — its bindAttr subscription should be cleaned up
+      items([{ id: 1 }, { id: 3 }])
+      expect(color._ctx.observers.length).to.eq(2)
+
+      // Remove all items
+      items([])
+      expect(color._ctx.observers.length).to.eq(0)
+    })
+
+    it('should clean up nested bindAs subscriptions when items are removed', () => {
+      const items = fnstate([{ id: 1 }, { id: 2 }], o => o.id)
+      const inner = fnstate('x')
+      const deep = fnstate('blue')
+      const container = h('div')
+      // bindAs inside bindChildren — creates driving subscription + nested bindAttr
+      items.bindChildren(container, () =>
+        inner.bindAs(val => h('span', { class: deep.bindAttr() }, val))
+      )
+      expect(inner._ctx.observers.length).to.eq(2) // one driving sub per item
+      expect(deep._ctx.observers.length).to.eq(2) // one bindAttr per item
+
+      items([{ id: 1 }])
+      expect(inner._ctx.observers.length).to.eq(1)
+      expect(deep._ctx.observers.length).to.eq(1)
+    })
+
     it('should bind array to children', () => {
       const s = fnstate(['a'])
       const el = h('div', s.bindChildren(h('div'), (child) => h('span', child())))
