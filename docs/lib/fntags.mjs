@@ -277,7 +277,7 @@ function doSubscribe (callback) {
 
 const subscribeSelect = (ctx, callback) => {
   const parentCtx = ctx.state.parentCtx
-  const key = keyMapper(parentCtx.mapKey, ctx.currentValue)
+  const key = keyMapper(parentCtx.mapKey, ctx.currentValue, 0)
   if (parentCtx.selectObservers[key] === undefined) {
     parentCtx.selectObservers[key] = []
   }
@@ -410,7 +410,7 @@ function doBindChildren (parent, element) {
   }
   if (typeof ctx.mapKey !== 'function') {
     console.warn('Using value index as key, may not work correctly when moving items...')
-    ctx.mapKey = (o, i) => i
+    ctx.mapKey = (_, i) => i
   }
 
   if (!Array.isArray(ctx.currentValue)) {
@@ -541,13 +541,13 @@ function reconcile (ctx, oldState) {
   }
 }
 
-function keyMapper (mapKey, value) {
+function keyMapper (mapKey, value, i) {
   if (typeof value !== 'object') {
     return value
   } else if (typeof mapKey !== 'function') {
     return 0
   } else {
-    return mapKey(value)
+    return mapKey(value, i)
   }
 }
 
@@ -585,7 +585,7 @@ function arrangeElements (ctx, bindContext, oldState) {
   for (let i = 0; i < ctx.currentValue.length; i++) {
     const rawValue = ctx.currentValue[i]
     // Use the raw value to get the key
-    const key = keyMapper(ctx.mapKey, rawValue)
+    const key = keyMapper(ctx.mapKey, rawValue, i)
 
     if (keys[key]) {
       if (oldState) ctx.state(oldState)
@@ -610,7 +610,7 @@ function arrangeElements (ctx, bindContext, oldState) {
         if (!Array.isArray(currentArr)) return
 
         // find the element dynamically because sorting/filtering might have shifted the index
-        const idx = currentArr.findIndex(item => keyMapper(ctx.mapKey, item) === key)
+        const idx = currentArr.findIndex((item, i) => keyMapper(ctx.mapKey, item, i) === key)
 
         if (idx > -1 && currentArr[idx] !== newItem) {
           currentArr[idx] = newItem
