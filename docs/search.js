@@ -1,5 +1,6 @@
 import { div, input, ul, li } from './lib/fnelements.mjs'
 import { fnstate } from './lib/fntags.mjs'
+import { svg, path } from './lib/svgelements.mjs'
 import { routes } from './routes.js'
 import { goTo } from './lib/fnroute.mjs'
 import { secondaryColor } from './constants.js'
@@ -69,9 +70,10 @@ export const searchBar = () => {
   const query = fnstate('')
   const results = fnstate([], res => res.url)
   const focused = fnstate(false)
+  const expanded = fnstate(false)
   const showResults = fnstate(false)
 
-  const updateShow = () => showResults(results().length > 0 && focused())
+  const updateShow = () => showResults(results().length > 0 && (focused() || expanded()))
   results.subscribe(updateShow)
   focused.subscribe(updateShow)
 
@@ -90,24 +92,66 @@ export const searchBar = () => {
     query('')
     results([])
     focused(false)
+    expanded(false)
   }
 
-  return div(
-    { style: 'position: relative; margin-left: auto; margin-right: 20px;' },
-    input({
-      type: 'text',
-      placeholder: 'Search docs...',
-      value: query.bindAttr(),
-      oninput: (e) => query(e.target.value),
-      onfocus: () => focused(true),
-      onblur: () => setTimeout(() => focused(false), 200), // Delay to allow click
-      style: {
-        padding: '8px',
-        borderRadius: '4px',
-        border: '1px solid #ccc',
-        width: '200px'
+  const collapse = () => {
+    setTimeout(() => {
+      if (!focused()) {
+        expanded(false)
+        query('')
+        results([])
       }
-    }),
+    }, 200)
+  }
+
+  const searchInput = input({
+    type: 'text',
+    placeholder: 'Search docs...',
+    value: query.bindAttr(),
+    oninput: (e) => query(e.target.value),
+    onfocus: () => focused(true),
+    onblur: () => {
+      focused(false)
+      collapse()
+    },
+    style: {
+      padding: '6px 8px',
+      borderRadius: '4px',
+      border: '1px solid #ccc',
+      width: '180px',
+      fontSize: '14px',
+      display: expanded.bindStyle(() => expanded() ? 'block' : 'none')
+    }
+  })
+
+  return div(
+    { style: 'position: relative; display: flex; align-items: center;' },
+    div({
+      style: {
+        cursor: 'pointer',
+        fontSize: '18px',
+        padding: '4px 8px',
+        display: expanded.bindStyle(() => expanded() ? 'none' : 'block')
+      },
+      onclick: () => {
+        expanded(true)
+        setTimeout(() => searchInput.focus(), 0)
+      },
+      title: 'Search docs'
+    }, svg({
+      fill: 'none',
+      viewBox: '0 0 24 24',
+      'stroke-width': '1.5',
+      stroke: 'currentColor',
+      width: '20',
+      height: '20'
+    }, path({
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round',
+      d: 'm21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z'
+    }))),
+    searchInput,
     div(
       {
         style: {

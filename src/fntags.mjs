@@ -141,7 +141,8 @@ export function fnstate (initialValue, mapKey) {
       } else {
         const oldState = ctx.currentValue
         ctx.currentValue = newState
-        for (const observer of ctx.observers) {
+        const snapshot = ctx.observers.slice()
+        for (const observer of snapshot) {
           observer.fn(newState, oldState)
         }
       }
@@ -282,6 +283,24 @@ const subscribeSelect = (ctx, callback) => {
     parentCtx.selectObservers[key] = []
   }
   parentCtx.selectObservers[key].push(callback)
+
+  // Return an unsub that removes this callback, and register it in
+  // activeRenderCleanups so parent bindAs re-renders clean it up.
+  let active = true
+  const unsub = () => {
+    if (!active) return
+    active = false
+    const arr = parentCtx.selectObservers[key]
+    if (arr) {
+      const idx = arr.indexOf(callback)
+      if (idx !== -1) arr.splice(idx, 1)
+      if (arr.length === 0) delete parentCtx.selectObservers[key]
+    }
+  }
+  if (activeRenderCleanups !== null) {
+    activeRenderCleanups.push(unsub)
+  }
+  return unsub
 }
 
 function doBindSelectAttr (attribute) {
@@ -335,10 +354,10 @@ function doSelect (key) {
   const currentSelected = ctx.selected
   ctx.selected = key
   if (ctx.selectObservers[currentSelected] !== undefined) {
-    for (const obs of ctx.selectObservers[currentSelected]) obs(ctx.selected)
+    for (const obs of ctx.selectObservers[currentSelected].slice()) obs(ctx.selected)
   }
   if (ctx.selectObservers[ctx.selected] !== undefined) {
-    for (const obs of ctx.selectObservers[ctx.selected]) obs(ctx.selected)
+    for (const obs of ctx.selectObservers[ctx.selected].slice()) obs(ctx.selected)
   }
 }
 
@@ -417,7 +436,27 @@ function doBindChildren (parent, element) {
     throw new Error('You can only use bindChildren with a state that contains an array. try myState([mystate]) before calling this function.')
   }
 
-  ctx.bindContexts.push({ element, parent })
+  const bindContext = { element, parent }
+  ctx.bindContexts.push(bindContext)
+
+  // If inside a parent bindAs render, register a cleanup that tears down all
+  // per-item subscriptions when the parent re-renders or is itself torn down.
+  // Without this, nested bindAttr/bindStyle/bindAs subscriptions created for
+  // each array item would be orphaned when the parent replaces this tree.
+  if (activeRenderCleanups !== null) {
+    activeRenderCleanups.push(() => {
+      if (bindContext.elementCleanups) {
+        for (const key in bindContext.elementCleanups) {
+          for (const unsub of bindContext.elementCleanups[key]) unsub()
+        }
+        bindContext.elementCleanups = {}
+      }
+      // Remove this bindContext so reconcile doesn't operate on stale state
+      const idx = ctx.bindContexts.indexOf(bindContext)
+      if (idx !== -1) ctx.bindContexts.splice(idx, 1)
+    })
+  }
+
   this.subscribe((_, oldState) => {
     if (!Array.isArray(ctx.currentValue)) {
       console.warn('A state used with bindChildren was updated to a non array value. This will be converted to an array of 1 and the state will be updated.')
@@ -460,9 +499,10 @@ const doBind = function (ctx, element, handleReplace) {
   // If inside a parent bindAs render, register a cascading cleanup that tears
   // down both the driving subscription and all subscriptions created inside
   // this bindAs's render, so they don't outlive the parent's re-render.
-  if (prevRenderCleanups !== null && elCtx.drivingUnsub) {
+  if (prevRenderCleanups !== null && (elCtx.drivingUnsub || elCtx.selectUnsub)) {
     prevRenderCleanups.push(() => {
-      elCtx.drivingUnsub()
+      if (elCtx.drivingUnsub) elCtx.drivingUnsub()
+      if (elCtx.selectUnsub) elCtx.selectUnsub()
       runCleanups(elCtx)
     })
   }
@@ -517,7 +557,9 @@ const updateReplacer = (ctx, element, elCtx) => (_, oldValue) => {
 function doBindSelect (element) {
   element = element ?? this
   const ctx = this._ctx
-  return doBind(ctx, element, (elCtx) => subscribeSelect(ctx, updateReplacer(ctx, element, elCtx)))
+  return doBind(ctx, element, (elCtx) => {
+    elCtx.selectUnsub = subscribeSelect(ctx, updateReplacer(ctx, element, elCtx))
+  })
 }
 
 function doBindAs (element) {
@@ -671,9 +713,7 @@ function arrangeElements (ctx, bindContext, oldState) {
           delete bindContext.boundElementByKey[keyToDelete]
           delete bindContext.elementStates[keyToDelete] // Cleanup element state
 
-          if (ctx.selectObservers[keyToDelete] !== undefined && current.insertAdjacentElement !== undefined) {
-            delete ctx.selectObservers[keyToDelete]
-          }
+          delete ctx.selectObservers[keyToDelete]
           prev.previousSibling.replaceWith(current)
         } else if (isNew) {
           // insertAdjacentElement is faster, but some nodes don't have it (lookin' at you text)

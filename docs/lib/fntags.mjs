@@ -417,7 +417,27 @@ function doBindChildren (parent, element) {
     throw new Error('You can only use bindChildren with a state that contains an array. try myState([mystate]) before calling this function.')
   }
 
-  ctx.bindContexts.push({ element, parent })
+  const bindContext = { element, parent }
+  ctx.bindContexts.push(bindContext)
+
+  // If inside a parent bindAs render, register a cleanup that tears down all
+  // per-item subscriptions when the parent re-renders or is itself torn down.
+  // Without this, nested bindAttr/bindStyle/bindAs subscriptions created for
+  // each array item would be orphaned when the parent replaces this tree.
+  if (activeRenderCleanups !== null) {
+    activeRenderCleanups.push(() => {
+      if (bindContext.elementCleanups) {
+        for (const key in bindContext.elementCleanups) {
+          for (const unsub of bindContext.elementCleanups[key]) unsub()
+        }
+        bindContext.elementCleanups = {}
+      }
+      // Remove this bindContext so reconcile doesn't operate on stale state
+      const idx = ctx.bindContexts.indexOf(bindContext)
+      if (idx !== -1) ctx.bindContexts.splice(idx, 1)
+    })
+  }
+
   this.subscribe((_, oldState) => {
     if (!Array.isArray(ctx.currentValue)) {
       console.warn('A state used with bindChildren was updated to a non array value. This will be converted to an array of 1 and the state will be updated.')

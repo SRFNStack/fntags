@@ -46,7 +46,7 @@ export default header({ class: 'container text-center' },
     style: `border-bottom: solid 1px darkgray; background-color: ${primaryColor}; position: relative; padding: 0 10px;`
   },
   div({ class: 'flex-center noselect', style: 'flex-grow: 1; flex-wrap: wrap;' }, ...routeNavItems()),
-  div({ style: 'position: absolute; right: 10px;' }, searchBar())
+  searchBar()
   ), // Add mobile layout adjustment
   style(`
     @media (max-width: 600px) {

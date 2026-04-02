@@ -1,0 +1,26 @@
+{
+  "name": "@srfnstack/fntags-testing",
+  "version": "0.1.0",
+  "description": "Testing utilities for fntags, built on @testing-library/dom",
+  "type": "module",
+  "main": "src/index.mjs",
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "peerDependencies": {
+    "@srfnstack/fntags": ">=1.0.0"
+  },
+  "dependencies": {
+    "@testing-library/dom": "^10.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.0.0",
+    "happy-dom": "^17.0.0",
+    "vitest": "^3.0.0"
+  },
+  "license": "MIT"
+}

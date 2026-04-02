@@ -1,75 +1,78 @@
-import { fnstate, h } from '../../docs/lib/fntags.mjs'
+import { describe, it, expect } from 'vitest'
+import { fnstate, h } from '@srfnstack/fntags'
+
+const flush = () => new Promise(resolve => setTimeout(resolve, 0))
 
 describe('fnstate', () => {
   it('should initialize with the given value', () => {
     const s = fnstate('initial')
-    expect(s()).to.eq('initial')
+    expect(s()).toBe('initial')
   })
 
   it('should update the value', () => {
     const s = fnstate('initial')
     s('new')
-    expect(s()).to.eq('new')
+    expect(s()).toBe('new')
   })
 
   it('should notify subscribers', () => {
     const s = fnstate('initial')
     let notified = false
     s.subscribe((newVal, oldVal) => {
-      expect(newVal).to.eq('new')
-      expect(oldVal).to.eq('initial')
+      expect(newVal).toBe('new')
+      expect(oldVal).toBe('initial')
       notified = true
     })
     s('new')
-    expect(notified).to.eq(true)
+    expect(notified).toBe(true)
   })
 
   describe('bindAs', () => {
-    it('should bind to an element', () => {
+    it('should bind to an element', async () => {
       const s = fnstate('initial')
       const el = h('div', s.bindAs(() => h('span', s())))
-      expect(el.innerText).to.eq('initial')
+      expect(el.innerText).toBe('initial')
       s('new')
-      expect(el.innerText).to.eq('new')
+      await flush()
+      expect(el.innerText).toBe('new')
     })
 
-    it('should bind to an element without a function if the state is a node', () => {
+    it('should bind to an element without a function if the state is a node', async () => {
       const s = fnstate(h('div', 'initial'))
       const el = h('div', s.bindAs())
-      expect(el.innerText).to.eq('initial')
+      expect(el.innerText).toBe('initial')
       s(h('div', 'new'))
-      expect(el.innerText).to.eq('new')
+      await flush()
+      expect(el.innerText).toBe('new')
     })
 
-    it('should not accumulate subscriptions when bindAttr is nested inside bindAs', () => {
+    it('should not accumulate subscriptions when bindAttr is nested inside bindAs', async () => {
       const outer = fnstate('a')
       const inner = fnstate('red')
-      // Each time outer re-renders it creates a new inner.bindAttr subscription.
-      // With the fix, old subscriptions are cleaned up on each re-render so the
-      // observer count stays at 1 regardless of how many times outer changes.
       const el = h('div', outer.bindAs(() => h('span', { class: inner.bindAttr() })))
-      expect(inner._ctx.observers.length).to.eq(1)
+      expect(inner._ctx.observers.length).toBe(1)
       outer('b')
-      expect(inner._ctx.observers.length).to.eq(1)
+      await flush()
+      expect(inner._ctx.observers.length).toBe(1)
       outer('c')
-      expect(inner._ctx.observers.length).to.eq(1)
+      await flush()
+      expect(inner._ctx.observers.length).toBe(1)
       // The surviving subscription still works
       inner('blue')
-      expect(el.querySelector('span').className).to.eq('blue')
+      expect(el.querySelector('span').className).toBe('blue')
     })
 
-    it('should clean up nested bindAs subscriptions when parent re-renders', () => {
+    it('should clean up nested bindAs subscriptions when parent re-renders', async () => {
       const outer = fnstate('a')
       const middle = fnstate('x')
       const inner = fnstate('1')
-      // Three levels: outer.bindAs → middle.bindAs → inner.bindAttr
       h('div', outer.bindAs(() => middle.bindAs(() => h('span', { id: inner.bindAttr() }))))
-      expect(inner._ctx.observers.length).to.eq(1)
-      expect(middle._ctx.observers.length).to.eq(1)
+      expect(inner._ctx.observers.length).toBe(1)
+      expect(middle._ctx.observers.length).toBe(1)
       outer('b')
-      // After outer re-renders: middle's driving sub AND inner's sub should be cleaned up
-      expect(middle._ctx.observers.length).to.eq(1)
-      expect(inner._ctx.observers.length).to.eq(1)
+      await flush()
+      expect(middle._ctx.observers.length).toBe(1)
+      expect(inner._ctx.observers.length).toBe(1)
     })
   })
 
@@ -79,59 +82,54 @@ describe('fnstate', () => {
       const color = fnstate('red')
       const container = h('div')
       items.bindChildren(container, () => h('span', { class: color.bindAttr() }))
-      // One bindAttr subscription per item
-      expect(color._ctx.observers.length).to.eq(3)
+      expect(color._ctx.observers.length).toBe(3)
 
-      // Remove one item — its bindAttr subscription should be cleaned up
       items([{ id: 1 }, { id: 3 }])
-      expect(color._ctx.observers.length).to.eq(2)
+      expect(color._ctx.observers.length).toBe(2)
 
-      // Remove all items
       items([])
-      expect(color._ctx.observers.length).to.eq(0)
+      expect(color._ctx.observers.length).toBe(0)
     })
 
-    it('should clean up nested bindAs subscriptions when items are removed', () => {
+    it('should clean up nested bindAs subscriptions when items are removed', async () => {
       const items = fnstate([{ id: 1 }, { id: 2 }], o => o.id)
       const inner = fnstate('x')
       const deep = fnstate('blue')
       const container = h('div')
-      // bindAs inside bindChildren — creates driving subscription + nested bindAttr
       items.bindChildren(container, () =>
         inner.bindAs(val => h('span', { class: deep.bindAttr() }, val))
       )
-      expect(inner._ctx.observers.length).to.eq(2) // one driving sub per item
-      expect(deep._ctx.observers.length).to.eq(2) // one bindAttr per item
+      expect(inner._ctx.observers.length).toBe(2)
+      expect(deep._ctx.observers.length).toBe(2)
 
       items([{ id: 1 }])
-      expect(inner._ctx.observers.length).to.eq(1)
-      expect(deep._ctx.observers.length).to.eq(1)
+      await flush()
+      expect(inner._ctx.observers.length).toBe(1)
+      expect(deep._ctx.observers.length).toBe(1)
     })
 
     it('should bind array to children', () => {
       const s = fnstate(['a'])
       const el = h('div', s.bindChildren(h('div'), (child) => h('span', child())))
-      expect(el.innerText).to.eq('a')
+      expect(el.innerText).toBe('a')
 
-      // Update with removal and addition
       s(['c'])
-      expect(el.innerText).to.eq('c')
+      expect(el.innerText).toBe('c')
 
-      // Update with addition
       s(['c', 'd'])
-      expect(el.innerText).to.eq('cd')
+      expect(el.innerText).toBe('cd')
     })
 
     it('should handle reordering', () => {
       const s = fnstate([1, 2, 3])
       const container = h('div')
       s.bindChildren(container, (i) => h('div', i()))
-      expect(container.innerText).to.eq('123')
+      expect(container.innerText).toBe('123')
       s([3, 2, 1])
-      expect(container.innerText).to.eq('321')
+      expect(container.innerText).toBe('321')
     })
 
-    it('should use mapKey', () => {
+    it('should use mapKey', async () => {
       const s = fnstate([{ id: 1, val: 'a' }, { id: 2, val: 'b' }], (o) => o.id)
       const container = h('div')
       s.bindChildren(container, (item) => {
@@ -140,40 +138,42 @@ describe('fnstate', () => {
         return el
       })
       const firstEl = container.children[0]
-      expect(firstEl.innerText).to.eq('a')
+      expect(firstEl.innerText).toBe('a')
 
-      // Update item 1
       s([{ id: 1, val: 'aa' }, { id: 2, val: 'b' }])
-      expect(container.children[0]).to.eq(firstEl) // Should be same element reference
-      expect(container.children[0].innerText).to.eq('aa')
+      await flush()
+      expect(container.children[0]).toBe(firstEl)
+      expect(container.children[0].innerText).toBe('aa')
     })
   })
 
   describe('nested state', () => {
-    it('should bind to nested properties', () => {
+    it('should bind to nested properties', async () => {
       const s = fnstate({ user: { name: 'Alice', address: { city: 'Wonderland' } } })
       const el = h('div',
         h('span', { id: 'name' }, s.bindAs(st => st.user.name)),
         h('span', { id: 'city' }, s.bindAs(st => st.user.address.city))
       )
 
-      expect(el.querySelector('#name').innerText).to.eq('Alice')
-      expect(el.querySelector('#city').innerText).to.eq('Wonderland')
+      expect(el.querySelector('#name').innerText).toBe('Alice')
+      expect(el.querySelector('#city').innerText).toBe('Wonderland')
 
       s.assign({ user: { name: 'Bob', address: { city: 'Builderland' } } })
+      await flush()
 
-      expect(el.querySelector('#name').innerText).to.eq('Bob')
-      expect(el.querySelector('#city').innerText).to.eq('Builderland')
+      expect(el.querySelector('#name').innerText).toBe('Bob')
+      expect(el.querySelector('#city').innerText).toBe('Builderland')
     })
   })
 
   describe('bindProp', () => {
-    it('should bind to a property', () => {
+    it('should bind to a property', async () => {
       const s = fnstate({ foo: 'bar' })
       const el = h('div', s.bindProp('foo'))
-      expect(el.innerText).to.eq('bar')
+      expect(el.innerText).toBe('bar')
       s({ foo: 'baz' })
-      expect(el.innerText).to.eq('baz')
+      await flush()
+      expect(el.innerText).toBe('baz')
     })
   })
 
@@ -181,9 +181,9 @@ describe('fnstate', () => {
     it('should bind to an attribute', () => {
       const s = fnstate('foo')
       const el = h('div', { class: s.bindAttr() })
-      expect(el.className).to.eq('foo')
+      expect(el.className).toBe('foo')
       s('bar')
-      expect(el.className).to.eq('bar')
+      expect(el.className).toBe('bar')
     })
   })
 
@@ -191,9 +191,9 @@ describe('fnstate', () => {
     it('should bind to a style', () => {
       const s = fnstate('red')
       const el = h('div', { style: { color: s.bindStyle() } })
-      expect(el.style.color).to.eq('red')
+      expect(el.style.color).toBe('red')
       s('blue')
-      expect(el.style.color).to.eq('blue')
+      expect(el.style.color).toBe('blue')
     })
   })
 
@@ -207,15 +207,15 @@ describe('fnstate', () => {
         }, item.bindSelect(() => h('span', '*')))
       })
 
-      expect(container.children[0].className).to.not.contain('selected')
+      expect(container.children[0].className).not.toContain('selected')
 
       s.select(0)
-      expect(container.children[0].className).to.contain('selected')
-      expect(container.children[1].className).to.not.contain('selected')
+      expect(container.children[0].className).toContain('selected')
+      expect(container.children[1].className).not.toContain('selected')
 
       s.select(1)
-      expect(container.children[0].className).to.not.contain('selected')
-      expect(container.children[1].className).to.contain('selected')
+      expect(container.children[0].className).not.toContain('selected')
+      expect(container.children[1].className).toContain('selected')
     })
   })
 
@@ -223,24 +223,26 @@ describe('fnstate', () => {
     it('should assign properties to object state', () => {
       const s = fnstate({ a: 1, b: 2 })
       s.assign({ b: 3 })
-      expect(s()).to.deep.equal({ a: 1, b: 3 })
+      expect(s()).toEqual({ a: 1, b: 3 })
     })
   })
 
   describe('path', () => {
     it('should get path', () => {
       const s = fnstate({ a: { b: { c: 1 } } })
-      expect(s.getPath('a.b.c')).to.eq(1)
+      expect(s.getPath('a.b.c')).toBe(1)
     })
+
     it('should set path', () => {
       const s = fnstate({ a: { b: { c: 1 } } })
       s.setPath('a.b.c', 2)
-      expect(s().a.b.c).to.eq(2)
+      expect(s().a.b.c).toBe(2)
     })
+
     it('should set path with fill', () => {
       const s = fnstate({})
       s.setPath('a.b.c', 2, true)
-      expect(s().a.b.c).to.eq(2)
+      expect(s().a.b.c).toBe(2)
     })
   })
 })

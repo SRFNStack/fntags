@@ -4,6 +4,7 @@ import state from './state.js'
 import routing from './routing.js'
 import gettingStarted from './gettingStarted.js'
 import api from './api.js'
+import testing from './testing.js'
 
 import { fnlink, pathState, route } from './lib/fnroute.mjs'
 import { secondaryColor } from './constants.js'
@@ -14,6 +15,7 @@ export const routes = [
   { url: '/components', linkText: 'Components', component: components },
   { url: '/state', linkText: 'State', component: state },
   { url: '/routing', linkText: 'Routing', component: routing },
+  { url: '/testing', linkText: 'Testing', component: testing },
   { url: '/api', linkText: 'API', component: api },
 
   // {url: "/reference", linkText: 'Reference', component: reference},
