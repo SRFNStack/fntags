@@ -1,12 +1,35 @@
 {
   "name": "@srfnstack/fntags-testing",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Testing utilities for fntags, built on @testing-library/dom",
+  "author": "Robert Kempton <r@snow87.com>",
+  "private": false,
+  "homepage": "https://github.com/srfnstack/fntags/tree/master/packages/fntags-testing",
+  "license": "MIT",
   "type": "module",
   "main": "src/index.mjs",
   "exports": {
     ".": "./src/index.mjs"
   },
+  "files": [
+    "src/*",
+    "README.md",
+    "LICENSE.txt"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:srfnstack/fntags.git",
+    "directory": "packages/fntags-testing"
+  },
+  "keywords": [
+    "fntags",
+    "testing",
+    "testing-library",
+    "dom",
+    "unit-test",
+    "vitest",
+    "happy-dom"
+  ],
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest"
@@ -15,12 +38,11 @@
     "@srfnstack/fntags": ">=1.0.0"
   },
   "dependencies": {
-    "@testing-library/dom": "^10.0.0"
+    "@testing-library/dom": "^10.4.1"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.0.0",
-    "happy-dom": "^17.0.0",
-    "vitest": "^3.0.0"
-  },
-  "license": "MIT"
+    "happy-dom": "^20.8.9",
+    "vitest": "^4.1.2"
+  }
 }
