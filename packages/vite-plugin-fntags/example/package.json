@@ -1,0 +1,19 @@
+{
+  "name": "fntags-hmr-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -n api,vite -c blue,green \"node --watch api/serve.mjs\" \"vite\"",
+    "dev:api": "node --watch api/serve.mjs",
+    "dev:vite": "vite"
+  },
+  "dependencies": {
+    "@srfnstack/fntags": ">=1.2.3",
+    "@srfnstack/spliffy": "^1.4.1"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "vite": "^6.3.5",
+    "vite-plugin-fntags": "file:.."
+  }
+}

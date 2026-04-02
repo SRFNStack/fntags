@@ -1,0 +1,41 @@
+{
+  "name": "vite-plugin-fntags",
+  "version": "1.0.0",
+  "description": "Vite plugin for fntags HMR — preserves state across hot module reloads",
+  "author": "Robert Kempton <r@snow87.com>",
+  "private": false,
+  "homepage": "https://github.com/srfnstack/fntags/tree/master/packages/vite-plugin-fntags",
+  "license": "MIT",
+  "type": "module",
+  "main": "src/index.mjs",
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "files": [
+    "src/*",
+    "README.md",
+    "LICENSE.txt"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:srfnstack/fntags.git",
+    "directory": "packages/vite-plugin-fntags"
+  },
+  "keywords": [
+    "vite",
+    "vite-plugin",
+    "fntags",
+    "hmr",
+    "hot-module-reloading"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "peerDependencies": {
+    "vite": ">=5.0.0"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.2"
+  }
+}
