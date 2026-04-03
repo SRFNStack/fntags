@@ -25,10 +25,23 @@ export default div(
             li(strong('tag'), ': string', " - html tag to use when created the element"),
             li(strong('children'), ': any[]', " - optional attributes object and children for the element"),
         ),
+        h3(code('hmrRoot(container, appFn)')),
+        p("Create an HMR-aware root mount point. Call this in your entry file to mount your app.\nThe returned `rerender` function can be called from an HMR accept callback to re-render\nthe app with new code while preserving state (via registeredState)."),
+        ul(
+            li(strong('container'), ': HTMLElement', " - The DOM element to mount into"),
+            li(strong('appFn'), ': Node | object', " - A function that returns the app's root element, or the element itself"),
+        ),
         h3(code('isAttrs(val)')),
         p("Check if the given value is an object that can be used as attributes"),
         ul(
             li(strong('val'), ': any', " - The value to check"),
+        ),
+        h3(code('registeredState(id, initialValue, mapKey)')),
+        p("Get or create a state instance from the global HMR registry.\nDuring development with HMR, the Vite plugin rewrites fnstate() calls to use this function,\nensuring state instances survive module reloads."),
+        ul(
+            li(strong('id'), ': string', " - A stable identifier for this state instance (typically 'filepath:varName')"),
+            li(strong('initialValue'), ': any', " - The initial value, used only when creating a new state"),
+            li(strong('mapKey'), ': object', " - Optional key function, used only when creating a new state"),
         ),
         h3(code('renderNode(node)')),
         p("Convert non objects (objects are assumed to be nodes) to text nodes and allow promises to resolve to nodes"),

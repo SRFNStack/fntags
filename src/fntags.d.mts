@@ -93,6 +93,30 @@ export function getAttrs(children: any): object;
  */
 export function styled<T extends HTMLElement | SVGElement>(style: object | string, tag: string, children: object[] | Node[]): T;
 /**
+ * Get or create a state instance from the global HMR registry.
+ * During development with HMR, the Vite plugin rewrites fnstate() calls to use this function,
+ * ensuring state instances survive module reloads.
+ *
+ * @param {string} id A stable identifier for this state instance (typically 'filepath:varName')
+ * @param {any} initialValue The initial value, used only when creating a new state
+ * @param {((v: any) => string)?} [mapKey] Optional key function, used only when creating a new state
+ * @returns {FnState} The state instance from the registry
+ */
+export function registeredState(id: string, initialValue: any, mapKey?: (v: any) => string): any;
+/**
+ * Create an HMR-aware root mount point. Call this in your entry file to mount your app.
+ * The returned `rerender` function can be called from an HMR accept callback to re-render
+ * the app with new code while preserving state (via registeredState).
+ *
+ * @param {HTMLElement} container The DOM element to mount into
+ * @param {(()=>Node)|Node} appFn A function that returns the app's root element, or the element itself
+ * @returns {{ container: HTMLElement, rerender: () => void }}
+ */
+export function hmrRoot(container: HTMLElement, appFn: (() => Node) | Node): {
+    container: HTMLElement;
+    rerender: () => void;
+};
+/**
  * Create a compiled template function. The returned function takes a single object that contains the properties
  * defined in the template.
  *

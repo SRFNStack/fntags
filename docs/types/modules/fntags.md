@@ -18,7 +18,9 @@
 - [fntemplate](fntags.md#fntemplate)
 - [getAttrs](fntags.md#getattrs)
 - [h](fntags.md#h)
+- [hmrRoot](fntags.md#hmrroot)
 - [isAttrs](fntags.md#isattrs)
+- [registeredState](fntags.md#registeredstate)
 - [renderNode](fntags.md#rendernode)
 - [styled](fntags.md#styled)
 
@@ -38,7 +40,7 @@ A container for a state value that can be bound to.
 
 #### Defined in
 
-[fntags.mjs:116](https://github.com/SRFNStack/fntags/blob/67430bd/src/fntags.mjs#L116)
+[fntags.mjs:116](https://github.com/SRFNStack/fntags/blob/acd9349/src/fntags.mjs#L116)
 
 ## Functions
 
@@ -72,7 +74,7 @@ or the changes won't be reflected correctly and binding updates won't be trigger
 
 #### Defined in
 
-[fntags.mjs:130](https://github.com/SRFNStack/fntags/blob/67430bd/src/fntags.mjs#L130)
+[fntags.mjs:130](https://github.com/SRFNStack/fntags/blob/acd9349/src/fntags.mjs#L130)
 
 ___
 
@@ -117,7 +119,7 @@ A function that takes a context object and returns a rendered node.
 
 #### Defined in
 
-[fntags.mjs:932](https://github.com/SRFNStack/fntags/blob/67430bd/src/fntags.mjs#L932)
+[fntags.mjs:974](https://github.com/SRFNStack/fntags/blob/acd9349/src/fntags.mjs#L974)
 
 ___
 
@@ -141,7 +143,7 @@ the attr object or an empty object
 
 #### Defined in
 
-[fntags.mjs:882](https://github.com/SRFNStack/fntags/blob/67430bd/src/fntags.mjs#L882)
+[fntags.mjs:882](https://github.com/SRFNStack/fntags/blob/acd9349/src/fntags.mjs#L882)
 
 ___
 
@@ -183,7 +185,37 @@ an html element
 
 #### Defined in
 
-[fntags.mjs:35](https://github.com/SRFNStack/fntags/blob/67430bd/src/fntags.mjs#L35)
+[fntags.mjs:35](https://github.com/SRFNStack/fntags/blob/acd9349/src/fntags.mjs#L35)
+
+___
+
+### hmrRoot
+
+▸ **hmrRoot**(`container`, `appFn`): `Object`
+
+Create an HMR-aware root mount point. Call this in your entry file to mount your app.
+The returned `rerender` function can be called from an HMR accept callback to re-render
+the app with new code while preserving state (via registeredState).
+
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `container` | `HTMLElement` | The DOM element to mount into |
+| `appFn` | `Node` \| () => `Node` | A function that returns the app's root element, or the element itself |
+
+#### Returns
+
+`Object`
+
+| Name | Type |
+| :------ | :------ |
+| `container` | `HTMLElement` |
+| `rerender` | () => `void` |
+
+#### Defined in
+
+[fntags.mjs:948](https://github.com/SRFNStack/fntags/blob/acd9349/src/fntags.mjs#L948)
 
 ___
 
@@ -207,7 +239,35 @@ true if the value is an object that can be used as attributes
 
 #### Defined in
 
-[fntags.mjs:873](https://github.com/SRFNStack/fntags/blob/67430bd/src/fntags.mjs#L873)
+[fntags.mjs:873](https://github.com/SRFNStack/fntags/blob/acd9349/src/fntags.mjs#L873)
+
+___
+
+### registeredState
+
+▸ **registeredState**(`id`, `initialValue`, `mapKey?`): `any`
+
+Get or create a state instance from the global HMR registry.
+During development with HMR, the Vite plugin rewrites fnstate() calls to use this function,
+ensuring state instances survive module reloads.
+
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `id` | `string` | A stable identifier for this state instance (typically 'filepath:varName') |
+| `initialValue` | `any` | The initial value, used only when creating a new state |
+| `mapKey?` | (`v`: `any`) => `string` | Optional key function, used only when creating a new state |
+
+#### Returns
+
+`any`
+
+The state instance from the registry
+
+#### Defined in
+
+[fntags.mjs:926](https://github.com/SRFNStack/fntags/blob/acd9349/src/fntags.mjs#L926)
 
 ___
 
@@ -231,7 +291,7 @@ The rendered node
 
 #### Defined in
 
-[fntags.mjs:762](https://github.com/SRFNStack/fntags/blob/67430bd/src/fntags.mjs#L762)
+[fntags.mjs:762](https://github.com/SRFNStack/fntags/blob/acd9349/src/fntags.mjs#L762)
 
 ___
 
@@ -264,4 +324,4 @@ The styled element
 
 #### Defined in
 
-[fntags.mjs:897](https://github.com/SRFNStack/fntags/blob/67430bd/src/fntags.mjs#L897)
+[fntags.mjs:897](https://github.com/SRFNStack/fntags/blob/acd9349/src/fntags.mjs#L897)
