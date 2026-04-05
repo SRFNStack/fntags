@@ -20,23 +20,23 @@ export default defineConfig({
 })
 ```
 
-Use `hmrRoot` in your entry file to mount your app:
+Use `hmrRoot` in your entry file to mount your app. It returns the container element, so you can create and mount in one expression:
 
 ```javascript
 // main.js
-import { hmrRoot } from '@srfnstack/fntags'
+import { hmrRoot, div } from '@srfnstack/fntags'
 import { App } from './app.js'
 
-const { rerender } = hmrRoot(document.getElementById('app'), App)
-
-if (import.meta.hot) {
-  import.meta.hot.accept('./app.js', () => {
-    rerender()
-  })
-}
+document.body.append(hmrRoot(div({ id: 'app' }), App))
 ```
 
-That's it. Edit any component, save, and your state is preserved.
+Or if you already have a container element in your HTML:
+
+```javascript
+hmrRoot(document.getElementById('app'), App)
+```
+
+That's it. Edit any component, save, and your state is preserved. The plugin automatically triggers a re-render when any module with `fnstate` is updated.
 
 ## What It Does
 
@@ -143,27 +143,22 @@ export function hmrRoot (container, appFn) {
     container.appendChild(renderNode(result))
   }
   render()
-  return { container, rerender: render }
+  globalThis.__fntags_hmr_rerender = render
+  return container
 }
 ```
 
-The entry file's HMR callback calls `rerender()`:
+`hmrRoot` registers a global rerender callback. The plugin's injected accept handler calls it automatically — no manual HMR wiring needed in the entry file:
 
 ```javascript
-const { rerender } = hmrRoot(document.getElementById('app'), App)
-
-if (import.meta.hot) {
-  import.meta.hot.accept('./app.js', () => {
-    rerender()
-  })
-}
+hmrRoot(document.getElementById('app'), App)
 ```
 
 When you save a file:
 1. Vite detects the change and sends the updated module to the browser
 2. The module re-executes — `registeredState` returns the existing state objects
-3. The entry point's accept callback fires, calling `rerender()`
-4. `rerender()` clears the container and calls the `App` function again
+3. The plugin's injected accept callback calls `globalThis.__fntags_hmr_rerender()`
+4. The rerender clears the container and calls the `App` function again
 5. The new `App` code runs, producing DOM bound to the preserved state
 6. The new DOM is appended to the container with the current state values intact
 
@@ -199,11 +194,7 @@ export const App = () => div(Counter())
 import { hmrRoot } from '@srfnstack/fntags'
 import { App } from './src/app.js'
 
-const { rerender } = hmrRoot(document.getElementById('app'), App)
-
-if (import.meta.hot) {
-  import.meta.hot.accept('./src/app.js', () => rerender())
-}
+hmrRoot(document.getElementById('app'), App)
 ```
 
 Click the `+` button a few times to set count to 5. Now edit `counter.js` — change the button text from `-` to `minus`. Save. The counter still reads 5, but the button now says "minus". State preserved, new code applied.
@@ -217,7 +208,11 @@ export const Counter = () => {
   const count = registeredState('src/counter:Counter:count', 0)
   // ... rest of the file unchanged ...
 }
-if (import.meta.hot) { import.meta.hot.accept(); }
+if (import.meta.hot) {
+  import.meta.hot.accept(() => {
+    if (globalThis.__fntags_hmr_rerender) globalThis.__fntags_hmr_rerender()
+  })
+}
 ```
 
 The state ID includes `Counter` because `fnstate` is called inside the `Counter` arrow function. If you had another component in the same file also declaring `const count = fnstate(0)`, it would receive a different ID based on its own enclosing function name.
@@ -234,7 +229,7 @@ The state ID includes `Counter` because `fnstate` is called inside the `Counter`
 |--------|-------------|
 | `fntagsHmr()` | Returns a Vite plugin object. Add to `plugins` array in `vite.config.mjs`. |
 | `registeredState(id, initialValue, mapKey?)` | Get or create a state instance from the global registry. Exported from `@srfnstack/fntags`. |
-| `hmrRoot(container, appFn)` | Mount an app with HMR support. Returns `{ container, rerender }`. Exported from `@srfnstack/fntags`. |
+| `hmrRoot(container, appFn)` | Mount an app with HMR support. Returns the container element. Exported from `@srfnstack/fntags`. |
 
 ## License
 

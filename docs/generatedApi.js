@@ -26,7 +26,7 @@ export default div(
             li(strong('children'), ': any[]', " - optional attributes object and children for the element"),
         ),
         h3(code('hmrRoot(container, appFn)')),
-        p("Create an HMR-aware root mount point. Call this in your entry file to mount your app.\nThe returned `rerender` function can be called from an HMR accept callback to re-render\nthe app with new code while preserving state (via registeredState)."),
+        p("Create an HMR-aware root mount point. Renders the app into the container and\nregisters a global rerender callback so the vite plugin can trigger re-renders\nautomatically when modules are hot-updated."),
         ul(
             li(strong('container'), ': HTMLElement', " - The DOM element to mount into"),
             li(strong('appFn'), ': Node | object', " - A function that returns the app's root element, or the element itself"),

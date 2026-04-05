@@ -23,18 +23,18 @@ export default defineConfig({
   plugins: [fntagsHmr()]
 })`
     ),
-    p('In your entry file, use ', code('hmrRoot'), ' to mount your app:'),
+    p('In your entry file, use ', code('hmrRoot'), ' to mount your app. It returns the container element, so you can create and mount in one expression:'),
     prismCode(
-`import { hmrRoot } from '@srfnstack/fntags'
+`import { hmrRoot, div } from '@srfnstack/fntags'
 import { App } from './app.js'
 
-const { rerender } = hmrRoot(document.getElementById('app'), App)
-
-if (import.meta.hot) {
-  import.meta.hot.accept('./app.js', () => rerender())
-}`
+document.body.append(hmrRoot(div({ id: 'app' }), App))`
     ),
-    p('That\'s it. Every component you edit will hot-reload with state preserved.')
+    p('Or if you already have a container element in your HTML:'),
+    prismCode(
+`hmrRoot(document.getElementById('app'), App)`
+    ),
+    p('That\'s it. The plugin automatically re-renders the app when any module with ', code('fnstate'), ' is updated.')
   ),
   contentSection(
     'Example',
@@ -124,13 +124,17 @@ function App() {
     p('Scope-aware IDs matter because ', code('fnstate'), ' is typically called inside component functions. Without scope tracking, two components in the same file declaring ', code('const count = fnstate(0)'), ' would share the same registry key. The scope chain ensures each call site gets a unique, stable ID — stable across reordering components and inserting lines.'),
     p('The plugin uses ', code('magic-string'), ' for source modifications, preserving sourcemap accuracy. It also patches the import, appending ', code('registeredState'), ' to the existing fntags import.'),
     h3({ id: 'hmr-accept', style: 'border-bottom: none; font-size: 18px;' }, 'Part 3 — HMR Accept'),
-    p('Vite needs to know a module can handle its own updates. The plugin appends this to every transformed file:'),
+    p('Vite needs to know a module can handle its own updates. The plugin appends an accept callback to every transformed file:'),
     prismCode(
-      'if (import.meta.hot) { import.meta.hot.accept(); }'
+`if (import.meta.hot) {
+  import.meta.hot.accept(() => {
+    if (globalThis.__fntags_hmr_rerender) globalThis.__fntags_hmr_rerender()
+  })
+}`
     ),
-    p('This tells Vite: "re-execute this module in place instead of full-reloading." Since state is preserved via the registry, re-execution just rebinds the new functions to existing state. The ', code('import.meta.hot'), ' guard is tree-shaken in production builds.'),
+    p('This tells Vite: "re-execute this module in place instead of full-reloading." The accept callback then triggers a global re-render registered by ', code('hmrRoot'), '. The ', code('import.meta.hot'), ' guard is tree-shaken in production builds.'),
     h3({ id: 'rerendering', style: 'border-bottom: none; font-size: 18px;' }, 'Part 4 — Re-rendering'),
-    p('State is preserved, but the DOM still shows the old render. The entry point uses ', code('hmrRoot'), ':'),
+    p('State is preserved, but the DOM still shows the old render. The entry point uses ', code('hmrRoot'), ', which registers a global rerender callback:'),
     prismCode(
 `export function hmrRoot (container, appFn) {
   const render = () => {
@@ -139,15 +143,20 @@ function App() {
     container.appendChild(renderNode(result))
   }
   render()
-  return { container, rerender: render }
+  globalThis.__fntags_hmr_rerender = render
+  return container
 }`
+    ),
+    p(code('hmrRoot'), ' returns the container element, so you can create and mount in one expression:'),
+    prismCode(
+      "document.body.append(hmrRoot(div({ id: 'app' }), App))"
     ),
     p('When you save a file:'),
     ul(
       li('Vite sends the updated module to the browser'),
       li(code('registeredState'), ' returns the existing state objects'),
-      li('The entry point\'s accept callback calls ', code('rerender()')),
-      li(code('rerender()'), ' clears the container and re-invokes the app function'),
+      li('The plugin\'s injected accept callback calls ', code('globalThis.__fntags_hmr_rerender()')),
+      li('The rerender clears the container and re-invokes the app function'),
       li('New DOM is produced bound to the preserved state with its current values')
     )
   ),
@@ -177,7 +186,7 @@ function App() {
         ),
         tr(
           td({ style: 'padding: 8px; border-bottom: 1px solid #eee;' }, code('hmrRoot(container, appFn)')),
-          td({ style: 'padding: 8px; border-bottom: 1px solid #eee;' }, 'Mount an app with HMR support. Returns ', code('{ container, rerender }'), '. Exported from ', code('@srfnstack/fntags'), '.')
+          td({ style: 'padding: 8px; border-bottom: 1px solid #eee;' }, 'Mount an app with HMR support. Returns the container element. Exported from ', code('@srfnstack/fntags'), '.')
         )
       )
     )

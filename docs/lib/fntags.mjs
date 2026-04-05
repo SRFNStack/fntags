@@ -937,13 +937,13 @@ export function registeredState (id, initialValue, mapKey) {
 }
 
 /**
- * Create an HMR-aware root mount point. Call this in your entry file to mount your app.
- * The returned `rerender` function can be called from an HMR accept callback to re-render
- * the app with new code while preserving state (via registeredState).
+ * Create an HMR-aware root mount point. Renders the app into the container and
+ * registers a global rerender callback so the vite plugin can trigger re-renders
+ * automatically when modules are hot-updated.
  *
  * @param {HTMLElement} container The DOM element to mount into
  * @param {(()=>Node)|Node} appFn A function that returns the app's root element, or the element itself
- * @returns {{ container: HTMLElement, rerender: () => void }}
+ * @returns {HTMLElement} The container element
  */
 export function hmrRoot (container, appFn) {
   const render = () => {
@@ -952,7 +952,8 @@ export function hmrRoot (container, appFn) {
     container.appendChild(renderNode(result))
   }
   render()
-  return { container, rerender: render }
+  globalThis.__fntags_hmr_rerender = render
+  return container
 }
 
 /**

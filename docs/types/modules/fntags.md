@@ -40,7 +40,7 @@ A container for a state value that can be bound to.
 
 #### Defined in
 
-[fntags.mjs:116](https://github.com/SRFNStack/fntags/blob/acd9349/src/fntags.mjs#L116)
+[fntags.mjs:116](https://github.com/SRFNStack/fntags/blob/da536e5/src/fntags.mjs#L116)
 
 ## Functions
 
@@ -74,7 +74,7 @@ or the changes won't be reflected correctly and binding updates won't be trigger
 
 #### Defined in
 
-[fntags.mjs:130](https://github.com/SRFNStack/fntags/blob/acd9349/src/fntags.mjs#L130)
+[fntags.mjs:130](https://github.com/SRFNStack/fntags/blob/da536e5/src/fntags.mjs#L130)
 
 ___
 
@@ -119,7 +119,7 @@ A function that takes a context object and returns a rendered node.
 
 #### Defined in
 
-[fntags.mjs:974](https://github.com/SRFNStack/fntags/blob/acd9349/src/fntags.mjs#L974)
+[fntags.mjs:975](https://github.com/SRFNStack/fntags/blob/da536e5/src/fntags.mjs#L975)
 
 ___
 
@@ -143,7 +143,7 @@ the attr object or an empty object
 
 #### Defined in
 
-[fntags.mjs:882](https://github.com/SRFNStack/fntags/blob/acd9349/src/fntags.mjs#L882)
+[fntags.mjs:882](https://github.com/SRFNStack/fntags/blob/da536e5/src/fntags.mjs#L882)
 
 ___
 
@@ -185,17 +185,17 @@ an html element
 
 #### Defined in
 
-[fntags.mjs:35](https://github.com/SRFNStack/fntags/blob/acd9349/src/fntags.mjs#L35)
+[fntags.mjs:35](https://github.com/SRFNStack/fntags/blob/da536e5/src/fntags.mjs#L35)
 
 ___
 
 ### hmrRoot
 
-▸ **hmrRoot**(`container`, `appFn`): `Object`
+▸ **hmrRoot**(`container`, `appFn`): `HTMLElement`
 
-Create an HMR-aware root mount point. Call this in your entry file to mount your app.
-The returned `rerender` function can be called from an HMR accept callback to re-render
-the app with new code while preserving state (via registeredState).
+Create an HMR-aware root mount point. Renders the app into the container and
+registers a global rerender callback so the vite plugin can trigger re-renders
+automatically when modules are hot-updated.
 
 #### Parameters
 
@@ -206,16 +206,13 @@ the app with new code while preserving state (via registeredState).
 
 #### Returns
 
-`Object`
+`HTMLElement`
 
-| Name | Type |
-| :------ | :------ |
-| `container` | `HTMLElement` |
-| `rerender` | () => `void` |
+The container element
 
 #### Defined in
 
-[fntags.mjs:948](https://github.com/SRFNStack/fntags/blob/acd9349/src/fntags.mjs#L948)
+[fntags.mjs:948](https://github.com/SRFNStack/fntags/blob/da536e5/src/fntags.mjs#L948)
 
 ___
 
@@ -239,7 +236,7 @@ true if the value is an object that can be used as attributes
 
 #### Defined in
 
-[fntags.mjs:873](https://github.com/SRFNStack/fntags/blob/acd9349/src/fntags.mjs#L873)
+[fntags.mjs:873](https://github.com/SRFNStack/fntags/blob/da536e5/src/fntags.mjs#L873)
 
 ___
 
@@ -267,7 +264,7 @@ The state instance from the registry
 
 #### Defined in
 
-[fntags.mjs:926](https://github.com/SRFNStack/fntags/blob/acd9349/src/fntags.mjs#L926)
+[fntags.mjs:926](https://github.com/SRFNStack/fntags/blob/da536e5/src/fntags.mjs#L926)
 
 ___
 
@@ -291,7 +288,7 @@ The rendered node
 
 #### Defined in
 
-[fntags.mjs:762](https://github.com/SRFNStack/fntags/blob/acd9349/src/fntags.mjs#L762)
+[fntags.mjs:762](https://github.com/SRFNStack/fntags/blob/da536e5/src/fntags.mjs#L762)
 
 ___
 
@@ -324,4 +321,4 @@ The styled element
 
 #### Defined in
 
-[fntags.mjs:897](https://github.com/SRFNStack/fntags/blob/acd9349/src/fntags.mjs#L897)
+[fntags.mjs:897](https://github.com/SRFNStack/fntags/blob/da536e5/src/fntags.mjs#L897)
