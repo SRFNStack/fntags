@@ -45,7 +45,16 @@ const count = fnstate(0)`
 const count = fnstate(0)`
 
     const result = transform(code)
-    expect(result.code).toContain('if (import.meta.hot) { import.meta.hot.accept(); }')
+    expect(result.code).toContain('import.meta.hot.accept(')
+  })
+
+  it('calls global rerender on HMR accept, warns if missing', () => {
+    const code = `import { fnstate } from '@srfnstack/fntags'
+const count = fnstate(0)`
+
+    const result = transform(code)
+    expect(result.code).toContain('__fntags_hmr_rerender')
+    expect(result.code).toContain('no hmrRoot detected')
   })
 
   it('does not inject import.meta.hot if already present', () => {

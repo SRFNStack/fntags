@@ -952,6 +952,7 @@ export function hmrRoot (container, appFn) {
     container.appendChild(renderNode(result))
   }
   render()
+  globalThis.__fntags_hmr_rerender = render
   return { container, rerender: render }
 }
 

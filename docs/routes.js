@@ -6,6 +6,7 @@ import gettingStarted from './gettingStarted.js'
 import api from './api.js'
 import testing from './testing.js'
 import hmr from './hmr.js'
+import ssr from './ssr.js'
 
 import { fnlink, pathState, route } from './lib/fnroute.mjs'
 import { secondaryColor } from './constants.js'
@@ -18,6 +19,7 @@ export const routes = [
   { url: '/routing', linkText: 'Routing', component: routing },
   { url: '/testing', linkText: 'Testing', component: testing },
   { url: '/vite-plugin', linkText: 'Vite Plugin', component: hmr },
+  { url: '/ssr', linkText: 'SSR', component: ssr },
   { url: '/api', linkText: 'API', component: api },
 
   // {url: "/reference", linkText: 'Reference', component: reference},

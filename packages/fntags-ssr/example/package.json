@@ -1,0 +1,13 @@
+{
+  "name": "fntags-ssr-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "@srfnstack/fntags": ">=1.0.0",
+    "@srfnstack/fntags-ssr": ">=1.0.0",
+    "@srfnstack/spliffy": ">=1.0.0"
+  }
+}

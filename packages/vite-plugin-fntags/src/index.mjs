@@ -117,9 +117,20 @@ export default function fntagsHmr () {
         }
       }
 
-      // Tell Vite this module can accept its own hot updates
+      // Tell Vite this module can accept its own hot updates.
+      // When hmrRoot is wired up, trigger a full app re-render so the new code is reflected in the DOM.
       if (!code.includes('import.meta.hot')) {
-        s.append('\nif (import.meta.hot) { import.meta.hot.accept(); }\n')
+        s.append(`
+if (import.meta.hot) {
+  import.meta.hot.accept(() => {
+    if (globalThis.__fntags_hmr_rerender) {
+      globalThis.__fntags_hmr_rerender()
+    } else {
+      console.warn('[vite-plugin-fntags] HMR update received for ' + ${JSON.stringify(fileId)} + ' but no hmrRoot detected — the DOM was not re-rendered. Use hmrRoot() in your entry file to enable full HMR. See: https://srfnstack.github.io/fntags/vite-plugin')
+    }
+  })
+}
+`)
       }
 
       return { code: s.toString(), map: s.generateMap({ hires: true }) }

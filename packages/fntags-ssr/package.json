@@ -1,0 +1,55 @@
+{
+  "name": "@srfnstack/fntags-ssr",
+  "version": "1.0.0",
+  "description": "Server-side rendering and hydration for fntags",
+  "author": "Robert Kempton <r@snow87.com>",
+  "private": false,
+  "homepage": "https://github.com/srfnstack/fntags/tree/master/packages/fntags-ssr",
+  "license": "MIT",
+  "type": "module",
+  "main": "src/index.mjs",
+  "exports": {
+    ".": "./src/index.mjs",
+    "./hydrate": "./src/hydrate.mjs"
+  },
+  "sideEffects": false,
+  "files": [
+    "src/*",
+    "README.md",
+    "LICENSE.txt"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:srfnstack/fntags.git",
+    "directory": "packages/fntags-ssr"
+  },
+  "bugs": {
+    "url": "https://github.com/srfnstack/fntags/issues"
+  },
+  "keywords": [
+    "fntags",
+    "ssr",
+    "server-side-rendering",
+    "hydration",
+    "renderToString",
+    "happy-dom",
+    "isomorphic",
+    "universal"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "peerDependencies": {
+    "@srfnstack/fntags": ">=1.0.0"
+  },
+  "dependencies": {
+    "happy-dom": "^20.8.9"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.2"
+  }
+}
