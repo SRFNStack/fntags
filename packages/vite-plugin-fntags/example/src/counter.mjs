@@ -1,10 +1,10 @@
 import { fnstate } from '@srfnstack/fntags'
 import { div, button, span, h2 } from '@srfnstack/fntags/fnelements'
 
-const count = fnstate(0)
+export const Counter = () => {
+  const count = fnstate(0)
 
-export const Counter = () =>
-  div(
+  return div(
     h2('Counter'),
     div(
       { style: 'display: flex; align-items: center;' },
@@ -14,3 +14,4 @@ export const Counter = () =>
     ),
     div({ class: 'message' }, 'Edit this file and save — the count stays the same.')
   )
+}

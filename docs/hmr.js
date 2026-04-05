@@ -43,16 +43,16 @@ if (import.meta.hot) {
 `import { fnstate } from '@srfnstack/fntags'
 import { div, button, span } from '@srfnstack/fntags/fnelements'
 
-const count = fnstate(0)
-
-export const Counter = () =>
-  div(
+export const Counter = () => {
+  const count = fnstate(0)
+  return div(
     button({ onclick: () => count(count() - 1) }, '-'),
     span({ style: 'margin: 0 12px; font-size: 24px;' },
       count.bindAs(n => \`\${n}\`)
     ),
     button({ onclick: () => count(count() + 1) }, '+')
-  )`
+  )
+}`
     ),
     p('The app file just composes components as usual:'),
     prismCode(
@@ -65,7 +65,7 @@ export const App = () => div(h1('My App'), Counter())`
   contentSection(
     'What It Does',
     p('During ', code('vite dev'), ', the plugin does two things:'),
-    p(b('1. Rewrites fnstate calls'), ' — ', code('const count = fnstate(0)'), ' becomes ', code("const count = registeredState('src/counter:count', 0)"), '. The ', code('registeredState'), ' function stores the state in a global registry so it survives when Vite re-executes the module.'),
+    p(b('1. Rewrites fnstate calls'), ' — ', code('const count = fnstate(0)'), ' inside a component ', code('Counter'), ' becomes ', code("const count = registeredState('src/counter:Counter:count', 0)"), '. The ', code('registeredState'), ' function stores the state in a global registry so it survives when Vite re-executes the module.'),
     p(b('2. Injects HMR accept'), ' — appends ', code('import.meta.hot.accept()'), ' to every file that uses ', code('fnstate'), ', telling Vite to hot-update the module instead of doing a full page reload.'),
     p('Production builds are not affected. The plugin only runs during ', code('vite dev'), '.')
   ),
@@ -94,7 +94,7 @@ export const App = () => div(h1('My App'), Counter())`
   return state
 }`
     ),
-    p('Each state gets an ID based on file path and variable name: ', code("'src/counter:count'"), '. When the module re-executes, ', code('registeredState'), ' finds the existing state and returns it. The ', code('initialValue'), ' argument is ignored — the state keeps whatever value the user set.'),
+    p('Each state gets an ID based on file path, enclosing function scope, and variable name — e.g. ', code("'src/counter:Counter:count'"), '. When the module re-executes, ', code('registeredState'), ' finds the existing state and returns it. The ', code('initialValue'), ' argument is ignored — the state keeps whatever value the user set.'),
     h3({ id: 'code-transform', style: 'border-bottom: none; font-size: 18px;' }, 'Part 2 — Code Transform'),
     p('Users shouldn\'t have to call ', code('registeredState'), ' manually. The Vite plugin\'s ', code('transform'), ' hook rewrites the code automatically:'),
     prismCode(
@@ -104,12 +104,25 @@ const count = fnstate(0)
 // What the browser executes during dev:
 const count = registeredState('src/counter:count', 0)`
     ),
-    p('The transform uses regex, not an AST parser:'),
+    p('The transform parses the module into an AST (using Rollup\'s built-in ', code('this.parse()'), ') and walks it with ', code('estree-walker'), '. This lets the plugin track the ', b('enclosing function scope'), ' of each ', code('fnstate()'), ' call, producing IDs that include the scope chain:'),
     prismCode(
-      '/\\b(const|let|var)\\s+(\\w+)\\s*=\\s*fnstate\\s*\\(/g'
+`// Top-level state:
+const count = fnstate(0)           → registeredState('src/counter:count', 0)
+
+// State inside a component function:
+function Counter() {
+  const count = fnstate(0)         → registeredState('src/counter:Counter:count', 0)
+}
+
+// Nested scopes:
+function App() {
+  function Counter() {
+    const count = fnstate(0)       → registeredState('src/counter:App>Counter:count', 0)
+  }
+}`
     ),
-    p(code('fnstate('), ' is a unique enough token that false positives aren\'t a concern. The ', code('const/let/var name ='), ' prefix captures the variable name for the ID. No need for babel or swc — the regex is fast and covers real-world usage.'),
-    p('The plugin also patches the import, appending ', code('registeredState'), ' to the existing fntags import.'),
+    p('Scope-aware IDs matter because ', code('fnstate'), ' is typically called inside component functions. Without scope tracking, two components in the same file declaring ', code('const count = fnstate(0)'), ' would share the same registry key. The scope chain ensures each call site gets a unique, stable ID — stable across reordering components and inserting lines.'),
+    p('The plugin uses ', code('magic-string'), ' for source modifications, preserving sourcemap accuracy. It also patches the import, appending ', code('registeredState'), ' to the existing fntags import.'),
     h3({ id: 'hmr-accept', style: 'border-bottom: none; font-size: 18px;' }, 'Part 3 — HMR Accept'),
     p('Vite needs to know a module can handle its own updates. The plugin appends this to every transformed file:'),
     prismCode(

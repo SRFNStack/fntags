@@ -78,7 +78,7 @@ export function registeredState (id, initialValue, mapKey) {
 }
 ```
 
-The registry lives on `globalThis`, which survives module reloads (Vite re-executes modules but doesn't wipe the global scope). Each state gets an ID based on its file path and variable name: `'src/counter:count'`. When the module re-executes after HMR, `registeredState('src/counter:count', 0)` finds the existing state in the registry and returns it. The `initialValue` argument is ignored — the state keeps whatever value the user set during the session.
+The registry lives on `globalThis`, which survives module reloads (Vite re-executes modules but doesn't wipe the global scope). Each state gets an ID based on its file path, enclosing function scope, and variable name — e.g. `'src/counter:Counter:count'`. When the module re-executes after HMR, `registeredState` finds the existing state in the registry and returns it. The `initialValue` argument is ignored — the state keeps whatever value the user set during the session.
 
 This is the entire persistence mechanism. No serialization, no diffing, no proxies — just a Map keyed by stable IDs.
 
@@ -96,28 +96,30 @@ import { fnstate, registeredState } from '@srfnstack/fntags'
 const count = registeredState('src/counter:count', 0)
 ```
 
-The transform uses regex, not an AST parser:
+The transform parses the module into an AST (using Rollup's built-in `this.parse()`) and walks it with `estree-walker`. This lets the plugin track the **enclosing function scope** of each `fnstate()` call, producing IDs that include the scope chain:
 
-```javascript
-// Match: const/let/var <name> = fnstate(
-const fnstatePattern = /\b(const|let|var)\s+(\w+)\s*=\s*fnstate\s*\(/g
+```
+// Top-level state:
+const count = fnstate(0)           → registeredState('src/counter:count', 0)
+
+// State inside a component function:
+function Counter() {
+  const count = fnstate(0)         → registeredState('src/counter:Counter:count', 0)
+}
+
+// Nested scopes:
+function App() {
+  function Counter() {
+    const count = fnstate(0)       → registeredState('src/counter:App>Counter:count', 0)
+  }
+}
 ```
 
-Why regex instead of babel/swc?
-- `fnstate(` is a unique enough token — it's not a common word that would false-positive
-- The `const/let/var name =` prefix gives us the variable name for the ID
-- Regex is fast — no parser startup cost, no AST allocation
-- The rewrite is simple string substitution, not structural transformation
+Scope-aware IDs are important because `fnstate` is typically called inside component functions (like React hooks). Without scope tracking, two components in the same file declaring `const count = fnstate(0)` would collide on the same registry key. The scope chain ensures each call site gets a unique, stable ID — stable across reordering components and inserting lines.
 
-Match group `$1` is the declaration keyword (`const`/`let`/`var`), group `$2` is the variable name. The replacement inserts the `registeredState` call with the file-scoped ID:
+The plugin uses `magic-string` for source modifications, which preserves sourcemap accuracy. It also patches the import statement, appending `registeredState` to the existing fntags import.
 
-```javascript
-`${decl} ${varName} = registeredState('${fileId}:${varName}', `
-```
-
-The plugin also patches the import statement, appending `registeredState` to the existing fntags import so no extra import line is needed.
-
-Files that don't contain `fnstate(` are skipped entirely (the regex test returns `null` before any string manipulation).
+Files that don't contain `fnstate(` are skipped entirely (a quick regex pre-check returns `null` before parsing).
 
 ### Solution Part 3 — HMR Accept
 
@@ -174,14 +176,14 @@ Here's a counter app showing the full picture:
 import { fnstate } from '@srfnstack/fntags'
 import { div, button, span } from '@srfnstack/fntags/fnelements'
 
-const count = fnstate(0)
-
-export const Counter = () =>
-  div(
+export const Counter = () => {
+  const count = fnstate(0)
+  return div(
     button({ onclick: () => count(count() - 1) }, '-'),
     span(count.bindAs(n => ` ${n} `)),
     button({ onclick: () => count(count() + 1) }, '+')
   )
+}
 ```
 
 ```javascript
@@ -210,10 +212,15 @@ Behind the scenes, the plugin transformed `counter.js` to:
 
 ```javascript
 import { fnstate, registeredState } from '@srfnstack/fntags'
-const count = registeredState('src/counter:count', 0)
-// ... rest of the file unchanged ...
+
+export const Counter = () => {
+  const count = registeredState('src/counter:Counter:count', 0)
+  // ... rest of the file unchanged ...
+}
 if (import.meta.hot) { import.meta.hot.accept(); }
 ```
+
+The state ID includes `Counter` because `fnstate` is called inside the `Counter` arrow function. If you had another component in the same file also declaring `const count = fnstate(0)`, it would receive a different ID based on its own enclosing function name.
 
 ## Limitations
 

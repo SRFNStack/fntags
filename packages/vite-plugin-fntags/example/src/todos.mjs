@@ -1,18 +1,14 @@
 import { fnstate } from '@srfnstack/fntags'
 import { div, button, input, ul, li, span, h2 } from '@srfnstack/fntags/fnelements'
 
-const todos = fnstate([], t => t.id)
-const inputText = fnstate('')
-const loading = fnstate(false)
-
-const fetchTodos = async () => {
+const fetchTodos = async (todos, loading) => {
   loading(true)
   const res = await fetch('/api/todos')
   todos(await res.json())
   loading(false)
 }
 
-const addTodo = async () => {
+const addTodo = async (todos, inputText) => {
   const text = inputText().trim()
   if (!text) return
   const res = await fetch('/api/todos', {
@@ -25,7 +21,7 @@ const addTodo = async () => {
   inputText('')
 }
 
-const removeTodo = async (id) => {
+const removeTodo = async (todos, id) => {
   await fetch('/api/todos', {
     method: 'DELETE',
     headers: { 'content-type': 'application/json' },
@@ -35,7 +31,11 @@ const removeTodo = async (id) => {
 }
 
 export const Todos = () => {
-  fetchTodos()
+  const todos = fnstate([], t => t.id)
+  const inputText = fnstate('')
+  const loading = fnstate(false)
+
+  fetchTodos(todos, loading)
 
   return div(
     h2('Todos (from spliffy API)'),
@@ -45,9 +45,9 @@ export const Todos = () => {
         placeholder: 'Add a todo...',
         value: inputText.bindAttr(),
         oninput: (e) => inputText(e.target.value),
-        onkeydown: (e) => { if (e.key === 'Enter') addTodo() }
+        onkeydown: (e) => { if (e.key === 'Enter') addTodo(todos, inputText) }
       }),
-      button({ onclick: addTodo }, 'Add')
+      button({ onclick: () => addTodo(todos, inputText) }, 'Add')
     ),
     loading.bindAs(l => l
       ? div('Loading...')
@@ -57,7 +57,7 @@ export const Todos = () => {
           span(todoState.bindProp('text')),
           button({
             style: 'padding: 2px 8px; font-size: 12px;',
-            onclick: () => removeTodo(todoState().id)
+            onclick: () => removeTodo(todos, todoState().id)
           }, 'x')
         )
       )

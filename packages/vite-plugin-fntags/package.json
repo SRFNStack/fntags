@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-fntags",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Vite plugin for fntags HMR — preserves state across hot module reloads",
   "author": "Robert Kempton <r@snow87.com>",
   "private": false,
@@ -36,6 +36,11 @@
     "vite": ">=5.0.0"
   },
   "devDependencies": {
+    "acorn": "^8.16.0",
     "vitest": "^4.1.2"
+  },
+  "dependencies": {
+    "estree-walker": "^3.0.3",
+    "magic-string": "^0.30.21"
   }
 }

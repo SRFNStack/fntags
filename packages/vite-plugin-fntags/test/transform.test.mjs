@@ -1,9 +1,16 @@
 import { describe, it, expect } from 'vitest'
+import { parse } from 'acorn'
 import fntagsHmr from '../src/index.mjs'
 
 describe('vite-plugin-fntags transform', () => {
   const plugin = fntagsHmr()
-  const transform = (code, id = '/project/src/counter.mjs') => plugin.transform(code, id)
+
+  // Provide `this.parse` to simulate the Rollup plugin context
+  const ctx = {
+    parse: (code) => parse(code, { sourceType: 'module', ecmaVersion: 'latest' })
+  }
+  const transform = (code, id = '/project/src/counter.mjs') =>
+    plugin.transform.call(ctx, code, id)
 
   it('rewrites fnstate calls to registeredState', () => {
     const code = `import { fnstate } from '@srfnstack/fntags'
@@ -19,7 +26,7 @@ const count = fnstate(0)`
 const count = fnstate(0)`
 
     const result = transform(code)
-    expect(result.code).toContain('registeredState }')
+    expect(result.code).toContain('registeredState')
     expect(result.code).toMatch(/import\s*\{[^}]*registeredState[^}]*\}\s*from\s*'@srfnstack\/fntags'/)
   })
 
@@ -128,5 +135,125 @@ const count = fnstate(0)`
 
   it('plugin has the correct name', () => {
     expect(plugin.name).toBe('vite-plugin-fntags')
+  })
+
+  describe('scope-aware IDs', () => {
+    it('includes enclosing function name in state ID', () => {
+      const code = `import { fnstate } from '@srfnstack/fntags'
+function Counter() {
+  const count = fnstate(0)
+  return count
+}`
+
+      const result = transform(code)
+      expect(result.code).toContain("registeredState('src/counter:Counter:count', 0)")
+    })
+
+    it('distinguishes same variable name in different functions', () => {
+      const code = `import { fnstate } from '@srfnstack/fntags'
+function Counter() {
+  const count = fnstate(0)
+  return count
+}
+function Timer() {
+  const count = fnstate(0)
+  return count
+}`
+
+      const result = transform(code)
+      expect(result.code).toContain("registeredState('src/counter:Counter:count', 0)")
+      expect(result.code).toContain("registeredState('src/counter:Timer:count', 0)")
+    })
+
+    it('handles arrow functions assigned to const', () => {
+      const code = `import { fnstate } from '@srfnstack/fntags'
+const Counter = () => {
+  const count = fnstate(0)
+  return count
+}`
+
+      const result = transform(code)
+      expect(result.code).toContain("registeredState('src/counter:Counter:count', 0)")
+    })
+
+    it('handles exported function declarations', () => {
+      const code = `import { fnstate } from '@srfnstack/fntags'
+export function Counter() {
+  const count = fnstate(0)
+  return count
+}`
+
+      const result = transform(code)
+      expect(result.code).toContain("registeredState('src/counter:Counter:count', 0)")
+    })
+
+    it('handles exported arrow functions', () => {
+      const code = `import { fnstate } from '@srfnstack/fntags'
+export const Counter = () => {
+  const count = fnstate(0)
+  return count
+}`
+
+      const result = transform(code)
+      expect(result.code).toContain("registeredState('src/counter:Counter:count', 0)")
+    })
+
+    it('handles nested function scopes', () => {
+      const code = `import { fnstate } from '@srfnstack/fntags'
+function App() {
+  function Counter() {
+    const count = fnstate(0)
+    return count
+  }
+  return Counter()
+}`
+
+      const result = transform(code)
+      expect(result.code).toContain("registeredState('src/counter:App>Counter:count', 0)")
+    })
+
+    it('top-level state has no scope prefix', () => {
+      const code = `import { fnstate } from '@srfnstack/fntags'
+const globalCount = fnstate(0)
+function Counter() {
+  const count = fnstate(0)
+  return count
+}`
+
+      const result = transform(code)
+      expect(result.code).toContain("registeredState('src/counter:globalCount', 0)")
+      expect(result.code).toContain("registeredState('src/counter:Counter:count', 0)")
+    })
+
+    it('multiple components with same state names in one file', () => {
+      const code = `import { fnstate } from '@srfnstack/fntags'
+import { div, button, span } from '@srfnstack/fntags/fnelements'
+
+export const Counter = () => {
+  const count = fnstate(0)
+  const label = fnstate('clicks')
+  return div(span(label()), button({ onclick: () => count(count() + 1) }, count.bindAs(n => n)))
+}
+
+export const Timer = () => {
+  const count = fnstate(0)
+  const label = fnstate('seconds')
+  return div(span(label()), span(count.bindAs(n => n)))
+}`
+
+      const result = transform(code)
+      expect(result.code).toContain("registeredState('src/counter:Counter:count', 0)")
+      expect(result.code).toContain("registeredState('src/counter:Counter:label', 'clicks')")
+      expect(result.code).toContain("registeredState('src/counter:Timer:count', 0)")
+      expect(result.code).toContain("registeredState('src/counter:Timer:label', 'seconds')")
+    })
+
+    it('generates sourcemap', () => {
+      const code = `import { fnstate } from '@srfnstack/fntags'
+const count = fnstate(0)`
+
+      const result = transform(code)
+      expect(result.map).toBeDefined()
+    })
   })
 })
