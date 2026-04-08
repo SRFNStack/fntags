@@ -265,4 +265,111 @@ const count = fnstate(0)`
       expect(result.map).toBeDefined()
     })
   })
+
+  describe('component registry wrapping', () => {
+    it('wraps export default function with registeredComponent', () => {
+      const code = `import { fnstate } from '@srfnstack/fntags'
+export default function onboarding() {
+  const msg = fnstate('')
+  return msg
+}`
+
+      const result = transform(code)
+      expect(result.code).toContain("registeredComponent('src/counter#onboarding', onboarding)")
+      expect(result.code).toContain('export default registeredComponent')
+      expect(result.code).toMatch(/import\s*\{[^}]*registeredComponent[^}]*\}/)
+    })
+
+    it('wraps export named function with registeredComponent', () => {
+      const code = `import { fnstate } from '@srfnstack/fntags'
+export function Counter() {
+  const count = fnstate(0)
+  return count
+}`
+
+      const result = transform(code)
+      expect(result.code).toContain("registeredComponent('src/counter#Counter', _Counter)")
+      expect(result.code).toContain('export const Counter = registeredComponent')
+      // Original function should be renamed
+      expect(result.code).toContain('function _Counter()')
+    })
+
+    it('wraps exported arrow functions with registeredComponent', () => {
+      const code = `import { fnstate } from '@srfnstack/fntags'
+export const Counter = () => {
+  const count = fnstate(0)
+  return count
+}`
+
+      const result = transform(code)
+      expect(result.code).toContain("registeredComponent('src/counter#Counter',")
+    })
+
+    it('does not wrap non-function exports', () => {
+      const code = `import { fnstate } from '@srfnstack/fntags'
+export const count = fnstate(0)
+export const value = 42`
+
+      const result = transform(code)
+      expect(result.code).not.toContain('registeredComponent')
+    })
+
+    it('does not wrap anonymous default exports', () => {
+      const code = `import { fnstate } from '@srfnstack/fntags'
+const count = fnstate(0)
+export default count`
+
+      const result = transform(code)
+      expect(result.code).not.toContain('registeredComponent')
+    })
+
+    it('wraps multiple exported functions in one file', () => {
+      const code = `import { fnstate } from '@srfnstack/fntags'
+export const Counter = () => {
+  const count = fnstate(0)
+  return count
+}
+export const Timer = () => {
+  const count = fnstate(0)
+  return count
+}`
+
+      const result = transform(code)
+      expect(result.code).toContain("registeredComponent('src/counter#Counter',")
+      expect(result.code).toContain("registeredComponent('src/counter#Timer',")
+    })
+
+    it('does not wrap exported functions without fnstate', () => {
+      const code = `import { fnstate } from '@srfnstack/fntags'
+export const isAuthenticated = fnstate(false)
+export async function clearAuth() {
+  isAuthenticated(false)
+}
+export function doLogin() {
+  isAuthenticated(true)
+}`
+
+      const result = transform(code)
+      // clearAuth and doLogin don't contain fnstate — must not be wrapped
+      expect(result.code).not.toContain('registeredComponent')
+      // They should remain as normal hoisted function declarations
+      expect(result.code).toContain('export async function clearAuth()')
+      expect(result.code).toContain('export function doLogin()')
+    })
+
+    it('only wraps the exported function that has fnstate, not siblings', () => {
+      const code = `import { fnstate } from '@srfnstack/fntags'
+export function helper() { return 42 }
+export function Counter() {
+  const count = fnstate(0)
+  return count
+}`
+
+      const result = transform(code)
+      // Counter has fnstate — should be wrapped
+      expect(result.code).toContain("registeredComponent('src/counter#Counter',")
+      // helper does not — should stay as a normal export
+      expect(result.code).toContain('export function helper()')
+    })
+  })
 })

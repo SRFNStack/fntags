@@ -26,7 +26,8 @@ function getScopeName (node, parent) {
  *
  * During development, this plugin:
  * 1. Rewrites `fnstate()` calls to `registeredState()` so state survives module reloads
- * 2. Injects `import.meta.hot.accept()` so Vite hot-updates modules instead of full-reloading
+ * 2. Wraps exported functions with `registeredComponent()` so callers always get the latest version
+ * 3. Injects `import.meta.hot.accept()` so Vite hot-updates modules instead of full-reloading
  *
  * State IDs include the enclosing function scope chain so that identically-named
  * variables in different functions (e.g. two components both declaring `const count = fnstate(0)`)
@@ -56,7 +57,11 @@ export default function fntagsHmr () {
       const fileId = id.replace(/^.*?\/src\//, 'src/').replace(/\.[^.]+$/, '')
 
       let needsRegisteredState = false
+      let needsRegisteredComponent = false
       const scopeStack = []
+      // Track function nodes on the stack so we can tag which ones contain fnstate calls
+      const functionStack = []
+      const functionsWithState = new Set()
 
       walk(ast, {
         enter (node, parent) {
@@ -64,6 +69,7 @@ export default function fntagsHmr () {
             const name = getScopeName(node, parent)
             node.__scopeName = name
             if (name) scopeStack.push(name)
+            functionStack.push(node)
           }
 
           // Match: const/let/var x = fnstate(...)
@@ -91,29 +97,99 @@ export default function fntagsHmr () {
             }
 
             needsRegisteredState = true
+            // Tag the immediately enclosing function as containing state
+            if (functionStack.length > 0) {
+              functionsWithState.add(functionStack[functionStack.length - 1])
+            }
           }
         },
         leave (node) {
-          if (isFunctionNode(node) && node.__scopeName) {
-            scopeStack.pop()
+          if (isFunctionNode(node)) {
+            if (node.__scopeName) scopeStack.pop()
+            functionStack.pop()
           }
         }
       })
 
       if (!needsRegisteredState) return null
 
-      // Add registeredState to the existing fntags import
+      // Wrap exported functions that contain fnstate calls with registeredComponent
+      // so callers always get the latest version after HMR.
+      // Only functions that directly use fnstate are wrapped — utility functions
+      // are left alone to preserve hoisting semantics.
+      for (const node of ast.body) {
+        // export default function name() { ... }
+        if (
+          node.type === 'ExportDefaultDeclaration' &&
+          node.declaration?.type === 'FunctionDeclaration' &&
+          node.declaration.id &&
+          functionsWithState.has(node.declaration)
+        ) {
+          const name = node.declaration.id.name
+          const compId = `${fileId}#${name}`
+          // Remove 'export default ' prefix, keep the function declaration
+          s.overwrite(node.start, node.declaration.start, '')
+          // Append the export after the declaration
+          s.appendLeft(node.end, `\nexport default registeredComponent('${compId}', ${name})`)
+          needsRegisteredComponent = true
+        // export function name() { ... }
+        } else if (
+          node.type === 'ExportNamedDeclaration' &&
+          node.declaration?.type === 'FunctionDeclaration' &&
+          node.declaration.id &&
+          functionsWithState.has(node.declaration)
+        ) {
+          const name = node.declaration.id.name
+          const compId = `${fileId}#${name}`
+          // Remove 'export ' prefix, keep the function declaration
+          s.overwrite(node.start, node.declaration.start, '')
+          // Append wrapped export after the declaration
+          s.appendLeft(node.end, `\nexport const ${name} = registeredComponent('${compId}', _${name})`)
+          // Rename the original function to avoid conflict
+          s.overwrite(node.declaration.id.start, node.declaration.id.end, '_' + name)
+          needsRegisteredComponent = true
+        // export const Name = () => { ... } or export const Name = function() { ... }
+        } else if (
+          node.type === 'ExportNamedDeclaration' &&
+          node.declaration?.type === 'VariableDeclaration'
+        ) {
+          for (const decl of node.declaration.declarations) {
+            if (
+              decl.id?.type === 'Identifier' &&
+              decl.init &&
+              isFunctionNode(decl.init) &&
+              functionsWithState.has(decl.init)
+            ) {
+              const name = decl.id.name
+              const compId = `${fileId}#${name}`
+              // Wrap the function init: () => { ... } → registeredComponent('id', () => { ... })
+              s.prependLeft(decl.init.start, `registeredComponent('${compId}', `)
+              s.appendLeft(decl.init.end, ')')
+              needsRegisteredComponent = true
+            }
+          }
+        }
+      }
+
+      // Add registeredState and/or registeredComponent to the existing fntags import
       const fntagsImport = ast.body.find(n =>
         n.type === 'ImportDeclaration' &&
         /fntags(\.mjs)?$/.test(n.source.value)
       )
-      if (fntagsImport) {
-        const hasIt = fntagsImport.specifiers.some(sp =>
-          sp.type === 'ImportSpecifier' && sp.imported.name === 'registeredState'
+      if (fntagsImport && fntagsImport.specifiers.length > 0) {
+        const last = fntagsImport.specifiers[fntagsImport.specifiers.length - 1]
+        const existing = fntagsImport.specifiers.map(sp =>
+          sp.type === 'ImportSpecifier' ? sp.imported.name : null
         )
-        if (!hasIt && fntagsImport.specifiers.length > 0) {
-          const last = fntagsImport.specifiers[fntagsImport.specifiers.length - 1]
-          s.appendLeft(last.end, ', registeredState')
+        const toAdd = []
+        if (needsRegisteredState && !existing.includes('registeredState')) {
+          toAdd.push('registeredState')
+        }
+        if (needsRegisteredComponent && !existing.includes('registeredComponent')) {
+          toAdd.push('registeredComponent')
+        }
+        if (toAdd.length > 0) {
+          s.appendLeft(last.end, ', ' + toAdd.join(', '))
         }
       }
 

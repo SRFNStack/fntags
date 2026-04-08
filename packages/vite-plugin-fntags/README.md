@@ -221,6 +221,7 @@ The state ID includes `Counter` because `fnstate` is called inside the `Counter`
 
 - **Only variable declarations are rewritten.** `const count = fnstate(0)` is rewritten. `someArray.push(fnstate(0))` is not — anonymous state has no variable name to derive an ID from, so it resets on reload.
 - **State shape changes require a full reload.** If you change `fnstate(0)` to `fnstate({ count: 0 })`, the registry still returns the old numeric value. Press Ctrl+R / Cmd+R when you change state shape.
+- **Top-level non-function exports don't update.** Only exported functions are wrapped for HMR. A top-level `export const foo = myState.bindAs((st) => div(st))` won't reflect changes on reload because the bound element is created once and the old value persists in importers. Move it inside a component function instead, where it will be re-created on each render.
 - **Dev only.** The plugin sets `apply: 'serve'`, so production builds use normal `fnstate` with zero overhead. `registeredState` is still available as an export but is not used unless explicitly called.
 
 ## API
