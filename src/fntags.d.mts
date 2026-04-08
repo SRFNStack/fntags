@@ -93,6 +93,16 @@ export function getAttrs(children: any): object;
  */
 export function styled<T extends HTMLElement | SVGElement>(style: object | string, tag: string, children: object[] | Node[]): T;
 /**
+ * Register a component function for HMR. Returns a stable proxy that always delegates
+ * to the latest registered implementation. When a module re-executes after HMR, the
+ * proxy's target is updated so callers holding stale import bindings get the new code.
+ *
+ * @param {string} id A stable identifier for this component (typically 'filepath:exportName')
+ * @param {Function} fn The component function
+ * @returns {Function} A stable proxy function
+ */
+export function registeredComponent(id: string, fn: Function): Function;
+/**
  * Get or create a state instance from the global HMR registry.
  * During development with HMR, the Vite plugin rewrites fnstate() calls to use this function,
  * ensuring state instances survive module reloads.

@@ -36,6 +36,12 @@ export default div(
         ul(
             li(strong('val'), ': any', " - The value to check"),
         ),
+        h3(code('registeredComponent(id, fn)')),
+        p("Register a component function for HMR. Returns a stable proxy that always delegates\nto the latest registered implementation. When a module re-executes after HMR, the\nproxy's target is updated so callers holding stale import bindings get the new code."),
+        ul(
+            li(strong('id'), ': string', " - A stable identifier for this component (typically 'filepath:exportName')"),
+            li(strong('fn'), ': Function', " - The component function"),
+        ),
         h3(code('registeredState(id, initialValue, mapKey)')),
         p("Get or create a state instance from the global HMR registry.\nDuring development with HMR, the Vite plugin rewrites fnstate() calls to use this function,\nensuring state instances survive module reloads."),
         ul(

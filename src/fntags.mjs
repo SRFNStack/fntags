@@ -914,6 +914,30 @@ const stringifyStyle = style =>
     : Object.keys(style).map(prop => `${prop}:${style[prop]}`).join(';')
 
 /**
+ * Register a component function for HMR. Returns a stable proxy that always delegates
+ * to the latest registered implementation. When a module re-executes after HMR, the
+ * proxy's target is updated so callers holding stale import bindings get the new code.
+ *
+ * @param {string} id A stable identifier for this component (typically 'filepath:exportName')
+ * @param {Function} fn The component function
+ * @returns {Function} A stable proxy function
+ */
+export function registeredComponent (id, fn) {
+  if (!globalThis.__fntags_components) {
+    globalThis.__fntags_components = new Map()
+  }
+  const reg = globalThis.__fntags_components
+  reg.set(id, fn)
+  if (!reg.has(id + '$proxy')) {
+    const proxy = function (...args) {
+      return reg.get(id).apply(this, args)
+    }
+    reg.set(id + '$proxy', proxy)
+  }
+  return reg.get(id + '$proxy')
+}
+
+/**
  * Get or create a state instance from the global HMR registry.
  * During development with HMR, the Vite plugin rewrites fnstate() calls to use this function,
  * ensuring state instances survive module reloads.

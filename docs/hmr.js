@@ -165,6 +165,7 @@ function App() {
     ul(
       li(b('Only variable declarations are rewritten.'), ' ', code('const count = fnstate(0)'), ' is rewritten. ', code('arr.push(fnstate(0))'), ' is not — anonymous state resets on reload.'),
       li(b('State shape changes need a full reload.'), ' If you change ', code('fnstate(0)'), ' to ', code('fnstate({ count: 0 })'), ', the registry returns the old numeric value. Press Ctrl+R when you change state shape.'),
+      li(b('Top-level non-function exports don\'t update.'), ' Only exported functions are wrapped for HMR. A top-level ', code('export const foo = myState.bindAs((st) => div(st))'), ' won\'t reflect changes on reload because the bound element is created once. Move it inside a component function instead.'),
       li(b('Dev only.'), ' The plugin sets ', code("apply: 'serve'"), ', so production builds use normal ', code('fnstate'), ' with zero overhead.')
     )
   ),
