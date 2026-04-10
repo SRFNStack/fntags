@@ -1,5 +1,5 @@
 {
-  "name": "fntags-ssr-example",
+  "name": "fntags-ssr-express-example",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,6 +8,6 @@
   "dependencies": {
     "@srfnstack/fntags": "1.2.6",
     "@srfnstack/fntags-ssr": ">=1.0.0",
-    "@srfnstack/spliffy": "1.4.1"
+    "express": "5.2.1"
   }
 }

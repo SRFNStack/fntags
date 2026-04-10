@@ -1,6 +1,6 @@
 {
   "name": "@srfnstack/fntags-ssr",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Server-side rendering and hydration for fntags",
   "author": "Robert Kempton <r@snow87.com>",
   "private": false,

@@ -27,9 +27,14 @@ import { renderToString } from '@srfnstack/fntags-ssr'
 
 const { html, state } = await renderToString({
   url: '/about',
-  appFn: () => App()
+  appFn: async () => {
+    const { App } = await import('./app/App.mjs')
+    return App()
+  }
 })
 ```
+
+**Important:** Use a dynamic `import()` inside `appFn` rather than a static import at the top of the file. `fnroute` accesses `window` at module level when it initializes `pathState` and registers a `popstate` listener. `renderToString` sets up a DOM environment (via happy-dom) before calling `appFn`, so a dynamic import ensures fntags loads after `window` exists on the server.
 
 **Options:**
 
@@ -55,7 +60,10 @@ import { renderToStream } from '@srfnstack/fntags-ssr'
 
 const stream = renderToStream({
   url: '/',
-  appFn: () => App()
+  appFn: async () => {
+    const { App } = await import('./app/App.mjs')
+    return App()
+  }
 })
 ```
 
@@ -69,6 +77,7 @@ Restores server-rendered state and re-executes the component tree to attach even
 
 ```javascript
 import { hydrate } from '@srfnstack/fntags-ssr/hydrate'
+import { App } from './app/App.mjs'
 
 hydrate(document.getElementById('app'), () => App())
 ```
@@ -79,6 +88,34 @@ hydrate(document.getElementById('app'), () => App())
 |-----------|------|-------------|
 | `container` | `HTMLElement` | The element containing server-rendered HTML |
 | `appFn` | `() => Node` | Same component factory used on the server |
+
+### Browser Module Resolution
+
+The client script uses bare specifiers like `@srfnstack/fntags` and `@srfnstack/fntags-ssr/hydrate`. Browsers don't natively resolve these — you need either a bundler or an [import map](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap). For no-build setups, add an import map to your HTML **before** any `<script type="module">` tags:
+
+```html
+<script type="importmap">
+{
+  "imports": {
+    "@srfnstack/fntags": "/path/to/fntags/index.js",
+    "@srfnstack/fntags-ssr/hydrate": "/path/to/fntags-ssr/src/hydrate.mjs"
+  }
+}
+</script>
+```
+
+The import map applies to all modules on the page, so internal imports within fntags-ssr (like `hydrate.mjs` importing from `@srfnstack/fntags`) are also resolved through it. Relative imports within the fntags source (`./fntags.mjs`, `./fnroute.mjs`, etc.) resolve naturally as long as the directory structure is preserved when serving.
+
+Your server needs to serve the fntags and fntags-ssr source files at the URLs specified in the import map. The files to serve are:
+
+- `@srfnstack/fntags/index.js`
+- `@srfnstack/fntags/src/fntags.mjs`
+- `@srfnstack/fntags/src/fnroute.mjs`
+- `@srfnstack/fntags/src/fnelements.mjs`
+- `@srfnstack/fntags/src/svgelements.mjs`
+- `@srfnstack/fntags-ssr/src/hydrate.mjs`
+
+How you serve these depends on your server. Any static file server or middleware that can serve files from `node_modules` with the correct directory structure will work.
 
 ## State Serialization
 
@@ -98,7 +135,13 @@ On the server, `renderToString` captures a snapshot of all registered states. On
 ```javascript
 import { renderToString, escapeScriptContent } from '@srfnstack/fntags-ssr'
 
-const { html, state } = await renderToString({ url: '/', appFn: () => App() })
+const { html, state } = await renderToString({
+  url: '/',
+  appFn: async () => {
+    const { App } = await import('./app/App.mjs')
+    return App()
+  }
+})
 
 const page = `
 <div id="app">${html}</div>
@@ -116,45 +159,27 @@ SSR works with `fnroute` out of the box. Pass the target URL to `renderToString`
 ```javascript
 const { html } = await renderToString({
   url: '/user/42',
-  appFn: () => App()
+  appFn: async () => {
+    const { App } = await import('./app/App.mjs')
+    return App()
+  }
 })
 // Renders the /user/:id route with pathParameters().id === '42'
 ```
 
-## Full Example with Spliffy
+## Examples
 
-See the [`example/`](./example) directory for a complete SSR application using [@srfnstack/spliffy](https://github.com/SRFNStack/spliffy) as the backend. It demonstrates:
+Complete working examples are included:
 
-- Server-side rendering with `renderToString`
-- State serialization and client hydration
-- Routing with `fnroute`
-- Interactive state after hydration
+- [`example/`](./example) — Spliffy
+- [`express-example/`](./express-example) — Express 5
 
-### Quick Start
+Both demonstrate server-side rendering, state serialization, client hydration, routing, and import maps.
 
 ```bash
 cd example
 npm install
 npm start
-# Open http://localhost:3000
-```
-
-### How the Example Works
-
-**Shared app** (`app/App.mjs`) — a fntags component tree with routing, state, and event handlers. Used identically on server and client.
-
-**Server** (`server.mjs`) — a spliffy server with a catch-all route handler that calls `renderToString`, wraps the HTML in a full document shell, and embeds the state snapshot.
-
-**Client** (`www/client.mjs`) — imports the same `App` component and calls `hydrate` to make the page interactive.
-
-```
-example/
-  server.mjs              # Spliffy server entry point
-  app/
-    App.mjs               # Shared fntags application component
-  www/                     # Spliffy route directory
-    index+.rt.mjs          # Catch-all route: SSR handler
-    client.mjs             # Client entry: hydration
 ```
 
 ## Concurrency

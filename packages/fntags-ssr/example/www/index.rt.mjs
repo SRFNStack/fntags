@@ -5,7 +5,6 @@
  * so every page request goes through server-side rendering.
  */
 import { renderToString, escapeScriptContent } from '@srfnstack/fntags-ssr'
-import { App } from '../app/App.mjs'
 
 export default {
   GET: async ({ req }) => {
@@ -13,7 +12,10 @@ export default {
 
     const { html, state } = await renderToString({
       url,
-      appFn: () => App(),
+      appFn: async () => {
+        const { App } = await import('./app/App.mjs')
+        return App()
+      },
       origin: 'http://localhost'
     })
 
@@ -25,6 +27,14 @@ export default {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>fntags SSR Example</title>
+  <script type="importmap">
+  {
+    "imports": {
+      "@srfnstack/fntags": "/lib/ext/@srfnstack/fntags/index.js",
+      "@srfnstack/fntags-ssr/hydrate": "/lib/ext/@srfnstack/fntags-ssr/src/hydrate.mjs"
+    }
+  }
+  </script>
 </head>
 <body>
   <div id="app">${html}</div>

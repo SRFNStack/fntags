@@ -1,7 +1,7 @@
 /**
  * Client entry point — hydrates the server-rendered HTML.
  *
- * This file is served as a static ES module by spliffy. It imports the same
+ * This file is served as a static ES module by express. It imports the same
  * App component used on the server and calls hydrate() to attach event
  * listeners and reactive bindings to the existing DOM.
  */

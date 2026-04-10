@@ -1,10 +1,9 @@
 /**
  * Shared application component — used on both server and client.
  */
-import { h, registeredState } from '@srfnstack/fntags'
-import { div, h1, h2, p, button, ul, li, nav, main, header, footer, input, span } from '@srfnstack/fntags/fnelements'
-import { routeSwitch, route, fnlink, pathParameters } from '@srfnstack/fntags/fnroute'
+import { registeredState, div, h1, h2, p, button, ul, li, nav, main, header, footer, input, span, routeSwitch, route, fnlink, pathParameters, setRootPath } from '@srfnstack/fntags'
 
+setRootPath('/')
 const HomePage = () =>
   div(
     h2('Welcome'),
@@ -13,7 +12,7 @@ const HomePage = () =>
   )
 
 const Counter = () => {
-  const count = registeredState('counter', 0)
+  const count = registeredState('counter', 42)
   return div(
     h2('Interactive Counter'),
     p('This counter state is serialized on the server and restored on the client.'),
@@ -49,16 +48,14 @@ const TodoList = () => {
     h2('Todo List'),
     p('Add items and watch the list update. State is preserved across server and client.'),
     div({ style: { display: 'flex', gap: '8px', margin: '12px 0' } },
-      newTodo.bindAs(val =>
-        input({
-          type: 'text',
-          value: val,
-          placeholder: 'What needs doing?',
-          oninput: (e) => newTodo(e.target.value),
-          onkeydown: (e) => { if (e.key === 'Enter') addTodo() },
-          style: { padding: '8px', fontSize: '14px', flex: '1' }
-        })
-      ),
+      input({
+        type: 'text',
+        value: newTodo.bindAttr(),
+        placeholder: 'What needs doing?',
+        oninput: (e) => newTodo(e.target.value),
+        onkeydown: (e) => { if (e.key === 'Enter') addTodo() },
+        style: { padding: '8px', fontSize: '14px', flex: '1' }
+      }),
       button({
         onclick: addTodo,
         style: { padding: '8px 16px', cursor: 'pointer' }
@@ -113,7 +110,7 @@ export function App () {
       )
     ),
     footer({ style: { marginTop: '40px', paddingTop: '12px', borderTop: '1px solid #ddd', color: '#666', fontSize: '14px' } },
-      p('Served with @srfnstack/spliffy + @srfnstack/fntags-ssr')
+      p('Served with express + @srfnstack/fntags-ssr')
     )
   )
 }
