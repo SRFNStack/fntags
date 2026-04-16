@@ -489,7 +489,17 @@ const doBind = function (ctx, element, handleReplace) {
   const prevRenderCleanups = activeRenderCleanups
   const thisRenderCleanups = []
   activeRenderCleanups = thisRenderCleanups
-  const elCtx = { current: renderNode(evaluateElement(element, ctx.currentValue)), cleanups: thisRenderCleanups }
+  const evaluated = evaluateElement(element, ctx.currentValue)
+  const childElCtx = (typeof evaluated === 'function' && evaluated.isBindGetter)
+    ? evaluated.elCtx
+    : null
+  const elCtx = { current: renderNode(evaluated), cleanups: thisRenderCleanups }
+  // When the evaluated element is itself a bind getter (a nested bindAs/bindSelect),
+  // register this elCtx as a back-ref on the child so that later child-driven
+  // node swaps keep this elCtx.current in sync with the live DOM node.
+  if (childElCtx && childElCtx.current === elCtx.current) {
+    addParentRef(childElCtx, elCtx)
+  }
   // Suppress tracking during handleReplace — the driving subscription is
   // registered separately below as part of a cascading cleanup.
   activeRenderCleanups = null
@@ -504,10 +514,46 @@ const doBind = function (ctx, element, handleReplace) {
       if (elCtx.drivingUnsub) elCtx.drivingUnsub()
       if (elCtx.selectUnsub) elCtx.selectUnsub()
       runCleanups(elCtx)
+      // Mark dead so any child elCtx that still holds us in its parentRefs
+      // can prune us lazily on its next propagateReplace walk.
+      elCtx.dead = true
     })
   }
 
-  return () => elCtx.current
+  const getter = () => elCtx.current
+  getter.isBindGetter = true
+  getter.elCtx = elCtx
+  return getter
+}
+
+// Register a back-ref from a child bind elCtx to a parent elCtx, avoiding
+// duplicate entries when the same parent re-renders against the same child.
+function addParentRef (childElCtx, parentElCtx) {
+  if (!childElCtx.parentRefs) {
+    childElCtx.parentRefs = [parentElCtx]
+  } else if (!childElCtx.parentRefs.includes(parentElCtx)) {
+    childElCtx.parentRefs.push(parentElCtx)
+  }
+}
+
+// Walk the back-ref chain and update any ancestor elCtx whose .current still
+// points at the old DOM node. Used when a nested bindAs swaps its node so the
+// outer bindAs keeps a live reference instead of a detached one. Prunes any
+// dead ancestors encountered so parentRefs does not retain torn-down elCtxs.
+function propagateReplace (elCtx, oldNode, newNode) {
+  const refs = elCtx.parentRefs
+  if (!refs) return
+  for (let i = refs.length - 1; i >= 0; i--) {
+    const parent = refs[i]
+    if (parent.dead) {
+      refs.splice(i, 1)
+      continue
+    }
+    if (parent.current === oldNode) {
+      parent.current = newNode
+      propagateReplace(parent, oldNode, newNode)
+    }
+  }
 }
 
 const updateReplacer = (ctx, element, elCtx) => (_, oldValue) => {
@@ -520,7 +566,11 @@ const updateReplacer = (ctx, element, elCtx) => (_, oldValue) => {
   const prevRenderCleanups = activeRenderCleanups
   const thisRenderCleanups = []
   activeRenderCleanups = thisRenderCleanups
-  let rendered = renderNode(evaluateElement(element, ctx.currentValue, oldValue))
+  const evaluated = evaluateElement(element, ctx.currentValue, oldValue)
+  const childElCtx = (typeof evaluated === 'function' && evaluated.isBindGetter)
+    ? evaluated.elCtx
+    : null
+  let rendered = renderNode(evaluated)
   activeRenderCleanups = prevRenderCleanups
   elCtx.cleanups = thisRenderCleanups
 
@@ -533,14 +583,23 @@ const updateReplacer = (ctx, element, elCtx) => (_, oldValue) => {
         bindContext.boundElementByKey[elCtx.current.key] = rendered
       }
     }
+    // Re-establish the parent-ref link when a re-render resolves to another
+    // nested bind getter, so future child swaps propagate back to this elCtx.
+    if (childElCtx && childElCtx.current === rendered) {
+      addParentRef(childElCtx, elCtx)
+    }
     // Perform this action on the next event loop to give the parent a chance to render
     new Promise((resolve) => {
       // Guard: skip replaceWith when the same element is returned (e.g. when
       // toggling between two pre-built element references). el.replaceWith(el)
       // is a no-op in the DOM but wastes a microtask.
       if (rendered !== elCtx.current) {
+        const oldCurrent = elCtx.current
         elCtx.current.replaceWith(rendered)
         elCtx.current = rendered
+        // Keep any ancestor bindAs whose elCtx shared this node in sync with
+        // the new node, so their next replaceWith targets a live DOM node.
+        propagateReplace(elCtx, oldCurrent, rendered)
       }
       rendered = null
       resolve()

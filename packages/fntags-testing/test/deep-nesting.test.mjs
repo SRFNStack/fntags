@@ -412,3 +412,225 @@ describe('mixed deep nesting — bindAs + bindAttr + bindStyle + bindChildren', 
     expect(fontSize._ctx.observers.length).toBe(2)
   })
 })
+
+describe('nested bindAs — stale node reference regression', () => {
+  it('outer bindAs can still swap after inner bindAs swaps its node', async () => {
+    const outer = fnstate(true)
+    const inner = fnstate('step-1')
+
+    const { container } = render(h('div',
+      outer.bindAs(show => show
+        ? inner.bindAs(step => h('div', `Current: ${step}`))
+        : h('div', 'closed'))
+    ))
+
+    expect(container.textContent).toBe('Current: step-1')
+
+    inner('step-2')
+    await flush()
+    expect(container.textContent).toBe('Current: step-2')
+
+    // Without the fix, the outer's elCtx.current points at the original step-1
+    // (now detached) node, so replaceWith is a no-op and the DOM never updates.
+    outer(false)
+    await flush()
+    expect(container.textContent).toBe('closed')
+  })
+
+  it('3 levels of directly-returned bindAs stay in sync through every level', async () => {
+    const outer = fnstate(true)
+    const middle = fnstate(true)
+    const inner = fnstate('a')
+
+    const { container } = render(h('div',
+      outer.bindAs(o => o
+        ? middle.bindAs(m => m
+          ? inner.bindAs(i => h('div', `leaf:${i}`))
+          : h('div', 'middle-off'))
+        : h('div', 'outer-off'))
+    ))
+
+    expect(container.textContent).toBe('leaf:a')
+
+    inner('b')
+    await flush()
+    expect(container.textContent).toBe('leaf:b')
+
+    // Updating the outermost must still succeed after the leaf has swapped.
+    outer(false)
+    await flush()
+    expect(container.textContent).toBe('outer-off')
+  })
+
+  it('3 levels: swapping the middle after leaf swaps still replaces correctly', async () => {
+    const outer = fnstate(true)
+    const middle = fnstate(true)
+    const inner = fnstate('a')
+
+    const { container } = render(h('div',
+      outer.bindAs(o => o
+        ? middle.bindAs(m => m
+          ? inner.bindAs(i => h('div', `leaf:${i}`))
+          : h('div', 'middle-off'))
+        : h('div', 'outer-off'))
+    ))
+
+    inner('b')
+    await flush()
+    expect(container.textContent).toBe('leaf:b')
+
+    middle(false)
+    await flush()
+    expect(container.textContent).toBe('middle-off')
+
+    // And the outer can still take over from here.
+    outer(false)
+    await flush()
+    expect(container.textContent).toBe('outer-off')
+  })
+
+  it('interleaved inner→outer→inner cycles do not leave parentRefs in a bad state', async () => {
+    const outer = fnstate(true)
+    const inner = fnstate('a')
+
+    const { container } = render(h('div',
+      outer.bindAs(show => show
+        ? inner.bindAs(i => h('div', `val:${i}`))
+        : h('div', 'closed'))
+    ))
+
+    inner('b')
+    await flush()
+    expect(container.textContent).toBe('val:b')
+
+    outer(false)
+    await flush()
+    expect(container.textContent).toBe('closed')
+
+    outer(true)
+    await flush()
+    expect(container.textContent).toBe('val:b')
+
+    // After coming back, inner swaps must still reach the DOM, and so must outer.
+    inner('c')
+    await flush()
+    expect(container.textContent).toBe('val:c')
+
+    outer(false)
+    await flush()
+    expect(container.textContent).toBe('closed')
+  })
+
+  it('component that returns a naked bindAs works inside another bindAs', async () => {
+    const step = fnstate('upload')
+    const show = fnstate(true)
+
+    function Extractor () {
+      return step.bindAs(s => h('div', `step:${s}`))
+    }
+
+    const { container } = render(h('div',
+      show.bindAs(s => s ? Extractor() : h('div', 'done'))
+    ))
+
+    step('extracting')
+    await flush()
+    step('review')
+    await flush()
+    expect(container.textContent).toBe('step:review')
+
+    show(false)
+    await flush()
+    expect(container.textContent).toBe('done')
+  })
+
+  it('shared child bindAs: repeated parent re-renders do not duplicate parent back-refs', async () => {
+    // Use a module-scope-like savedInner held outside any render context.
+    const inner = fnstate('a')
+    const outer = fnstate(true)
+    const savedInner = inner.bindAs(v => h('span', v))
+
+    const { container } = render(h('div',
+      outer.bindAs(show => show ? savedInner : h('span', 'off'))
+    ))
+
+    // Toggle outer many times — each show=true path re-evaluates savedInner
+    // against the same child elCtx. Without the dedup guard, parentRefs would
+    // grow by one entry each cycle.
+    for (let i = 0; i < 10; i++) {
+      outer(false)
+      await flush()
+      outer(true)
+      await flush()
+    }
+
+    const childElCtx = savedInner.elCtx
+    expect(childElCtx.parentRefs.length).toBeLessThanOrEqual(1)
+    // And the system still renders correctly
+    expect(container.textContent).toBe('a')
+    inner('b')
+    await flush()
+    expect(container.textContent).toBe('b')
+  })
+
+  it('dead parent elCtxs are pruned from a surviving child on its next update', async () => {
+    // Model the savedInner-outlives-parent case by wrapping the parent in yet
+    // another bindAs whose re-render triggers the cascading cleanup on parent.
+    const grand = fnstate(true)
+    const outer = fnstate(true)
+    const inner = fnstate('a')
+    const savedInner = inner.bindAs(v => h('span', v))
+
+    render(h('div',
+      grand.bindAs(g => g
+        ? outer.bindAs(show => show ? savedInner : h('span', 'off'))
+        : h('span', 'gone'))
+    ))
+
+    // savedInner was created outside any render, so it survives when the outer
+    // parent is torn down by grand.
+    const childElCtx = savedInner.elCtx
+    expect(childElCtx.parentRefs.length).toBe(1)
+
+    // Tear down the outer (and its outer-bindAs-elCtx) via grand.
+    grand(false)
+    await flush()
+
+    // Drive an inner update so propagateReplace walks parentRefs and prunes
+    // the dead outer's entry.
+    inner('b')
+    await flush()
+    expect(childElCtx.parentRefs.length).toBe(0)
+  })
+
+  it('no subscription leaks when outer re-renders after inner swaps', async () => {
+    const outer = fnstate(true)
+    const inner = fnstate('a')
+
+    render(h('div',
+      outer.bindAs(show => show
+        ? inner.bindAs(i => h('div', `val:${i}`))
+        : h('div', 'closed'))
+    ))
+
+    expect(outer._ctx.observers.length).toBe(1)
+    expect(inner._ctx.observers.length).toBe(1)
+
+    for (let i = 0; i < 5; i++) {
+      inner(`i${i}`)
+      await flush()
+    }
+    expect(inner._ctx.observers.length).toBe(1)
+
+    outer(false)
+    await flush()
+    // inner subscription torn down by cascading cleanup
+    expect(inner._ctx.observers.length).toBe(0)
+    expect(outer._ctx.observers.length).toBe(1)
+
+    outer(true)
+    await flush()
+    expect(inner._ctx.observers.length).toBe(1)
+    expect(outer._ctx.observers.length).toBe(1)
+  })
+})

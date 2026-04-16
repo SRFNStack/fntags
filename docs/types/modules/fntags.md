@@ -41,7 +41,7 @@ A container for a state value that can be bound to.
 
 #### Defined in
 
-[fntags.mjs:116](https://github.com/SRFNStack/fntags/blob/df30a3f/src/fntags.mjs#L116)
+[fntags.mjs:116](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L116)
 
 ## Functions
 
@@ -75,7 +75,7 @@ or the changes won't be reflected correctly and binding updates won't be trigger
 
 #### Defined in
 
-[fntags.mjs:130](https://github.com/SRFNStack/fntags/blob/df30a3f/src/fntags.mjs#L130)
+[fntags.mjs:130](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L130)
 
 ___
 
@@ -120,7 +120,7 @@ A function that takes a context object and returns a rendered node.
 
 #### Defined in
 
-[fntags.mjs:999](https://github.com/SRFNStack/fntags/blob/df30a3f/src/fntags.mjs#L999)
+[fntags.mjs:1058](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L1058)
 
 ___
 
@@ -144,7 +144,7 @@ the attr object or an empty object
 
 #### Defined in
 
-[fntags.mjs:882](https://github.com/SRFNStack/fntags/blob/df30a3f/src/fntags.mjs#L882)
+[fntags.mjs:941](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L941)
 
 ___
 
@@ -186,7 +186,7 @@ an html element
 
 #### Defined in
 
-[fntags.mjs:35](https://github.com/SRFNStack/fntags/blob/df30a3f/src/fntags.mjs#L35)
+[fntags.mjs:35](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L35)
 
 ___
 
@@ -213,7 +213,7 @@ The container element
 
 #### Defined in
 
-[fntags.mjs:972](https://github.com/SRFNStack/fntags/blob/df30a3f/src/fntags.mjs#L972)
+[fntags.mjs:1031](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L1031)
 
 ___
 
@@ -237,7 +237,7 @@ true if the value is an object that can be used as attributes
 
 #### Defined in
 
-[fntags.mjs:873](https://github.com/SRFNStack/fntags/blob/df30a3f/src/fntags.mjs#L873)
+[fntags.mjs:932](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L932)
 
 ___
 
@@ -264,7 +264,7 @@ A stable proxy function
 
 #### Defined in
 
-[fntags.mjs:925](https://github.com/SRFNStack/fntags/blob/df30a3f/src/fntags.mjs#L925)
+[fntags.mjs:984](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L984)
 
 ___
 
@@ -292,7 +292,7 @@ The state instance from the registry
 
 #### Defined in
 
-[fntags.mjs:950](https://github.com/SRFNStack/fntags/blob/df30a3f/src/fntags.mjs#L950)
+[fntags.mjs:1009](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L1009)
 
 ___
 
@@ -316,7 +316,7 @@ The rendered node
 
 #### Defined in
 
-[fntags.mjs:762](https://github.com/SRFNStack/fntags/blob/df30a3f/src/fntags.mjs#L762)
+[fntags.mjs:821](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L821)
 
 ___
 
@@ -349,4 +349,4 @@ The styled element
 
 #### Defined in
 
-[fntags.mjs:897](https://github.com/SRFNStack/fntags/blob/df30a3f/src/fntags.mjs#L897)
+[fntags.mjs:956](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L956)
