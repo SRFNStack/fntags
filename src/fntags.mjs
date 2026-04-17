@@ -6,6 +6,22 @@
 // up when the bindAs re-renders. null means we are not inside a render.
 let activeRenderCleanups = null
 
+// When on, the framework emits console warnings for misuse that is easy to
+// hit and hard to diagnose (e.g. bindAs replacing a focused input, omitting
+// a key mapper from bindChildren). The checks are cheap but non-zero, so
+// production can opt out via setDevMode(false).
+let devMode = true
+
+/**
+ * Toggle dev-mode warnings. Defaults to true. Call `setDevMode(false)` in
+ * production to skip diagnostic checks such as the focus-loss warning fired
+ * when bindAs replaces a subtree containing the focused element.
+ * @param {boolean} on
+ */
+export function setDevMode (on) {
+  devMode = !!on
+}
+
 function runCleanups (elCtx) {
   if (!elCtx.cleanups) return
   for (const unsub of elCtx.cleanups) unsub()
@@ -88,12 +104,14 @@ function hasNs (val) {
  * @typedef FnStateObj A container for a state value that can be bound to.
  * @property {(element?: (newValue: T, oldValue: T)=>(Node|any))=>Node} bindAs Bind this state to the given element function. This causes the element to be replaced when the state changes.
  * If called with no parameters, the state's value will be rendered as an element.
+ * Do not wrap form inputs (input, textarea, select) in bindAs — it replaces the element on every update and the focused input will lose focus mid-keystroke. Bind the `value` attribute with bindAttr instead.
  * @property {(parent: (()=>(Node|any))|any|Node, element: (childState: FnState)=>(Node|any))=>Node} bindChildren Bind the values of this state to the given element.
  * Values are items/elements of an array.
  * If the current value is not an array, this will behave the same as bindAs.
  * @property {(prop: string)=>Node} bindProp Bind to a property of an object stored in this state instead of the state itself.
  * Shortcut for `mystate.bindAs((current)=> current[prop])`
- * @property {(attribute?: (newValue: T, oldValue: T)=>(string|any))=>any} bindAttr Bind attribute values to state changes
+ * @property {(attribute?: (newValue: T, oldValue: T)=>(string|any))=>any} bindAttr Bind attribute values to state changes.
+ * Prefer this over bindAs for form inputs: binding the `value` attribute updates the element in place without replacing it, so focus and caret position are preserved.
  * @property {(style?: (newValue: T, oldValue: T)=>string) => string} bindStyle Bind style values to state changes
  * @property {(element?: (selectedKey: any)=>(Node|any))=>Node} bindSelect Bind selected state to an element
  * @property {(attribute?: (selectedKey: any)=>(string|any))=>any} bindSelectAttr Bind selected state to an attribute
@@ -428,7 +446,9 @@ function doBindChildren (parent, element) {
     throw new Error('You must pass a function to produce child elements.')
   }
   if (typeof ctx.mapKey !== 'function') {
-    console.warn('Using value index as key, may not work correctly when moving items...')
+    if (devMode) {
+      console.warn('bindChildren: no mapKey provided — falling back to array index as key, which can misbehave when items are moved, inserted, or removed. Pass a mapKey function as the second argument to fnstate(array, item => item.id).')
+    }
     ctx.mapKey = (_, i) => i
   }
 
@@ -459,7 +479,9 @@ function doBindChildren (parent, element) {
 
   this.subscribe((_, oldState) => {
     if (!Array.isArray(ctx.currentValue)) {
-      console.warn('A state used with bindChildren was updated to a non array value. This will be converted to an array of 1 and the state will be updated.')
+      if (devMode) {
+        console.warn('bindChildren: state was updated to a non-array value. Wrapping it in a single-element array — if you meant to replace the whole binding, use bindAs instead.')
+      }
       new Promise((resolve) => {
         this([ctx.currentValue])
         resolve()
@@ -556,6 +578,28 @@ function propagateReplace (elCtx, oldNode, newNode) {
   }
 }
 
+// Emit a dev-mode warning when a bindAs replacement would destroy a subtree
+// containing the focused element. This is the most common fntags footgun:
+// wrapping an <input> in bindAs replaces the element on every keystroke, so
+// the user loses focus and caret position mid-edit. The fix is almost always
+// to bind the `value` attribute with bindAttr instead. We only check once per
+// replacement and only touch the DOM when an element is actually focused.
+function warnIfReplacingFocused (oldNode) {
+  if (typeof document === 'undefined') return
+  const active = document.activeElement
+  if (!active || active === document.body) return
+  if (oldNode && oldNode.nodeType === 1 && (oldNode === active || oldNode.contains(active))) {
+    console.warn(
+      'bindAs is about to replace a subtree containing the focused element <' +
+      active.tagName.toLowerCase() + '>. The replacement will steal focus and ' +
+      'reset caret/selection. For form inputs, bind the `value` attribute with ' +
+      'bindAttr instead of wrapping the input in bindAs. ' +
+      'Call setDevMode(false) to silence this warning.',
+      active
+    )
+  }
+}
+
 const updateReplacer = (ctx, element, elCtx) => (_, oldValue) => {
   // Clean up subscriptions from the previous render before re-rendering.
   // This prevents nested bindAs/bindAttr/bindStyle subscriptions from
@@ -595,6 +639,7 @@ const updateReplacer = (ctx, element, elCtx) => (_, oldValue) => {
       // is a no-op in the DOM but wastes a microtask.
       if (rendered !== elCtx.current) {
         const oldCurrent = elCtx.current
+        if (devMode) warnIfReplacingFocused(oldCurrent)
         elCtx.current.replaceWith(rendered)
         elCtx.current = rendered
         // Keep any ancestor bindAs whose elCtx shared this node in sync with

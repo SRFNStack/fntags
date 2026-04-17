@@ -54,6 +54,11 @@ export default div(
         ul(
             li(strong('node'), ': any', " - The node to render"),
         ),
+        h3(code('setDevMode(on)')),
+        p("Toggle dev-mode warnings. Defaults to true. Call `setDevMode(false)` in\nproduction to skip diagnostic checks such as the focus-loss warning fired\nwhen bindAs replaces a subtree containing the focused element."),
+        ul(
+            li(strong('on'), ': boolean', ""),
+        ),
         h3(code('styled(style, tag, children)')),
         p("A function to create an element with a pre-defined style.\nFor example, the flex* elements in fnelements."),
         ul(

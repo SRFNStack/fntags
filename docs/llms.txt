@@ -1,0 +1,225 @@
+# fntags
+
+> A lightweight, no-build ES6 framework for fast, reactive web applications. No virtual DOM, no JSX, no build step. Components are plain functions that return real DOM elements. Reactivity is explicit and granular: you bind only the specific text, attribute, style, or child list that should update.
+
+This file is the agent-oriented reference for fntags. If you are writing fntags code and you take away only one thing from this document, take away this: **bind as narrowly as possible.** The framework's performance story and its single biggest trap both come from that one principle.
+
+## The mental shift from React/Angular
+
+fntags is not a React-alike with a different syntax. The model is fundamentally different and produces a different performance profile when used correctly — and a much worse one when used like React.
+
+- **No re-render cascades.** Components are not re-invoked when state changes. A component function runs exactly once, at the moment it constructs its DOM subtree. After that, the only thing the framework ever re-runs is the specific function you passed to a `bind*` call. If you wrap a large subtree in `bindAs`, only that subtree is rebuilt when its state changes — but the whole subtree *is* rebuilt. There is no "smart diffing" to save you.
+- **No virtual DOM, no reconciliation.** Every element you see is a real DOM node. There is no heuristic that says "this part of the tree didn't change, skip it." If you tell `bindAs` to rebuild something, it is rebuilt, from scratch, every time.
+- **No implicit subscriptions.** Reading `state()` inside a render function does not subscribe anything. You subscribe by passing the state's bind method into the tree (`state.bindAttr(...)`, `state.bindAs(...)`, etc.). If you read `state()` directly in a component body, you get the value *at construction time* and nothing updates later.
+- **State containing objects must be updated through the API.** Mutating an object held by `fnstate` does not trigger subscribers. Use `assign(...)`, `setPath(...)`, or replace the whole value by calling the state function.
+
+This inversion — explicit, granular, no reconciliation — is the source of fntags's performance. It is also why careless use of `bindAs` at the top of a tree will make an fntags app slower than the React equivalent it replaces, not faster. An agent writing fntags code must actively resist the React habit of "rerender the component."
+
+## The granularity principle
+
+Always bind at the finest granularity that expresses the change:
+
+| Change is...                                     | Use              |
+|--------------------------------------------------|------------------|
+| Text content of a node                           | `state.bindAs()` on just that text position — or `bindProp('field')` if it's one field of an object |
+| One attribute (class, disabled, href, id, etc.)  | `state.bindAttr(v => ...)` in the attrs object |
+| One CSS property                                 | `state.bindStyle(v => ...)` in the style object |
+| A `value`, `checked`, or `selected` on an input  | **`bindAttr`, never `bindAs`** (see traps below) |
+| An element's structure/type changes              | `state.bindAs(v => ...)` — the narrowest element that differs |
+| A list of items                                  | `state.bindChildren(parent, itemState => ...)` with a `mapKey` |
+| One property of an object state                  | `state.bindProp('field')` |
+
+**Anti-pattern:** wrapping an entire component, page, or route in a single top-level `bindAs`. This turns the framework into a worse virtual-DOM library: every change tears down and rebuilds the whole subtree, destroys focus, breaks transitions, and orphans event listeners. If you catch yourself doing this, push the bind down the tree until it wraps only the element that actually changes.
+
+**Rule of thumb:** if your `bindAs` callback returns a subtree bigger than a handful of nodes, you are almost certainly binding too broadly. Split the state, or push the bind calls into the children.
+
+## Minimal example
+
+```javascript
+import { fnstate } from '@srfnstack/fntags'
+import { div, input, button, span } from '@srfnstack/fntags'
+
+const Counter = () => {
+  const count = fnstate(0)
+  const name = fnstate('')
+
+  return div(
+    // bindAttr on the input's value — element is never replaced, focus is preserved.
+    input({
+      placeholder: 'Your name',
+      value: name.bindAttr(),
+      oninput: e => name(e.target.value)
+    }),
+    // bindAs here updates only the span, not the surrounding div.
+    div('Hello, ', name.bindAs(n => span(n || 'stranger')), '!'),
+    div('Count: ', count.bindAs()),
+    button({ onclick: () => count(count() + 1) }, 'Increment')
+  )
+}
+
+document.body.append(Counter())
+```
+
+Note what is *not* happening: `Counter` is never re-invoked. `count` and `name` updates touch only the nodes bound to them.
+
+## Packages
+
+- `@srfnstack/fntags` — core framework (elements, state, SVG elements, router).
+- `@srfnstack/fntags-ssr` — server-side rendering with state hydration.
+- `@srfnstack/fntags-testing` — `@testing-library/dom`-compatible test utilities.
+- `vite-plugin-fntags` — Vite plugin adding HMR with preserved state.
+
+Install: `npm install @srfnstack/fntags`. Or import directly from `https://cdn.jsdelivr.net/npm/@srfnstack/fntags@<version>/src/fntags.mjs` with no build step.
+
+## Elements — `fnelements.mjs`
+
+All HTML tags are exported as factory functions: `a`, `abbr`, `address`, `article`, `aside`, `audio`, `b`, `body`, `br`, `button`, `canvas`, `code`, `div`, `em`, `fieldset`, `footer`, `form`, `h1`–`h6`, `head`, `header`, `hr`, `html`, `i`, `iframe`, `img`, `input`, `label`, `li`, `link`, `main`, `meta`, `nav`, `ol`, `option`, `p`, `pre`, `script`, `section`, `select`, `span`, `strong`, `style`, `table`, `tbody`, `td`, `textarea`, `tfoot`, `th`, `thead`, `title`, `tr`, `ul`, `video`, etc.
+
+Plus layout helpers: `flexRow`, `flexCol`, `flexCenteredRow`, `flexCenteredCol` (pre-styled divs).
+
+**Calling convention:**
+
+```javascript
+tag(attrs?, ...children)
+```
+
+- The first argument is an attributes object if it's a plain object without a `nodeType`; otherwise it's a child. Attribute names are the real HTML names (`class`, `for`, `tabindex`, lowercase).
+- `style` may be a string or a plain object (`{ color: 'red', marginTop: '10px' }`).
+- Any `on*` attribute whose value is a function is registered via `addEventListener('*')` (strips `on`).
+- Children may be strings, numbers, DOM nodes, arrays of any of these, functions that return one, or Promises that resolve to one. Promises render a hidden placeholder that is replaced on resolution.
+- `svgelements.mjs` exports SVG factories with the same convention in the SVG namespace. Some names collide with HTML (`a_`, `script_`, `style_`, `switch_`, `title_`); they are suffixed with `_`.
+
+## State — `fnstate`
+
+```javascript
+const s = fnstate(initialValue, mapKey?)
+```
+
+The returned `s` is both a getter and setter:
+
+- `s()` — current value (a real reference; don't mutate).
+- `s(next)` — set and notify subscribers.
+- `s.subscribe((newVal, oldVal) => ...)` — returns an unsubscribe function.
+- `s.isFnState` — `true`.
+
+### Binding methods
+
+| Method | Purpose | Notes |
+|---|---|---|
+| `s.bindAs(fn?)` | Replace an element when `s` changes | Element is replaced, not mutated. Destroys focus and transient DOM state on every update. Async (fires on a microtask). Omit `fn` to render the value itself as the element. |
+| `s.bindAttr(fn?)` | Update one attribute value | Element is mutated in place. Synchronous. Prefer for inputs. Omit `fn` to use the value directly. |
+| `s.bindStyle(fn?)` | Update one style property | Element is mutated in place. Synchronous. |
+| `s.bindChildren(parent, itemRenderer)` | Render an array | **Requires** `mapKey` on the `fnstate`. `itemRenderer(itemState)` returns an element for each array item; `itemState` is itself an `fnstate` scoped to that item, so children can bind to it. |
+| `s.bindProp(prop)` | Bind to one field of an object state | Shortcut for `s.bindAs(v => v[prop])`. |
+| `s.bindSelect(fn?)` / `s.bindSelectAttr(fn?)` | React to `select()` calls on a list state | Used on per-item states inside `bindChildren` to style the selected item. |
+
+### Mutation helpers (for object/array state)
+
+| Method | Purpose |
+|---|---|
+| `s.assign(patch)` | `s(Object.assign(s(), patch))` — merge a partial update and notify. |
+| `s.getPath('a.b.c')` | Deep read. Returns the live reference. |
+| `s.setPath('a.b.c', value, fillWithObjects?)` | Deep write, notifies. Pass `fillWithObjects: true` to create missing intermediate objects. |
+| `s.select(key)` / `s.selected()` | Track a "currently selected" key against the list's `mapKey`. |
+
+### Hard rules
+
+- **Always bind the `value` attribute of form inputs with `bindAttr`, never wrap the input in `bindAs`.** `bindAs` replaces the element, which destroys focus and selection. The framework emits a console warning in dev mode when `bindAs` replaces a subtree containing the focused element; that warning is almost always real.
+- **Always pass `mapKey` to `fnstate(array, item => item.id)` when you intend to use `bindChildren`.** Without it, fntags falls back to array index, which misreconciles on inserts, deletes, and reorders.
+- **Never mutate an object held in state without going through `assign`, `setPath`, or a full re-set.** `user().name = 'x'` does nothing observable. Use `user.assign({ name: 'x' })` or `user.setPath('name', 'x')`.
+- **Reading `state()` in a component body does not subscribe.** It captures the current value once. Use a `bind*` method if you want updates.
+- **Nested binds work and are cheaper than wider binds.** Splitting one top-level `bindAs` into many small `bindAttr`/`bindStyle`/`bindProp` calls is almost always a win. Subscriptions from inner binds are auto-cleaned up when an outer `bindAs` re-renders, so cleanup is not a concern.
+
+### Other exports from `fntags.mjs`
+
+- `h(tag, ...children)` — the underlying element factory. Rarely needed directly; the tag functions wrap it.
+- `renderNode(nodeLike)` — coerces a value (node, function, promise, primitive) to a DOM node.
+- `isAttrs(val)` / `getAttrs(children)` — attr detection helpers for custom components that accept the same `attrs?, ...children` convention.
+- `styled(style, tag, children)` — create a pre-styled tag function (how `flexRow` etc. are built).
+- `fntemplate(templateFn)` — compile a template for fast cloning + binding. Use for hot paths that produce many identical subtrees.
+- `registeredComponent(id, fn)` / `registeredState(id, initial, mapKey?)` / `hmrRoot(container, appFn)` — used by the Vite HMR plugin. In handwritten code, use `registeredState` for any state that must survive SSR→client hydration.
+- `setDevMode(on)` — toggle dev-mode warnings (focus-replace warning, missing-mapKey warning, bindChildren-non-array warning). Default `true`. Call `setDevMode(false)` in production.
+
+## Routing — `fnroute.mjs`
+
+Import from `@srfnstack/fntags/src/fnroute.mjs`.
+
+- `route(attrs?, ...children)` — container whose visibility is controlled by `path` attributes on its children; all matching paths render.
+- `routeSwitch(attrs?, ...children)` — renders the first matching child; ideal for pages.
+- A child with `path="/foo"` matches by prefix; add `absolute: true` in its attrs to require an exact match. Path parameters use `:name` syntax (`path: '/users/:id'`) and are exposed via `pathParameters`.
+- `fnlink({ to: '/foo' }, 'Go')` — anchor that calls `goTo` on click without full-page reload.
+- `goTo(path, context?, replace?, silent?)` — programmatic navigation.
+- `pathState` — an `fnstate` with `{ rootPath, currentPath, context }`. Bind to it for path-aware UI.
+- `pathParameters` — an `fnstate` holding the current parameter object.
+- `setRootPath(prefix)` — set when the app is served from a subdirectory.
+- `listenFor(event, handler)` — `beforeRouteChange`, `afterRouteChange`, `routeChangeComplete`.
+
+Routes do not rerun their container function on navigation; `route`/`routeSwitch` show and hide children by path.
+
+## SSR — `@srfnstack/fntags-ssr`
+
+- `renderToString({ url, appFn, rootPath?, timeout?, origin? })` → `{ html, state }`.
+  - `appFn` must be a dynamic `import()` of the app module (fnroute touches `window` at module load time; dynamic import avoids running it in Node until the SSR context is set up).
+  - `timeout` defaults to 5 s; applies to async children.
+  - `state` is a serialized snapshot of all `registeredState()` values. Embed it in a `<script>` tag as `window.__FNTAGS_SSR_STATE__ = ...` using `escapeScriptContent(json)` to avoid `</script>` injection.
+- `renderToStream(options)` → `ReadableStream` that flushes synchronous HTML immediately and appends async chunks as they resolve.
+- `hydrate(container, appFn)` — client entry point. Reads `window.__FNTAGS_SSR_STATE__`, populates the registered state registry, and re-renders into `container`.
+
+**State persistence across SSR:** only `registeredState(id, initial, mapKey?)` values are serialized. Plain `fnstate()` values start at their initial value on the client. Use `registeredState` for anything that must carry across the server→client boundary.
+
+## Testing — `@srfnstack/fntags-testing`
+
+Wraps `@testing-library/dom` with fntags-specific render.
+
+- `render(elementOrFn, options?)` → `{ container, baseElement, unmount, debug, ...queries }`.
+- `screen` — queries scoped to `document.body`.
+- `fireEvent.click(el)`, `fireEvent.input(el, { target: { value: 'x' } })`, etc.
+- `waitFor(assertion)` — retries until the assertion passes.
+- `within(element)` — scope queries to a subtree.
+- `cleanup()` — runs between tests; drains pending microtasks so `bindAs` updates settle.
+
+**Critical:** `bindAttr` and `bindStyle` apply synchronously; `bindAs` schedules its replacement on a microtask. After a state change that triggers a `bindAs`, use `await waitFor(...)` (or `await Promise.resolve()`) before asserting on the replaced element.
+
+## HMR — `vite-plugin-fntags`
+
+```javascript
+// vite.config.mjs
+import { fntagsHmr } from 'vite-plugin-fntags'
+export default { plugins: [fntagsHmr()] }
+```
+
+The plugin rewrites `fnstate(value)` declarations into `registeredState('file:scope:varName', value)` in dev so state values survive HMR reloads. In the app entry, mount with `hmrRoot(container, appFn)` so the plugin can re-run `appFn` in place.
+
+Caveats: if you change the *shape* of a state value (e.g. `fnstate(0)` → `fnstate({ count: 0 })`), HMR will return the old shape — do a full reload. Top-level non-function exports do not participate; wrap them in a function.
+
+## Gotchas checklist
+
+An agent writing fntags code should check each of these before handing off:
+
+1. No `bindAs` wraps a whole component, page, route, or list of inputs. Each `bindAs` has the narrowest possible scope.
+2. Every `<input>`, `<textarea>`, and `<select>` binds its `value`/`checked`/`selected` via `bindAttr`, not via a containing `bindAs`.
+3. Every `fnstate` holding an array that is used with `bindChildren` was created with a `mapKey`: `fnstate(items, item => item.id)`.
+4. No code mutates object state directly. Writes go through `assign`, `setPath`, or replace the whole value.
+5. No component function reads `state()` and expects updates. Values that update are passed as `state.bind*(...)` into the tree.
+6. Any state that must survive SSR hydration uses `registeredState(id, initial)`, not plain `fnstate`.
+7. In production builds, `setDevMode(false)` is called at startup (optional, skips dev warnings).
+8. Tests that assert after a `bindAs`-triggered change `await waitFor(...)` instead of reading synchronously.
+9. `bindChildren` is used for arrays; `bindAs` returning an array of elements is not a substitute — it rebuilds the whole list on any change.
+10. The default export of a route module is a function, not a pre-constructed element, unless the element genuinely should be built at module-load time.
+
+## Docs
+
+- [Home](https://srfnstack.github.io/fntags/): overview and why fntags.
+- [Getting Started](https://srfnstack.github.io/fntags/getting-started): install via CDN or npm; first component.
+- [Components](https://srfnstack.github.io/fntags/components): functions that return elements; attributes and children.
+- [State](https://srfnstack.github.io/fntags/state): `fnstate`, all `bind*` methods, selection, object state.
+- [Routing](https://srfnstack.github.io/fntags/routing): path-based routing and lazy route modules.
+- [SSR](https://srfnstack.github.io/fntags/ssr): server-side rendering with `@srfnstack/fntags-ssr`.
+- [Testing](https://srfnstack.github.io/fntags/testing): component tests with `@srfnstack/fntags-testing`.
+- [HMR](https://srfnstack.github.io/fntags/hmr): hot module replacement with the Vite plugin.
+- [API Reference](https://srfnstack.github.io/fntags/api): generated TypeScript docs.
+
+## Source
+
+- Repository: https://github.com/SRFNStack/fntags
+- Core entry points: `src/fntags.mjs` (state + binding), `src/fnelements.mjs` (HTML tag functions), `src/svgelements.mjs` (SVG tag functions), `src/fnroute.mjs` (routing).

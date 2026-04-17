@@ -23,6 +23,7 @@
 - [registeredComponent](fntags.md#registeredcomponent)
 - [registeredState](fntags.md#registeredstate)
 - [renderNode](fntags.md#rendernode)
+- [setDevMode](fntags.md#setdevmode)
 - [styled](fntags.md#styled)
 
 ## Type Aliases
@@ -41,7 +42,7 @@ A container for a state value that can be bound to.
 
 #### Defined in
 
-[fntags.mjs:116](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L116)
+[fntags.mjs:134](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L134)
 
 ## Functions
 
@@ -75,7 +76,7 @@ or the changes won't be reflected correctly and binding updates won't be trigger
 
 #### Defined in
 
-[fntags.mjs:130](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L130)
+[fntags.mjs:148](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L148)
 
 ___
 
@@ -120,7 +121,7 @@ A function that takes a context object and returns a rendered node.
 
 #### Defined in
 
-[fntags.mjs:1058](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L1058)
+[fntags.mjs:1103](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L1103)
 
 ___
 
@@ -144,7 +145,7 @@ the attr object or an empty object
 
 #### Defined in
 
-[fntags.mjs:941](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L941)
+[fntags.mjs:986](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L986)
 
 ___
 
@@ -186,7 +187,7 @@ an html element
 
 #### Defined in
 
-[fntags.mjs:35](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L35)
+[fntags.mjs:51](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L51)
 
 ___
 
@@ -213,7 +214,7 @@ The container element
 
 #### Defined in
 
-[fntags.mjs:1031](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L1031)
+[fntags.mjs:1076](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L1076)
 
 ___
 
@@ -237,7 +238,7 @@ true if the value is an object that can be used as attributes
 
 #### Defined in
 
-[fntags.mjs:932](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L932)
+[fntags.mjs:977](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L977)
 
 ___
 
@@ -264,7 +265,7 @@ A stable proxy function
 
 #### Defined in
 
-[fntags.mjs:984](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L984)
+[fntags.mjs:1029](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L1029)
 
 ___
 
@@ -292,7 +293,7 @@ The state instance from the registry
 
 #### Defined in
 
-[fntags.mjs:1009](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L1009)
+[fntags.mjs:1054](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L1054)
 
 ___
 
@@ -316,7 +317,31 @@ The rendered node
 
 #### Defined in
 
-[fntags.mjs:821](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L821)
+[fntags.mjs:866](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L866)
+
+___
+
+### setDevMode
+
+▸ **setDevMode**(`on`): `void`
+
+Toggle dev-mode warnings. Defaults to true. Call `setDevMode(false)` in
+production to skip diagnostic checks such as the focus-loss warning fired
+when bindAs replaces a subtree containing the focused element.
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `on` | `boolean` |
+
+#### Returns
+
+`void`
+
+#### Defined in
+
+[fntags.mjs:21](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L21)
 
 ___
 
@@ -349,4 +374,4 @@ The styled element
 
 #### Defined in
 
-[fntags.mjs:956](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L956)
+[fntags.mjs:1001](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L1001)

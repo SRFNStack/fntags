@@ -1,5 +1,5 @@
 import { fnstate } from './lib/fntags.mjs'
-import { br, button, code, div, input, span, h3, p, ul, li, flexRow } from './lib/fnelements.mjs'
+import { br, button, code, div, input, span, h3, p, strong, ul, li, flexRow } from './lib/fnelements.mjs'
 import { secondaryColor } from './constants.js'
 import prismCode from './prismCode.js'
 import contentSection from './contentSection.js'
@@ -69,7 +69,25 @@ div(
   )
 })()
     ),
-    p('When `name` changes, only the `span` is replaced. The surrounding `div` is untouched.')
+    p('When `name` changes, only the `span` is replaced. The surrounding `div` is untouched.'),
+    p(strong('Important: '), 'For form inputs (', code('input'), ', ', code('textarea'), ', ', code('select'), '), always bind to the ', code('value'), ' attribute with ', code('bindAttr'), ' — never wrap the input itself in ', code('bindAs'), '. ', code('bindAs'), ' replaces the element on every update, which destroys the currently-focused input and the user loses focus mid-keystroke. fntags emits a dev-mode console warning when this happens; call ', code('setDevMode(false)'), ' to silence it in production.'),
+    prismCode(
+`const name = fnstate('')
+
+// GOOD: bindAttr updates the value in
+// place; focus and cursor are preserved.
+input({
+    value: name.bindAttr(),
+    oninput: e => name(e.target.value)
+})
+
+// BAD: bindAs replaces the input every
+// keystroke; focus is lost on each edit.
+name.bindAs(v => input({
+    value: v,
+    oninput: e => name(e.target.value)
+}))`
+    )
   ),
 
   contentSection(

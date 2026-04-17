@@ -56,7 +56,7 @@ a state change and is a shortcut for `mystate(Object.assign(mystate(), update))`
 
 #### Defined in
 
-[fntags.mjs:104](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L104)
+[fntags.mjs:122](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L122)
 
 ___
 
@@ -70,6 +70,7 @@ ___
 
 Bind this state to the given element function. This causes the element to be replaced when the state changes.
 If called with no parameters, the state's value will be rendered as an element.
+Do not wrap form inputs (input, textarea, select) in bindAs — it replaces the element on every update and the focused input will lose focus mid-keystroke. Bind the `value` attribute with bindAttr instead.
 
 ##### Parameters
 
@@ -83,7 +84,7 @@ If called with no parameters, the state's value will be rendered as an element.
 
 #### Defined in
 
-[fntags.mjs:89](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L89)
+[fntags.mjs:105](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L105)
 
 ___
 
@@ -95,7 +96,8 @@ ___
 
 ▸ (`attribute?`): `any`
 
-Bind attribute values to state changes
+Bind attribute values to state changes.
+Prefer this over bindAs for form inputs: binding the `value` attribute updates the element in place without replacing it, so focus and caret position are preserved.
 
 ##### Parameters
 
@@ -109,7 +111,7 @@ Bind attribute values to state changes
 
 #### Defined in
 
-[fntags.mjs:96](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L96)
+[fntags.mjs:113](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L113)
 
 ___
 
@@ -138,7 +140,7 @@ If the current value is not an array, this will behave the same as bindAs.
 
 #### Defined in
 
-[fntags.mjs:91](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L91)
+[fntags.mjs:108](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L108)
 
 ___
 
@@ -165,7 +167,7 @@ Shortcut for `mystate.bindAs((current)=> current[prop])`
 
 #### Defined in
 
-[fntags.mjs:94](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L94)
+[fntags.mjs:111](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L111)
 
 ___
 
@@ -191,7 +193,7 @@ Bind selected state to an element
 
 #### Defined in
 
-[fntags.mjs:98](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L98)
+[fntags.mjs:116](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L116)
 
 ___
 
@@ -217,7 +219,7 @@ Bind selected state to an attribute
 
 #### Defined in
 
-[fntags.mjs:99](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L99)
+[fntags.mjs:117](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L117)
 
 ___
 
@@ -243,7 +245,7 @@ Bind style values to state changes
 
 #### Defined in
 
-[fntags.mjs:97](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L97)
+[fntags.mjs:115](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L115)
 
 ___
 
@@ -271,7 +273,7 @@ will not be reflected correctly.
 
 #### Defined in
 
-[fntags.mjs:106](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L106)
+[fntags.mjs:124](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L124)
 
 ___
 
@@ -283,7 +285,7 @@ A flag to indicate that this is a fnstate object
 
 #### Defined in
 
-[fntags.mjs:111](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L111)
+[fntags.mjs:129](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L129)
 
 ___
 
@@ -311,7 +313,7 @@ This causes the bound select functions to be executed.
 
 #### Defined in
 
-[fntags.mjs:100](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L100)
+[fntags.mjs:118](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L118)
 
 ___
 
@@ -331,7 +333,7 @@ Get the currently selected key
 
 #### Defined in
 
-[fntags.mjs:103](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L103)
+[fntags.mjs:121](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L121)
 
 ___
 
@@ -359,7 +361,7 @@ Set a value at the given property path
 
 #### Defined in
 
-[fntags.mjs:109](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L109)
+[fntags.mjs:127](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L127)
 
 ___
 
@@ -385,4 +387,4 @@ Register a callback that will be executed whenever the state is changed
 
 #### Defined in
 
-[fntags.mjs:110](https://github.com/SRFNStack/fntags/blob/91025d7/src/fntags.mjs#L110)
+[fntags.mjs:128](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L128)

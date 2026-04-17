@@ -1,4 +1,11 @@
 /**
+ * Toggle dev-mode warnings. Defaults to true. Call `setDevMode(false)` in
+ * production to skip diagnostic checks such as the focus-loss warning fired
+ * when bindAs replaces a subtree containing the focused element.
+ * @param {boolean} on
+ */
+export function setDevMode(on: boolean): void;
+/**
  * A function to create dom elements with the given attributes and children.
  *
  * The first element of the children array can be an object containing element attributes.
@@ -24,12 +31,14 @@ export function h<T extends HTMLElement | SVGElement>(tag: string, ...children: 
  * @typedef FnStateObj A container for a state value that can be bound to.
  * @property {(element?: (newValue: T, oldValue: T)=>(Node|any))=>Node} bindAs Bind this state to the given element function. This causes the element to be replaced when the state changes.
  * If called with no parameters, the state's value will be rendered as an element.
+ * Do not wrap form inputs (input, textarea, select) in bindAs — it replaces the element on every update and the focused input will lose focus mid-keystroke. Bind the `value` attribute with bindAttr instead.
  * @property {(parent: (()=>(Node|any))|any|Node, element: (childState: FnState)=>(Node|any))=>Node} bindChildren Bind the values of this state to the given element.
  * Values are items/elements of an array.
  * If the current value is not an array, this will behave the same as bindAs.
  * @property {(prop: string)=>Node} bindProp Bind to a property of an object stored in this state instead of the state itself.
  * Shortcut for `mystate.bindAs((current)=> current[prop])`
- * @property {(attribute?: (newValue: T, oldValue: T)=>(string|any))=>any} bindAttr Bind attribute values to state changes
+ * @property {(attribute?: (newValue: T, oldValue: T)=>(string|any))=>any} bindAttr Bind attribute values to state changes.
+ * Prefer this over bindAs for form inputs: binding the `value` attribute updates the element in place without replacing it, so focus and caret position are preserved.
  * @property {(style?: (newValue: T, oldValue: T)=>string) => string} bindStyle Bind style values to state changes
  * @property {(element?: (selectedKey: any)=>(Node|any))=>Node} bindSelect Bind selected state to an element
  * @property {(attribute?: (selectedKey: any)=>(string|any))=>any} bindSelectAttr Bind selected state to an attribute
@@ -147,6 +156,7 @@ export type FnStateObj<T> = {
     /**
      * Bind this state to the given element function. This causes the element to be replaced when the state changes.
      * If called with no parameters, the state's value will be rendered as an element.
+     * Do not wrap form inputs (input, textarea, select) in bindAs — it replaces the element on every update and the focused input will lose focus mid-keystroke. Bind the `value` attribute with bindAttr instead.
      */
     bindAs: (element?: (newValue: T, oldValue: T) => (Node | any)) => Node;
     /**
@@ -161,7 +171,8 @@ export type FnStateObj<T> = {
      */
     bindProp: (prop: string) => Node;
     /**
-     * Bind attribute values to state changes
+     * Bind attribute values to state changes.
+     * Prefer this over bindAs for form inputs: binding the `value` attribute updates the element in place without replacing it, so focus and caret position are preserved.
      */
     bindAttr: (attribute?: (newValue: T, oldValue: T) => (string | any)) => any;
     /**
