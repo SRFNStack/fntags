@@ -40,13 +40,25 @@ export function routeSwitch(...children: (any | Node)[]): Node | (() => Node);
  */
 export function fnlink(...children: (any | Node)[]): HTMLAnchorElement;
 /**
- * A function to navigate to the specified route
+ * A function to navigate to the specified route.
+ *
+ * Navigating to the current path with only a different hash or query (for example from /docs to /docs#faq)
+ * and no new context is not a route change: the history entry is updated and the hash target is scrolled
+ * into view, but the route is not re-rendered and no route events are emitted.
  * @param {string} route The route to navigate to
- * @param {any} context Data related to the route change
+ * @param {any} [context] Data related to the route change
  * @param {boolean} replace Whether to replace the state or push it. pushState is used by default.
  * @param {boolean} silent Prevent route change events from being emitted for this route change
  */
 export function goTo(route: string, context?: any, replace?: boolean, silent?: boolean): void;
+/**
+ * Scroll the element whose id matches the hash into view. If the element does not exist yet, for example because
+ * the route's content is a promise that has not resolved, wait for it to be added to the document and scroll then.
+ * With no hash, scroll to the top of the page.
+ * @param {string|null|undefined} hash The hash to scroll to, with or without the leading #
+ * @param {number} [timeout] How long to wait for the element to appear, in milliseconds
+ */
+export function scrollToHash(hash: string | null | undefined, timeout?: number): void;
 /**
  * Listen for routing events
  * @param {string} event a string event to listen for

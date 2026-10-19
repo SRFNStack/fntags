@@ -81,6 +81,8 @@ export function h (tag, ...children) {
   for (let i = firstChildIdx; i < children.length; i++) {
     const child = children[i]
     if (Array.isArray(child)) {
+      // Append array items directly to skip the DocumentFragment renderNode would build.
+      // Nested arrays inside still go through renderNode, which flattens them.
       for (const c of child) {
         element.append(renderNode(c))
       }
@@ -500,6 +502,15 @@ function doBindChildren (parent, element) {
   return parent
 }
 
+// A bound function must produce exactly one node. A DocumentFragment empties
+// itself when inserted, so there would be nothing left to replaceWith on the
+// next state change and the binding would silently stop updating.
+function assertSingleNode (evaluated, name) {
+  if (Array.isArray(evaluated)) {
+    throw new Error(name + ' functions must return a single node, not an array. Wrap the array in an element, e.g. div(...items).')
+  }
+}
+
 const doBind = function (ctx, element, handleReplace) {
   if (typeof element !== 'function') {
     throw new Error('You must pass a function to bind with')
@@ -512,6 +523,7 @@ const doBind = function (ctx, element, handleReplace) {
   const thisRenderCleanups = []
   activeRenderCleanups = thisRenderCleanups
   const evaluated = evaluateElement(element, ctx.currentValue)
+  assertSingleNode(evaluated, 'bindAs')
   const childElCtx = (typeof evaluated === 'function' && evaluated.isBindGetter)
     ? evaluated.elCtx
     : null
@@ -611,6 +623,7 @@ const updateReplacer = (ctx, element, elCtx) => (_, oldValue) => {
   const thisRenderCleanups = []
   activeRenderCleanups = thisRenderCleanups
   const evaluated = evaluateElement(element, ctx.currentValue, oldValue)
+  assertSingleNode(evaluated, 'bindAs')
   const childElCtx = (typeof evaluated === 'function' && evaluated.isBindGetter)
     ? evaluated.elCtx
     : null
@@ -790,7 +803,9 @@ function arrangeElements (ctx, bindContext, oldState) {
       const thisElementCleanups = []
       activeRenderCleanups = thisElementCleanups
       // Pass the valueState (the fnstate wrapper) to the user's element builder
-      current = bindContext.boundElementByKey[key] = renderNode(evaluateElement(bindContext.element, valueState))
+      const evaluated = evaluateElement(bindContext.element, valueState)
+      assertSingleNode(evaluated, 'bindChildren')
+      current = bindContext.boundElementByKey[key] = renderNode(evaluated)
       activeRenderCleanups = prevCleanups
       bindContext.elementCleanups[key] = thisElementCleanups
       current.key = key
@@ -859,7 +874,8 @@ const evaluateElement = (element, value, oldValue) => {
 }
 
 /**
- * Convert non objects (objects are assumed to be nodes) to text nodes and allow promises to resolve to nodes
+ * Convert non objects (objects are assumed to be nodes) to text nodes and allow promises to resolve to nodes.
+ * Arrays are flattened at any depth into a DocumentFragment.
  * @param {any} node The node to render
  * @returns {Node} The rendered node
  */
@@ -868,6 +884,15 @@ export function renderNode (node) {
     const element = h('div')
     node(element, 'node')
     return element
+  } else if (Array.isArray(node)) {
+    // Arrays (including nested arrays and arrays resolved from promises) are
+    // flattened into a DocumentFragment so each item lands in the DOM as its
+    // own node. Without this, append/replaceWith would stringify the array.
+    const frag = document.createDocumentFragment()
+    for (const child of node) {
+      frag.append(renderNode(child))
+    }
+    return frag
   } else if (node && typeof node === 'object') {
     if (typeof node.then === 'function') {
       let temp = h('div', { style: 'display:none', class: 'fntags-promise-marker' })

@@ -106,7 +106,7 @@ function updatePathParameters () {
  * @returns {HTMLAnchorElement} An anchor element that will navigate to the specified route when clicked
  */
 export function fnlink (...children) {
-  let context = null
+  let context
   if (children[0] && children[0].context) {
     context = children[0].context
   }
@@ -129,21 +129,36 @@ export function fnlink (...children) {
 }
 
 /**
- * A function to navigate to the specified route
+ * A function to navigate to the specified route.
+ *
+ * Navigating to the current path with only a different hash or query (for example from /docs to /docs#faq)
+ * and no new context is not a route change: the history entry is updated and the hash target is scrolled
+ * into view, but the route is not re-rendered and no route events are emitted.
  * @param {string} route The route to navigate to
- * @param {any} context Data related to the route change
+ * @param {any} [context] Data related to the route change
  * @param {boolean} replace Whether to replace the state or push it. pushState is used by default.
  * @param {boolean} silent Prevent route change events from being emitted for this route change
  */
-export function goTo (route, context = {}, replace = false, silent = false) {
+export function goTo (route, context, replace = false, silent = false) {
   const newPath = window.location.origin + makePath(route)
+  const hash = newPath.indexOf('#') > -1 ? newPath.split('#')[1] : null
+  const oldPathState = pathState()
+  const currentPath = ensureOnlyLeadingSlash(route.split(/[#?]/)[0])
 
-  const patch = {
-    currentPath: route.split(/[#?]/)[0],
-    context
+  if (currentPath === oldPathState.currentPath && context === undefined) {
+    if (replace) {
+      history.replaceState({}, route, newPath)
+    } else {
+      history.pushState({}, route, newPath)
+    }
+    scrollToHash(hash)
+    return
   }
 
-  const oldPathState = pathState()
+  const patch = {
+    currentPath,
+    context: context === undefined ? {} : context
+  }
   const newPathState = Object.assign({}, oldPathState, patch)
   if (!silent) {
     try {
@@ -160,23 +175,57 @@ export function goTo (route, context = {}, replace = false, silent = false) {
   }
 
   setTimeout(() => {
-    pathState.assign({
-      currentPath: route.split(/[#?]/)[0],
-      context
-    })
+    pathState.assign(patch)
     if (!silent) {
       emit(afterRouteChange, newPathState, oldPathState)
     }
-    if (newPath.indexOf('#') > -1) {
-      const el = document.getElementById(decodeURIComponent(newPath.split('#')[1]))
-      el && el.scrollIntoView()
-    } else {
-      window.scrollTo(0, 0)
-    }
+    scrollToHash(hash)
     if (!silent) {
       emit(routeChangeComplete, newPathState, oldPathState)
     }
   })
+}
+
+let cancelPendingScroll = null
+
+/**
+ * Scroll the element whose id matches the hash into view. If the element does not exist yet, for example because
+ * the route's content is a promise that has not resolved, wait for it to be added to the document and scroll then.
+ * With no hash, scroll to the top of the page.
+ * @param {string|null|undefined} hash The hash to scroll to, with or without the leading #
+ * @param {number} [timeout] How long to wait for the element to appear, in milliseconds
+ */
+export function scrollToHash (hash, timeout = 5000) {
+  if (cancelPendingScroll) {
+    cancelPendingScroll()
+  }
+  const id = hash ? decodeURIComponent(hash.startsWith('#') ? hash.slice(1) : hash) : ''
+  if (!id) {
+    window.scrollTo(0, 0)
+    return
+  }
+  const scrollIfPresent = () => {
+    const el = document.getElementById(id)
+    if (el) {
+      el.scrollIntoView()
+    }
+    return !!el
+  }
+  if (scrollIfPresent() || typeof MutationObserver === 'undefined') {
+    return
+  }
+  const observer = new MutationObserver(() => {
+    if (scrollIfPresent()) {
+      cancelPendingScroll()
+    }
+  })
+  const timer = setTimeout(() => cancelPendingScroll(), timeout)
+  cancelPendingScroll = () => {
+    observer.disconnect()
+    clearTimeout(timer)
+    cancelPendingScroll = null
+  }
+  observer.observe(document.documentElement, { childList: true, subtree: true })
 }
 
 const ensureOnlyLeadingSlash = (part) => removeTrailingSlash(part.startsWith('/') ? part : '/' + part)
@@ -280,6 +329,12 @@ window.addEventListener(
     const patch = {
       currentPath: ensureOnlyLeadingSlash(window.location.pathname.replace(new RegExp('^' + pathState().rootPath), '')) || '/'
     }
+    // Clicking <a href="#section"> and moving back/forward between hash entries fire popstate without
+    // changing the path. That is not a route change, so leave the rendered route alone and let the
+    // browser handle scrolling to the fragment.
+    if (patch.currentPath === oldPathState.currentPath) {
+      return
+    }
     const newPathState = Object.assign({}, oldPathState, patch)
     try {
       emit(beforeRouteChange, newPathState, oldPathState)
@@ -293,6 +348,12 @@ window.addEventListener(
     emit(routeChangeComplete, newPathState, oldPathState)
   }
 )
+
+// On initial load the browser only scrolls to the hash if the target already exists. When the target is inside
+// a route whose content has not rendered yet, wait for it the same way goTo does.
+if (window.location.hash && !document.getElementById(decodeURIComponent(window.location.hash.slice(1)))) {
+  scrollToHash(window.location.hash)
+}
 
 const makePath = path => (pathState().rootPath === '/' ? '' : pathState().rootPath) + ensureOnlyLeadingSlash(path)
 

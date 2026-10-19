@@ -81,6 +81,20 @@ fnlink(
 `import { goTo } from './lib/fnroute.mjs'
 
 goTo('/profile')`
+    ),
+    p('Navigating to the current path with a different hash, for example from ', code('/docs'), ' to ', code('/docs#faq'), ', is not a route change. ',
+      'The history entry is updated and the target is scrolled into view, but the route is not re-rendered and no routing events fire. ',
+      'This applies to ', code('goTo'), ', to plain ', code('<a href="#faq">'), ' links, and to using the back and forward buttons between hash entries.'),
+    p('If the hash target is inside a route whose content is still loading (a promise), ', code('goTo'), ' waits for the element to be added to the page and scrolls to it then. ',
+      'The same helper is exported as ', code('scrollToHash'), ' and runs on initial load when the hash target is not yet in the document.'),
+    prismCode(
+`import { goTo, scrollToHash } from './lib/fnroute.mjs'
+
+// scrolls to #faq once the lazily loaded docs route has rendered it
+goTo('/docs#faq')
+
+// the same thing without navigating
+scrollToHash('#faq')`
     )
   ),
 
@@ -144,6 +158,36 @@ listenFor(
         )
     }
 )`
+    )
+  ),
+
+  contentSection(
+    'Page Title & Head Metadata',
+    p('fnroute does not manage the document head. Setting the title, description, or robots tags per route is a few lines on ', code('routeChangeComplete'), ' and is left to the app so the library stays small.'),
+    prismCode(
+`import { listenFor, routeChangeComplete } from './lib/fnroute.mjs'
+
+const head = {
+    '/': { title: 'Home', description: 'Welcome' },
+    '/about': { title: 'About', description: 'Who we are', robots: 'noindex' }
+}
+
+const setMeta = (name, content) => {
+    let el = document.querySelector('meta[name="' + name + '"]')
+    if (!el) {
+        el = document.createElement('meta')
+        el.setAttribute('name', name)
+        document.head.append(el)
+    }
+    el.setAttribute('content', content || '')
+}
+
+listenFor(routeChangeComplete, ({ currentPath }) => {
+    const meta = head[currentPath] || {}
+    document.title = meta.title || 'My App'
+    setMeta('description', meta.description)
+    setMeta('robots', meta.robots)
+})`
     )
   ),
 

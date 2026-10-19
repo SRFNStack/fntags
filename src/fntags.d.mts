@@ -72,7 +72,8 @@ export function h<T extends HTMLElement | SVGElement>(tag: string, ...children: 
  */
 export function fnstate<T>(initialValue: T, mapKey?: (T: any) => any): FnState<T>;
 /**
- * Convert non objects (objects are assumed to be nodes) to text nodes and allow promises to resolve to nodes
+ * Convert non objects (objects are assumed to be nodes) to text nodes and allow promises to resolve to nodes.
+ * Arrays are flattened at any depth into a DocumentFragment.
  * @param {any} node The node to render
  * @returns {Node} The rendered node
  */
