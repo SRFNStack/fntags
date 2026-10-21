@@ -327,10 +327,11 @@ describe('fntemplate', () => {
     expect(container.children.length).toBe(3)
     expect(container.children[1].querySelector('a').textContent).toBe('two')
     const bindContext = items._ctx.bindContexts[0]
-    expect(Object.keys(bindContext.elementCleanups).length).toBe(3)
+    expect(bindContext.items.size).toBe(3)
+    expect([...bindContext.items.values()].every(it => it.cleanups && it.cleanups.length > 0)).toBe(true)
     expect(Object.keys(items._ctx.selectObservers).length).toBe(3)
 
-    const observersBefore = bindContext.elementStates[2]._ctx.observers.length
+    const observersBefore = bindContext.items.get(2).state._ctx.observers.length
     expect(observersBefore).toBeGreaterThan(0)
 
     // update through the array, like the benchmark's update handler
@@ -342,13 +343,12 @@ describe('fntemplate', () => {
     expect(container.children[1].className).toBe('danger')
 
     // remove via the template's event handler
-    const removed = bindContext.elementStates[2]
+    const removed = bindContext.items.get(2).state
     container.children[1].querySelector('span').click()
     expect(container.children.length).toBe(2)
     expect(container.children[0].getAttribute('id')).toBe('1')
     expect(container.children[1].getAttribute('id')).toBe('3')
-    expect(bindContext.elementCleanups[2]).toBeUndefined()
-    expect(bindContext.elementStates[2]).toBeUndefined()
+    expect(bindContext.items.get(2)).toBeUndefined()
     expect(items._ctx.selectObservers[2]).toBeUndefined()
     // the removed item's bindAs subscription was torn down
     expect(removed._ctx.observers.length).toBeLessThan(observersBefore)
