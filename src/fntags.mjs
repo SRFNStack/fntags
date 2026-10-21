@@ -4,7 +4,26 @@
 
 // Tracks subscriptions created during a bindAs render so they can be cleaned
 // up when the bindAs re-renders. null means we are not inside a render.
+// NO_CLEANUPS means we are inside a render that has not registered a cleanup
+// yet: its push materializes a real array on the first registration, so a
+// render that registers nothing (the common case) allocates nothing. Foreign
+// `activeRenderCleanups.push(fn)` call sites keep working against it.
+const NO_CLEANUPS = {
+  push (fn) {
+    activeRenderCleanups = [fn]
+  }
+}
 let activeRenderCleanups = null
+
+function registerCleanup (fn) {
+  if (activeRenderCleanups !== null) activeRenderCleanups.push(fn)
+}
+
+// The cleanups registered during the render that just finished, or null when
+// none were registered.
+function takeRenderCleanups () {
+  return activeRenderCleanups === NO_CLEANUPS ? null : activeRenderCleanups
+}
 
 // When on, the framework emits console warnings for misuse that is easy to
 // hit and hard to diagnose (e.g. bindAs replacing a focused input, omitting
@@ -22,10 +41,11 @@ export function setDevMode (on) {
   devMode = !!on
 }
 
-function runCleanups (elCtx) {
-  if (!elCtx.cleanups) return
-  for (const unsub of elCtx.cleanups) unsub()
-  elCtx.cleanups = null
+function runCleanups (bindCtx) {
+  const cleanups = bindCtx.cleanups
+  if (cleanups === null) return
+  bindCtx.cleanups = null
+  for (let i = 0; i < cleanups.length; i++) cleanups[i]()
 }
 
 /**
@@ -144,6 +164,19 @@ function appendChild (element, child) {
   }
 }
 
+// Shared, frozen "nothing registered yet" values. A state only pays for an
+// observer list or a select observer map once something subscribes to it.
+// They are frozen so a stray write fails loudly instead of leaking between
+// states; reads, iteration and `delete` of absent keys behave like an empty
+// array or object.
+const EMPTY_OBSERVERS = Object.freeze([])
+const EMPTY_SELECT_OBSERVERS = Object.freeze({})
+
+// Every fnstate function shares this prototype, so creating a state does not
+// copy the method table onto the function. The methods read the state's
+// context through `this._ctx`, the only own property a state function has.
+const fnStateProto = Object.create(Function.prototype)
+
 /**
  * @template T The type of data stored in the state container
  * @typedef FnStateObj A container for a state value that can be bound to.
@@ -191,247 +224,277 @@ function appendChild (element, child) {
  * or the changes won't be reflected correctly and binding updates won't be triggered even though the state appears to be correct.
  */
 export function fnstate (initialValue, mapKey) {
+  // Every field is declared here so all contexts share one hidden class.
   const ctx = {
     currentValue: initialValue,
-    observers: [],
+    // Callbacks, or binding objects with an update(newValue, oldValue) method.
+    observers: EMPTY_OBSERVERS,
+    // Depth of notify() calls in progress. While non-zero, observer list
+    // changes copy the list instead of mutating the one being iterated.
+    notifying: 0,
     bindContexts: [],
-    selectObservers: {},
-    nextId: 0,
+    selectObservers: EMPTY_SELECT_OBSERVERS,
+    selected: undefined,
     mapKey,
-    state (newState) {
-      if (arguments.length === 0 || (arguments.length === 1 && arguments[0] === ctx.state)) {
-        return ctx.currentValue
-      } else {
-        const oldState = ctx.currentValue
-        ctx.currentValue = newState
-        const snapshot = ctx.observers.slice()
-        for (const observer of snapshot) {
-          observer.fn(newState, oldState)
-        }
-      }
-      return newState
-    }
+    // The context of the bindChildren state this state is an item of.
+    parentCtx: null,
+    state: null
   }
-  // make context available to static functions to avoid declaring functions on every new state
-  ctx.state._ctx = ctx
-
-  /**
-   * Bind this state to the given element
-   *
-   * @param {((T)=>(Node|any))?} [element] The element to bind to. If not a function, an update function must be passed. If not passed, defaults to the state's value
-   * @returns {()=>Node}
-   */
-  ctx.state.bindAs = doBindAs
-
-  /**
-   * Bind the values of this state to the given element.
-   * Values are items/elements of an array.
-   * If the current value is not an array, this will behave the same as bindAs.
-   *
-   * @param {(()=>(Node|any)) | Node | any} parent The parent to bind the children to.
-   * @param {(childState: FnState)=>(Node|any)} element A function that receives each element wrapped as a fnstate and produces an element
-   * @returns {Node}
-   */
-  ctx.state.bindChildren = doBindChildren
-
-  /**
-   * Bind to a property of an object stored in this state instead of the state itself.
-   *
-   * Shortcut for `mystate.bindAs((current)=> current[prop])`
-   *
-   * @param {string} prop The object property to bind as
-   * @returns {()=>Node}
-   */
-  ctx.state.bindProp = doBindProp
-
-  /**
-   * Bind attribute values to state changes
-   * @param {(()=>(string|any))?} [attribute] A function that returns an attribute value. If not passed, defaults to the state's value
-   * @returns {()=>(string|any)} A function that calls the passed function, with some extra metadata
-   */
-  ctx.state.bindAttr = doBindAttr
-
-  /**
-   * Bind style values to state changes
-   * @param {(()=>string)?} [style] A function that returns a style's value. If not passed, defaults to the state's value
-   * @returns {()=>Node} A function that calls the passed function, with some extra metadata
-   */
-  ctx.state.bindStyle = doBindStyle
-
-  /**
-   * Bind select and deselect to an element
-   * @param {(()=>(Node|any))?} [element] The element to bind to. If not passed, defaults to the state's value
-   * @returns {()=>Node}
-   */
-  ctx.state.bindSelect = doBindSelect
-
-  /**
-   * Bind select and deselect to an attribute
-   * @param {(()=>(string|any))?} [attribute] A function that returns an attribute value. If not passed, defaults to the state's value
-   * @returns {()=>(string|any)} A function that calls the passed function, with some extra metadata
-   */
-  ctx.state.bindSelectAttr = doBindSelectAttr
-
-  /**
-   * Mark the element with the given key as selected. This causes the bound select functions to be executed.
-   */
-  ctx.state.select = doSelect
-
-  /**
-   * Get the currently selected key
-   * @returns {any}
-   */
-  ctx.state.selected = doSelected
-
-  ctx.state.isFnState = true
-
-  /**
-   * Perform an Object.assign() on the current state using the provided update
-   * @param {T} [update]
-   */
-  ctx.state.assign = doAssign
-
-  /**
-   * Get a value at the given property path, an error is thrown if the value is not an object
-   *
-   * This returns a reference to the real current value. If you perform any modifications to the object, be sure to call setPath after you're done or the changes
-   * will not be reflected correctly.
-   * @param {string} [path] a json path type path that points to a property
-   */
-  ctx.state.getPath = doGetPath
-
-  /**
-   * Set a value at the given property path
-   * @param {string} path The JSON path of the value to set
-   * @param {any} value The value to set the path to
-   * @param {boolean} fillWithObjects Whether to replace non object values with new empty objects.
-   */
-  ctx.state.setPath = doSetPath
-
-  /**
-   * Register a callback that will be executed whenever the state is changed
-   * @param {(newValue:T,oldValue:T)=>void} callback
-   * @return {()=>void} a function to stop the subscription
-   */
-  ctx.state.subscribe = doSubscribe
-
-  return ctx.state
+  const state = function (newState) {
+    // `arguments` is only consulted when the argument is undefined, to tell
+    // state() (a read) from state(undefined) (a write of undefined).
+    if (newState === undefined ? arguments.length === 0 : newState === state) {
+      return ctx.currentValue
+    }
+    const oldState = ctx.currentValue
+    ctx.currentValue = newState
+    notify(ctx, newState, oldState)
+    return newState
+  }
+  Object.setPrototypeOf(state, fnStateProto)
+  // make context available to the shared methods to avoid declaring functions on every new state
+  state._ctx = ctx
+  ctx.state = state
+  return state
 }
 
+function notify (ctx, newState, oldState) {
+  const observers = ctx.observers
+  if (observers.length === 0) return
+  ctx.notifying++
+  try {
+    // Observers added or removed during this loop never touch this array
+    // (see addObserver/removeObserver), so no snapshot copy is needed.
+    for (let i = 0; i < observers.length; i++) {
+      const observer = observers[i]
+      if (typeof observer === 'function') {
+        observer(newState, oldState)
+      } else {
+        observer.update(newState, oldState)
+      }
+    }
+  } finally {
+    ctx.notifying--
+  }
+}
+
+function addObserver (ctx, observer) {
+  const observers = ctx.observers
+  if (observers === EMPTY_OBSERVERS) {
+    ctx.observers = [observer]
+  } else if (ctx.notifying !== 0) {
+    const copy = observers.slice()
+    copy.push(observer)
+    ctx.observers = copy
+  } else if (observers.length === 1) {
+    // A literal is sized exactly; push would grow the backing store to 17 slots.
+    ctx.observers = [observers[0], observer]
+  } else {
+    observers.push(observer)
+  }
+}
+
+function removeObserver (ctx, observer) {
+  const observers = ctx.observers
+  const idx = observers.indexOf(observer)
+  if (idx === -1) return
+  if (ctx.notifying !== 0) {
+    const copy = observers.slice()
+    copy.splice(idx, 1)
+    ctx.observers = copy
+  } else {
+    observers.splice(idx, 1)
+  }
+}
+
+/**
+ * Register a callback that will be executed whenever the state is changed
+ * @param {(newValue:T,oldValue:T)=>void} callback
+ * @return {()=>void} a function to stop the subscription
+ */
 function doSubscribe (callback) {
   const ctx = this._ctx
-  const id = ctx.nextId++
-  ctx.observers.push({ id, fn: callback })
-  // Idempotent unsub — safe to call multiple times
+  addObserver(ctx, callback)
+  // Idempotent unsub, safe to call multiple times even if the same callback
+  // was subscribed more than once.
   let active = true
   const unsub = () => {
     if (!active) return
     active = false
-    const idx = ctx.observers.findIndex(l => l.id === id)
-    if (idx !== -1) ctx.observers.splice(idx, 1)
+    removeObserver(ctx, callback)
   }
   // If we're inside a bindAs render, register this subscription for cleanup
   // on the next re-render. This prevents nested bindAs/bindAttr/bindStyle
   // subscriptions from accumulating when the parent bindAs re-renders.
-  if (activeRenderCleanups !== null) {
-    activeRenderCleanups.push(unsub)
-  }
+  registerCleanup(unsub)
   return unsub
 }
 
-const subscribeSelect = (ctx, callback) => {
-  const parentCtx = ctx.state.parentCtx
+// Register an observer of the parent list state's selection for the item
+// held by ctx, keyed by the item's key. Returns the key so the caller can
+// remove the observer later.
+function addSelectObserver (ctx, observer) {
+  const parentCtx = ctx.parentCtx
   const key = keyMapper(parentCtx.mapKey, ctx.currentValue, 0)
-  if (parentCtx.selectObservers[key] === undefined) {
-    parentCtx.selectObservers[key] = []
+  let selectObservers = parentCtx.selectObservers
+  if (selectObservers === EMPTY_SELECT_OBSERVERS) {
+    selectObservers = parentCtx.selectObservers = {}
   }
-  parentCtx.selectObservers[key].push(callback)
-
-  // Return an unsub that removes this callback, and register it in
-  // activeRenderCleanups so parent bindAs re-renders clean it up.
-  let active = true
-  const unsub = () => {
-    if (!active) return
-    active = false
-    const arr = parentCtx.selectObservers[key]
-    if (arr) {
-      const idx = arr.indexOf(callback)
-      if (idx !== -1) arr.splice(idx, 1)
-      if (arr.length === 0) delete parentCtx.selectObservers[key]
-    }
+  const list = selectObservers[key]
+  if (list === undefined) {
+    selectObservers[key] = [observer]
+  } else {
+    list.push(observer)
   }
-  if (activeRenderCleanups !== null) {
-    activeRenderCleanups.push(unsub)
-  }
-  return unsub
+  return key
 }
 
-function doBindSelectAttr (attribute) {
-  attribute = attribute ?? this
-  const ctx = this._ctx
-  const attrFn = (attribute && !attribute.isFnState && typeof attribute === 'function')
-    ? (...args) => attribute(args.length > 0 ? args[0] : ctx.selected)
-    : attribute
-  const boundAttr = createBoundAttr(attrFn, this)
-  boundAttr.init = (attrName, element) =>
-    subscribeSelect(ctx, (selectedKey) => setAttribute(attrName, attribute.isFnState ? attribute() : attribute(selectedKey), element))
-  return boundAttr
+function removeSelectObserver (parentCtx, key, observer) {
+  const list = parentCtx.selectObservers[key]
+  if (list === undefined) return
+  const idx = list.indexOf(observer)
+  if (idx !== -1) list.splice(idx, 1)
+  if (list.length === 0) delete parentCtx.selectObservers[key]
 }
 
-function createBoundAttr (attr, state) {
-  if (typeof attr !== 'function') {
+const ATTR = 0
+const STYLE = 1
+
+// An observer that writes a bound attribute or style to its element. Stored
+// directly in the observer lists instead of a closure per subscription.
+function AttrBinding (kind, name, element, fn) {
+  this.kind = kind
+  this.name = name
+  this.element = element
+  this.fn = fn
+}
+
+AttrBinding.prototype.update = function (newValue, oldValue) {
+  const fn = this.fn
+  const value = fn.isFnState ? fn() : fn(newValue, oldValue)
+  if (this.kind === STYLE) {
+    this.element.style[this.name] = value
+  } else {
+    setAttribute(this.name, value, this.element)
+  }
+}
+
+// Build the function h() recognises as a bound attribute. setAttribute calls
+// init(attrName, element) to register the binding, then calls the function
+// itself for the initial value. Both closures share one context.
+function createBoundAttr (fn, state, select) {
+  if (typeof fn !== 'function') {
     throw new Error('You must pass a function to bindAttr')
   }
-  // wrap the function to avoid modifying it
-  const boundAttr = () => attr(state())
+  const boundAttr = () => fn.isFnState ? fn() : fn(state())
   boundAttr.isBoundAttribute = true
+  boundAttr.init = select
+    ? (attrName, element) => {
+        const binding = new AttrBinding(ATTR, attrName, element, fn)
+        const key = addSelectObserver(state._ctx, binding)
+        if (activeRenderCleanups !== null) {
+          registerCleanup(() => removeSelectObserver(state._ctx.parentCtx, key, binding))
+        }
+      }
+    : (attrName, element) => {
+        const binding = new AttrBinding(ATTR, attrName, element, fn)
+        addObserver(state._ctx, binding)
+        if (activeRenderCleanups !== null) {
+          registerCleanup(() => removeObserver(state._ctx, binding))
+        }
+      }
   return boundAttr
 }
 
+/**
+ * Bind select and deselect to an attribute
+ * @param {(()=>(string|any))?} [attribute] A function that returns an attribute value. If not passed, defaults to the state's value
+ * @returns {()=>(string|any)} A function that calls the passed function, with some extra metadata
+ */
+function doBindSelectAttr (attribute) {
+  return createBoundAttr(attribute ?? this, this, true)
+}
+
+/**
+ * Bind attribute values to state changes
+ * @param {(()=>(string|any))?} [attribute] A function that returns an attribute value. If not passed, defaults to the state's value
+ * @returns {()=>(string|any)} A function that calls the passed function, with some extra metadata
+ */
 function doBindAttr (attribute) {
-  attribute = attribute ?? this
-  const boundAttr = createBoundAttr(attribute, this)
-  boundAttr.init = (attrName, element) => {
-    setAttribute(attrName, attribute.isFnState ? attribute() : attribute(this()), element)
-    this.subscribe((newState, oldState) => setAttribute(attrName, attribute.isFnState ? attribute() : attribute(newState, oldState), element))
-  }
-  return boundAttr
+  return createBoundAttr(attribute ?? this, this, false)
 }
 
+/**
+ * Bind style values to state changes
+ * @param {(()=>string)?} [style] A function that returns a style's value. If not passed, defaults to the state's value
+ * @returns {()=>Node} A function that calls the passed function, with some extra metadata
+ */
 function doBindStyle (style) {
-  style = style ?? this
-  if (typeof style !== 'function') {
+  const fn = style ?? this
+  if (typeof fn !== 'function') {
     throw new Error('You must pass a function to bindStyle')
   }
-  const boundStyle = () => style()
+  const ctx = this._ctx
+  const state = this
+  const boundStyle = () => fn.isFnState ? fn() : fn(state())
   boundStyle.isBoundStyle = true
   boundStyle.init = (styleName, element) => {
-    element.style[styleName] = style.isFnState ? style() : style(this())
-    this.subscribe((newState, oldState) => { element.style[styleName] = style.isFnState ? style() : style(newState, oldState) })
+    const binding = new AttrBinding(STYLE, styleName, element, fn)
+    addObserver(ctx, binding)
+    if (activeRenderCleanups !== null) {
+      registerCleanup(() => removeObserver(ctx, binding))
+    }
   }
   return boundStyle
 }
 
-function doSelect (key) {
-  const ctx = this._ctx
-  const currentSelected = ctx.selected
-  ctx.selected = key
-  if (ctx.selectObservers[currentSelected] !== undefined) {
-    for (const obs of ctx.selectObservers[currentSelected].slice()) obs(ctx.selected)
-  }
-  if (ctx.selectObservers[ctx.selected] !== undefined) {
-    for (const obs of ctx.selectObservers[ctx.selected].slice()) obs(ctx.selected)
+function notifySelect (observers, key) {
+  if (observers === undefined) return
+  const snapshot = observers.slice()
+  for (let i = 0; i < snapshot.length; i++) {
+    const observer = snapshot[i]
+    if (typeof observer === 'function') {
+      observer(key)
+    } else {
+      observer.update(key)
+    }
   }
 }
 
+/**
+ * Mark the element with the given key as selected. This causes the bound select functions to be executed.
+ */
+function doSelect (key) {
+  const ctx = this._ctx
+  const previous = ctx.selected
+  ctx.selected = key
+  notifySelect(ctx.selectObservers[previous], key)
+  notifySelect(ctx.selectObservers[key], key)
+}
+
+/**
+ * Get the currently selected key
+ * @returns {any}
+ */
 function doSelected () {
   return this._ctx.selected
 }
 
+/**
+ * Perform an Object.assign() on the current state using the provided update
+ * @param {T} [update]
+ */
 function doAssign (update) {
   return this(Object.assign(this._ctx.currentValue, update))
 }
 
+/**
+ * Get a value at the given property path, an error is thrown if the value is not an object
+ *
+ * This returns a reference to the real current value. If you perform any modifications to the object, be sure to call setPath after you're done or the changes
+ * will not be reflected correctly.
+ * @param {string} [path] a json path type path that points to a property
+ */
 function doGetPath (path) {
   const ctx = this._ctx
   if (typeof path !== 'string') {
@@ -454,6 +517,12 @@ function doGetPath (path) {
     )
 }
 
+/**
+ * Set a value at the given property path
+ * @param {string} path The JSON path of the value to set
+ * @param {any} value The value to set the path to
+ * @param {boolean} fillWithObjects Whether to replace non object values with new empty objects.
+ */
 function doSetPath (path, value, fillWithObjects = false) {
   const ctx = this._ctx
   const s = path.split('.')
@@ -477,6 +546,14 @@ function doSetPath (path, value, fillWithObjects = false) {
   }
 }
 
+/**
+ * Bind to a property of an object stored in this state instead of the state itself.
+ *
+ * Shortcut for `mystate.bindAs((current)=> current[prop])`
+ *
+ * @param {string} prop The object property to bind as
+ * @returns {()=>Node}
+ */
 function doBindProp (prop) {
   return this.bindAs((st) => st[prop])
 }
@@ -555,72 +632,174 @@ function assertSingleNode (evaluated, name) {
   }
 }
 
-const doBind = function (ctx, element, handleReplace) {
+// The context of one bindAs/bindSelect binding. It is registered directly as
+// the observer of its state (or of the parent's selection), so a binding costs
+// one object instead of a subscription closure, an unsubscribe closure and an
+// update closure. Every field is declared so all instances share one shape.
+function BindCtx (ctx, element, current, cleanups, select) {
+  this.ctx = ctx
+  this.element = element
+  this.current = current
+  // Cleanups registered during the latest render of this binding, or null.
+  this.cleanups = cleanups
+  this.select = select
+  this.selectKey = undefined
+  // Ancestor BindCtxs whose .current was this binding's node, see addParentRef.
+  this.parentRefs = null
+  this.dead = false
+}
+
+// Called by notify() on a state change, or by doSelect with the selected key.
+BindCtx.prototype.update = function (newValue, oldValue) {
+  const ctx = this.ctx
+  // Clean up subscriptions from the previous render before re-rendering.
+  // This prevents nested bindAs/bindAttr/bindStyle subscriptions from
+  // accumulating each time the parent state changes.
+  runCleanups(this)
+
+  // Track subscriptions created during this re-render for cleanup next time.
+  const prevRenderCleanups = activeRenderCleanups
+  activeRenderCleanups = NO_CLEANUPS
+  const evaluated = evaluateElement(this.element, ctx.currentValue, oldValue)
+  assertSingleNode(evaluated, 'bindAs')
+  const childBindCtx = (typeof evaluated === 'function' && evaluated.isBindGetter)
+    ? evaluated.elCtx
+    : null
+  const rendered = renderNode(evaluated)
+  this.cleanups = takeRenderCleanups()
+  activeRenderCleanups = prevRenderCleanups
+
+  if (rendered !== undefined) {
+    // If this bindAs renders the root node of a bindChildren item, point the
+    // item at the new node so the next arrange pass sees the live node.
+    rebindItemNode(this.current, rendered)
+    // Re-establish the parent-ref link when a re-render resolves to another
+    // nested bind getter, so future child swaps propagate back to this BindCtx.
+    if (childBindCtx !== null && childBindCtx.current === rendered) {
+      addParentRef(childBindCtx, this)
+    }
+    // Perform the DOM replacement on the next microtask to give the parent a
+    // chance to render first. All replacements queued by one synchronous run
+    // share a single microtask and are applied in the order they were queued,
+    // which is the order their individual microtasks would have run in.
+    pendingReplacements.push(this, rendered)
+    if (!replacementScheduled) {
+      replacementScheduled = true
+      queueMicrotask(flushReplacements)
+    }
+  }
+}
+
+// Pairs of (BindCtx, rendered node) waiting to be swapped into the DOM.
+let pendingReplacements = []
+let replacementScheduled = false
+
+function flushReplacements () {
+  const queue = pendingReplacements
+  pendingReplacements = []
+  replacementScheduled = false
+  let failure = null
+  for (let i = 0; i < queue.length; i += 2) {
+    const bindCtx = queue[i]
+    const rendered = queue[i + 1]
+    try {
+      // Guard: skip replaceWith when the same element is returned (e.g. when
+      // toggling between two pre-built element references). el.replaceWith(el)
+      // is a no-op in the DOM but wastes the work.
+      if (rendered !== bindCtx.current) {
+        const oldCurrent = bindCtx.current
+        if (devMode) warnIfReplacingFocused(oldCurrent)
+        oldCurrent.replaceWith(rendered)
+        bindCtx.current = rendered
+        // Keep any ancestor bindAs whose BindCtx shared this node in sync with
+        // the new node, so their next replaceWith targets a live DOM node.
+        propagateReplace(bindCtx, oldCurrent, rendered)
+      }
+    } catch (e) {
+      console.error('Failed to replace element with new element')
+      console.dir(bindCtx, rendered)
+      if (failure === null) failure = e
+    }
+  }
+  // Surface the first failure after the remaining replacements were applied.
+  if (failure !== null) throw failure
+}
+
+// Remove the binding's driving observer and everything its render registered.
+function teardownBind (bindCtx) {
+  if (bindCtx.select) {
+    removeSelectObserver(bindCtx.ctx.parentCtx, bindCtx.selectKey, bindCtx)
+  } else {
+    removeObserver(bindCtx.ctx, bindCtx)
+  }
+  runCleanups(bindCtx)
+  // Mark dead so any child BindCtx that still holds us in its parentRefs
+  // can prune us lazily on its next propagateReplace walk.
+  bindCtx.dead = true
+}
+
+const doBind = function (ctx, element, select) {
   if (typeof element !== 'function') {
     throw new Error('You must pass a function to bind with')
   }
 
   // Track subscriptions created during the initial render so they can be
-  // cleaned up if this bindAs itself re-renders (updateReplacer) or when
+  // cleaned up if this bindAs itself re-renders (BindCtx.update) or when
   // a parent bindAs re-renders and tears us down entirely.
   const prevRenderCleanups = activeRenderCleanups
-  const thisRenderCleanups = []
-  activeRenderCleanups = thisRenderCleanups
+  activeRenderCleanups = NO_CLEANUPS
   const evaluated = evaluateElement(element, ctx.currentValue)
   assertSingleNode(evaluated, 'bindAs')
-  const childElCtx = (typeof evaluated === 'function' && evaluated.isBindGetter)
+  const childBindCtx = (typeof evaluated === 'function' && evaluated.isBindGetter)
     ? evaluated.elCtx
     : null
-  const elCtx = { current: renderNode(evaluated), cleanups: thisRenderCleanups }
-  // When the evaluated element is itself a bind getter (a nested bindAs/bindSelect),
-  // register this elCtx as a back-ref on the child so that later child-driven
-  // node swaps keep this elCtx.current in sync with the live DOM node.
-  if (childElCtx && childElCtx.current === elCtx.current) {
-    addParentRef(childElCtx, elCtx)
-  }
-  // Suppress tracking during handleReplace — the driving subscription is
-  // registered separately below as part of a cascading cleanup.
-  activeRenderCleanups = null
-  handleReplace(elCtx)
+  const current = renderNode(evaluated)
+  const bindCtx = new BindCtx(ctx, element, current, takeRenderCleanups(), select)
   activeRenderCleanups = prevRenderCleanups
+  // When the evaluated element is itself a bind getter (a nested bindAs/bindSelect),
+  // register this BindCtx as a back-ref on the child so that later child-driven
+  // node swaps keep this BindCtx.current in sync with the live DOM node.
+  if (childBindCtx !== null && childBindCtx.current === current) {
+    addParentRef(childBindCtx, bindCtx)
+  }
+  // The driving observer is not registered with the enclosing render; the
+  // cascading cleanup below tears it down together with everything else.
+  if (select) {
+    bindCtx.selectKey = addSelectObserver(ctx, bindCtx)
+  } else {
+    addObserver(ctx, bindCtx)
+  }
 
   // If inside a parent bindAs render, register a cascading cleanup that tears
-  // down both the driving subscription and all subscriptions created inside
+  // down both the driving observer and all subscriptions created inside
   // this bindAs's render, so they don't outlive the parent's re-render.
-  if (prevRenderCleanups !== null && (elCtx.drivingUnsub || elCtx.selectUnsub)) {
-    prevRenderCleanups.push(() => {
-      if (elCtx.drivingUnsub) elCtx.drivingUnsub()
-      if (elCtx.selectUnsub) elCtx.selectUnsub()
-      runCleanups(elCtx)
-      // Mark dead so any child elCtx that still holds us in its parentRefs
-      // can prune us lazily on its next propagateReplace walk.
-      elCtx.dead = true
-    })
+  if (prevRenderCleanups !== null) {
+    registerCleanup(() => teardownBind(bindCtx))
   }
 
-  const getter = () => elCtx.current
+  const getter = () => bindCtx.current
   getter.isBindGetter = true
-  getter.elCtx = elCtx
+  getter.elCtx = bindCtx
   return getter
 }
 
-// Register a back-ref from a child bind elCtx to a parent elCtx, avoiding
+// Register a back-ref from a child BindCtx to a parent BindCtx, avoiding
 // duplicate entries when the same parent re-renders against the same child.
-function addParentRef (childElCtx, parentElCtx) {
-  if (!childElCtx.parentRefs) {
-    childElCtx.parentRefs = [parentElCtx]
-  } else if (!childElCtx.parentRefs.includes(parentElCtx)) {
-    childElCtx.parentRefs.push(parentElCtx)
+function addParentRef (childBindCtx, parentBindCtx) {
+  if (childBindCtx.parentRefs === null) {
+    childBindCtx.parentRefs = [parentBindCtx]
+  } else if (!childBindCtx.parentRefs.includes(parentBindCtx)) {
+    childBindCtx.parentRefs.push(parentBindCtx)
   }
 }
 
-// Walk the back-ref chain and update any ancestor elCtx whose .current still
+// Walk the back-ref chain and update any ancestor BindCtx whose .current still
 // points at the old DOM node. Used when a nested bindAs swaps its node so the
 // outer bindAs keeps a live reference instead of a detached one. Prunes any
-// dead ancestors encountered so parentRefs does not retain torn-down elCtxs.
-function propagateReplace (elCtx, oldNode, newNode) {
-  const refs = elCtx.parentRefs
-  if (!refs) return
+// dead ancestors encountered so parentRefs does not retain torn-down BindCtxs.
+function propagateReplace (bindCtx, oldNode, newNode) {
+  const refs = bindCtx.parentRefs
+  if (refs === null) return
   for (let i = refs.length - 1; i >= 0; i--) {
     const parent = refs[i]
     if (parent.dead) {
@@ -656,76 +835,48 @@ function warnIfReplacingFocused (oldNode) {
   }
 }
 
-const updateReplacer = (ctx, element, elCtx) => (_, oldValue) => {
-  // Clean up subscriptions from the previous render before re-rendering.
-  // This prevents nested bindAs/bindAttr/bindStyle subscriptions from
-  // accumulating each time the parent state changes.
-  runCleanups(elCtx)
-
-  // Track subscriptions created during this re-render for cleanup next time.
-  const prevRenderCleanups = activeRenderCleanups
-  const thisRenderCleanups = []
-  activeRenderCleanups = thisRenderCleanups
-  const evaluated = evaluateElement(element, ctx.currentValue, oldValue)
-  assertSingleNode(evaluated, 'bindAs')
-  const childElCtx = (typeof evaluated === 'function' && evaluated.isBindGetter)
-    ? evaluated.elCtx
-    : null
-  let rendered = renderNode(evaluated)
-  activeRenderCleanups = prevRenderCleanups
-  elCtx.cleanups = thisRenderCleanups
-
-  if (rendered !== undefined) {
-    // If this bindAs renders the root node of a bindChildren item, point the
-    // item at the new node so the next arrange pass sees the live node.
-    rebindItemNode(elCtx.current, rendered)
-    // Re-establish the parent-ref link when a re-render resolves to another
-    // nested bind getter, so future child swaps propagate back to this elCtx.
-    if (childElCtx && childElCtx.current === rendered) {
-      addParentRef(childElCtx, elCtx)
-    }
-    // Perform this action on the next event loop to give the parent a chance to render
-    new Promise((resolve) => {
-      // Guard: skip replaceWith when the same element is returned (e.g. when
-      // toggling between two pre-built element references). el.replaceWith(el)
-      // is a no-op in the DOM but wastes a microtask.
-      if (rendered !== elCtx.current) {
-        const oldCurrent = elCtx.current
-        if (devMode) warnIfReplacingFocused(oldCurrent)
-        elCtx.current.replaceWith(rendered)
-        elCtx.current = rendered
-        // Keep any ancestor bindAs whose elCtx shared this node in sync with
-        // the new node, so their next replaceWith targets a live DOM node.
-        propagateReplace(elCtx, oldCurrent, rendered)
-      }
-      rendered = null
-      resolve()
-    }).catch(e => {
-      console.error('Failed to replace element with new element')
-      console.dir(elCtx, rendered)
-      const err = new Error('Failed to replace element with new element')
-      err.stack += '\nCaused by: ' + e.stack
-      throw e
-    })
-  }
-}
-
+/**
+ * Bind select and deselect to an element
+ * @param {(()=>(Node|any))?} [element] The element to bind to. If not passed, defaults to the state's value
+ * @returns {()=>Node}
+ */
 function doBindSelect (element) {
-  element = element ?? this
-  const ctx = this._ctx
-  return doBind(ctx, element, (elCtx) => {
-    elCtx.selectUnsub = subscribeSelect(ctx, updateReplacer(ctx, element, elCtx))
-  })
+  return doBind(this._ctx, element ?? this, true)
 }
 
+/**
+ * Bind this state to the given element
+ *
+ * @param {((T)=>(Node|any))?} [element] The element to bind to. If not a function, an update function must be passed. If not passed, defaults to the state's value
+ * @returns {()=>Node}
+ */
 function doBindAs (element) {
-  const ctx = this._ctx
-  const el = element ?? this
-  return doBind(ctx, el, (elCtx) => {
-    // Store so doBind can build a cascading cleanup when nested inside another bindAs
-    elCtx.drivingUnsub = this.subscribe(updateReplacer(ctx, el, elCtx))
-  })
+  return doBind(this._ctx, element ?? this, false)
 }
+
+// The shared method table of every fnstate function. The property docs live on
+// the FnStateObj typedef above.
+fnStateProto.bindAs = doBindAs
+fnStateProto.bindChildren = doBindChildren
+fnStateProto.bindProp = doBindProp
+fnStateProto.bindAttr = doBindAttr
+fnStateProto.bindStyle = doBindStyle
+fnStateProto.bindSelect = doBindSelect
+fnStateProto.bindSelectAttr = doBindSelectAttr
+fnStateProto.select = doSelect
+fnStateProto.selected = doSelected
+fnStateProto.isFnState = true
+fnStateProto.assign = doAssign
+fnStateProto.getPath = doGetPath
+fnStateProto.setPath = doSetPath
+fnStateProto.subscribe = doSubscribe
+// bindChildren marks its item states with `itemState.parentCtx = ctx`. Keep
+// that on the context so the state function itself keeps a single own
+// property (_ctx) and one hidden class.
+Object.defineProperty(fnStateProto, 'parentCtx', {
+  get () { return this._ctx.parentCtx },
+  set (parentCtx) { this._ctx.parentCtx = parentCtx }
+})
 
 /**
  * Reconcile the state of the current array value with the state of the bound elements
@@ -783,7 +934,7 @@ function newItem (ctx, key, rawValue, index, gen) {
   return item
 }
 
-// Called by updateReplacer when a bindAs swaps the node it rendered. If that
+// Called by BindCtx.update when a bindAs swaps the node it rendered. If that
 // node is the root node of a bindChildren item, the item follows it.
 function rebindItemNode (oldNode, newNode) {
   const item = oldNode._fnItem
