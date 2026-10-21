@@ -196,7 +196,7 @@ const fnStateProto = Object.create(Function.prototype)
  * @typedef FnStateObj A container for a state value that can be bound to.
  * @property {(element?: (newValue: T, oldValue: T)=>(Node|any))=>Node} bindAs Bind this state to the given element function. This causes the element to be replaced when the state changes.
  * If called with no parameters, the state's value will be rendered as an element.
- * Do not wrap form inputs (input, textarea, select) in bindAs — it replaces the element on every update and the focused input will lose focus mid-keystroke. Bind the `value` attribute with bindAttr instead.
+ * Do not wrap form inputs (input, textarea, select) in bindAs: it replaces the element on every update and the focused input will lose focus mid-keystroke. Bind the `value` attribute with bindAttr instead.
  * @property {(parent: (()=>(Node|any))|any|Node, element: (childState: FnState)=>(Node|any))=>Node} bindChildren Bind the values of this state to the given element.
  * Values are items/elements of an array.
  * If the current value is not an array, this will behave the same as bindAs.
@@ -620,7 +620,7 @@ function doBindChildren (parent, element) {
   }
   if (typeof ctx.mapKey !== 'function') {
     if (devMode) {
-      console.warn('bindChildren: no mapKey provided — falling back to array index as key, which can misbehave when items are moved, inserted, or removed. Pass a mapKey function as the second argument to fnstate(array, item => item.id).')
+      console.warn('bindChildren: no mapKey provided: falling back to array index as key, which can misbehave when items are moved, inserted, or removed. Pass a mapKey function as the second argument to fnstate(array, item => item.id).')
     }
     ctx.mapKey = (_, i) => i
   }
@@ -654,7 +654,7 @@ function doBindChildren (parent, element) {
   this.subscribe((_, oldState) => {
     if (!Array.isArray(ctx.currentValue)) {
       if (devMode) {
-        console.warn('bindChildren: state was updated to a non-array value. Wrapping it in a single-element array — if you meant to replace the whole binding, use bindAs instead.')
+        console.warn('bindChildren: state was updated to a non-array value. Wrapping it in a single-element array: if you meant to replace the whole binding, use bindAs instead.')
       }
       new Promise((resolve) => {
         this([ctx.currentValue])

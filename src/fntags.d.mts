@@ -38,7 +38,7 @@ export function h<T extends HTMLElement | SVGElement>(tag: string, ...children: 
  * @typedef FnStateObj A container for a state value that can be bound to.
  * @property {(element?: (newValue: T, oldValue: T)=>(Node|any))=>Node} bindAs Bind this state to the given element function. This causes the element to be replaced when the state changes.
  * If called with no parameters, the state's value will be rendered as an element.
- * Do not wrap form inputs (input, textarea, select) in bindAs — it replaces the element on every update and the focused input will lose focus mid-keystroke. Bind the `value` attribute with bindAttr instead.
+ * Do not wrap form inputs (input, textarea, select) in bindAs: it replaces the element on every update and the focused input will lose focus mid-keystroke. Bind the `value` attribute with bindAttr instead.
  * @property {(parent: (()=>(Node|any))|any|Node, element: (childState: FnState)=>(Node|any))=>Node} bindChildren Bind the values of this state to the given element.
  * Values are items/elements of an array.
  * If the current value is not an array, this will behave the same as bindAs.
@@ -192,7 +192,7 @@ export type FnStateObj<T> = {
     /**
      * Bind this state to the given element function. This causes the element to be replaced when the state changes.
      * If called with no parameters, the state's value will be rendered as an element.
-     * Do not wrap form inputs (input, textarea, select) in bindAs — it replaces the element on every update and the focused input will lose focus mid-keystroke. Bind the `value` attribute with bindAttr instead.
+     * Do not wrap form inputs (input, textarea, select) in bindAs: it replaces the element on every update and the focused input will lose focus mid-keystroke. Bind the `value` attribute with bindAttr instead.
      */
     bindAs: (element?: (newValue: T, oldValue: T) => (Node | any)) => Node;
     /**
