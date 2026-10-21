@@ -246,3 +246,133 @@ describe('fnstate', () => {
     })
   })
 })
+
+describe('bindChildren reconciliation', () => {
+  it('does not re-render an item whose reference did not change', async () => {
+    const a = { id: 1, v: 'a' }
+    const b = { id: 2, v: 'b' }
+    const items = fnstate([a, b], o => o.id)
+    const container = h('div')
+    let renders = 0
+    const observed = []
+    items.bindChildren(container, item => {
+      item.subscribe(v => observed.push(v))
+      return h('div', item.bindAs(v => { renders++; return h('span', v.v) }))
+    })
+    expect(renders).toBe(2)
+
+    // same references, new array: nothing is pushed into the item states
+    items([a, b])
+    items(items().slice())
+    await flush()
+    expect(renders).toBe(2)
+    expect(observed.length).toBe(0)
+
+    // same array, same references, called again (e.g. after in-place mutation)
+    a.v = 'mutated'
+    items(items())
+    await flush()
+    expect(renders).toBe(2)
+    expect(container.children[0].innerText).toBe('a')
+
+    // replacing the object re-renders only that item
+    const a2 = { id: 1, v: 'a2' }
+    items([a2, b])
+    await flush()
+    expect(renders).toBe(3)
+    expect(observed).toEqual([a2])
+    expect(container.children[0].innerText).toBe('a2')
+    expect(container.children[1].innerText).toBe('b')
+  })
+
+  it('writes item state updates back into the parent array at the right index', async () => {
+    const items = fnstate([{ id: 1 }, { id: 2 }, { id: 3 }], o => o.id)
+    const container = h('div')
+    const states = {}
+    items.bindChildren(container, item => {
+      states[item().id] = item
+      return h('div', item.bindAs(v => h('span', `${v.id}:${v.n ?? 0}`)))
+    })
+
+    states[2]({ id: 2, n: 1 })
+    await flush()
+    expect(items()[1]).toEqual({ id: 2, n: 1 })
+    expect(container.children[1].innerText).toBe('2:1')
+
+    // reorder through the parent, then update again: the index is refreshed
+    items([items()[2], items()[0], items()[1]])
+    await flush()
+    states[2]({ id: 2, n: 2 })
+    expect(items()[2]).toEqual({ id: 2, n: 2 })
+    expect(items()[0]).toEqual({ id: 3 })
+
+    // reorder the array in place without telling the parent: the recorded
+    // index no longer matches the key, so the write-back falls back to a scan
+    const arr = items()
+    arr.reverse()
+    states[2]({ id: 2, n: 3 })
+    expect(arr.findIndex(o => o.id === 2)).toBe(0)
+    expect(arr[0]).toEqual({ id: 2, n: 3 })
+
+    // a removed item no longer writes into the array
+    items([{ id: 1 }, { id: 3 }])
+    states[2]({ id: 2, n: 4 })
+    expect(items().some(o => o.id === 2)).toBe(false)
+  })
+
+  it('resets the state and throws on duplicate keys', () => {
+    const items = fnstate([{ id: 1 }, { id: 2 }], o => o.id)
+    const container = h('div')
+    items.bindChildren(container, item => h('div', `${item().id}`))
+    expect(() => items([{ id: 1 }, { id: 3 }, { id: 1 }])).toThrow(/Duplicate keys/)
+    expect(items().map(o => o.id)).toEqual([1, 2])
+    expect(container.innerText).toBe('12')
+    expect(items._ctx.bindContexts[0].items.size).toBe(2)
+    expect(items._ctx.bindContexts[0].items.get(3)).toBeUndefined()
+
+    items([{ id: 2 }, { id: 1 }])
+    expect(container.innerText).toBe('21')
+  })
+
+  it('follows an item root node that a bindAs on another state replaces', async () => {
+    const items = fnstate([{ id: 1 }, { id: 2 }, { id: 3 }], o => o.id)
+    const mode = fnstate('a')
+    const container = h('div')
+    items.bindChildren(container, item => mode.bindAs(m => h('div', `${item().id}${m}`)))
+    expect(container.innerText).toBe('1a2a3a')
+
+    mode('b')
+    await flush()
+    expect(container.innerText).toBe('1b2b3b')
+
+    // the list still reconciles against the live nodes
+    items([{ id: 3 }, { id: 1 }])
+    await flush()
+    expect(container.innerText).toBe('3b1b')
+    expect(container.children.length).toBe(2)
+    expect(items._ctx.bindContexts[0].items.get(1).node).toBe(container.children[1])
+
+    items([{ id: 1 }, { id: 4 }])
+    mode('c')
+    await flush()
+    expect(container.innerText).toBe('1c4c')
+    expect(container.children.length).toBe(2)
+  })
+
+  it('removes stray nodes when the array shrinks from the end and the start', () => {
+    const items = fnstate([1, 2, 3, 4, 5])
+    const container = h('div')
+    items.bindChildren(container, i => h('div', `${i()}`))
+    items([2, 3, 4])
+    expect(container.innerText).toBe('234')
+    expect(items._ctx.bindContexts[0].items.size).toBe(3)
+    items([3])
+    expect(container.innerText).toBe('3')
+    expect(items._ctx.bindContexts[0].items.size).toBe(1)
+    items([])
+    expect(container.innerText).toBe('')
+    expect(items._ctx.bindContexts[0].items.size).toBe(0)
+    items([9, 3])
+    expect(container.innerText).toBe('93')
+  })
+})

@@ -501,7 +501,11 @@ function doBindChildren (parent, element) {
     throw new Error('You can only use bindChildren with a state that contains an array. try myState([mystate]) before calling this function.')
   }
 
-  const bindContext = { element, parent }
+  // items: key -> item record (see newItem). order: the item records in array
+  // order, rebuilt by every arrangeElements pass and reused across passes to
+  // avoid allocating an array per update. gen: pass counter used to detect
+  // duplicate keys and strays without a per-pass key set.
+  const bindContext = { element, parent, items: new Map(), order: [], gen: 0 }
   ctx.bindContexts.push(bindContext)
 
   // If inside a parent bindAs render, register a cleanup that tears down all
@@ -510,12 +514,9 @@ function doBindChildren (parent, element) {
   // each array item would be orphaned when the parent replaces this tree.
   if (activeRenderCleanups !== null) {
     activeRenderCleanups.push(() => {
-      if (bindContext.elementCleanups) {
-        for (const key in bindContext.elementCleanups) {
-          for (const unsub of bindContext.elementCleanups[key]) unsub()
-        }
-        bindContext.elementCleanups = {}
-      }
+      for (const item of bindContext.items.values()) runItemCleanups(item)
+      bindContext.items.clear()
+      bindContext.order.length = 0
       // Remove this bindContext so reconcile doesn't operate on stale state
       const idx = ctx.bindContexts.indexOf(bindContext)
       if (idx !== -1) ctx.bindContexts.splice(idx, 1)
@@ -675,14 +676,9 @@ const updateReplacer = (ctx, element, elCtx) => (_, oldValue) => {
   elCtx.cleanups = thisRenderCleanups
 
   if (rendered !== undefined) {
-    if (elCtx.current.key !== undefined) {
-      rendered.key = elCtx.current.key
-    }
-    if (ctx.parentCtx) {
-      for (const bindContext of ctx.parentCtx.bindContexts) {
-        bindContext.boundElementByKey[elCtx.current.key] = rendered
-      }
-    }
+    // If this bindAs renders the root node of a bindChildren item, point the
+    // item at the new node so the next arrange pass sees the live node.
+    rebindItemNode(elCtx.current, rendered)
     // Re-establish the parent-ref link when a re-render resolves to another
     // nested bind getter, so future child swaps propagate back to this elCtx.
     if (childElCtx && childElCtx.current === rendered) {
@@ -736,9 +732,6 @@ function doBindAs (element) {
  */
 function reconcile (ctx, oldState) {
   for (const bindContext of ctx.bindContexts) {
-    if (bindContext.boundElementByKey === undefined) {
-      bindContext.boundElementByKey = {}
-    }
     arrangeElements(ctx, bindContext, oldState)
   }
 }
@@ -753,157 +746,207 @@ function keyMapper (mapKey, value, i) {
   }
 }
 
-function cleanElementSubscriptions (bindContext, key) {
-  const cleanups = bindContext.elementCleanups?.[key]
-  if (!cleanups) return
+// Each bindChildren item is tracked by one record:
+//   key      the mapKey result for the item
+//   state    the per-item fnstate handed to the builder
+//   node     the rendered root node, undefined until the builder has run
+//   cleanups subscriptions created by the builder, null when there are none
+//   index    the item's index in the array as of the last arrange pass
+//   gen      the bindContext.gen of the last arrange pass that saw this key
+// The root node carries a back reference to its record in `_fnItem` so the
+// arrange loop can identify a sibling it did not expect with a property load
+// instead of a lookup, and so a bindAs that swaps an item's root node can
+// update the record without knowing which bindContext it belongs to.
+function newItem (ctx, key, rawValue, index, gen) {
+  const state = fnstate(rawValue)
+  // Ensure the parent state is set so child states can listen to selection changes
+  state.parentCtx = ctx
+  const item = { key, state, node: undefined, cleanups: null, index, gen }
+  // If the user replaces the value of this item's state (e.g. itemState(newObj)),
+  // write it back into the parent array to keep the two in sync.
+  state.subscribe((newValue) => {
+    const arr = ctx.currentValue
+    // If the parent is no longer an array, abort
+    if (!Array.isArray(arr)) return
+    let idx = item.index
+    // Fast path: arrangeElements just synced this item from the array, or the
+    // array already holds the value. Nothing to write.
+    if (idx < arr.length && arr[idx] === newValue) return
+    // The recorded index is only trusted when the key still matches there.
+    // Sorting or filtering the array in place without calling the parent
+    // state would leave it stale, so fall back to a scan in that case.
+    if (idx >= arr.length || keyMapper(ctx.mapKey, arr[idx], idx) !== key) {
+      idx = arr.findIndex((v, i) => keyMapper(ctx.mapKey, v, i) === key)
+    }
+    if (idx > -1) arr[idx] = newValue
+  })
+  return item
+}
+
+// Called by updateReplacer when a bindAs swaps the node it rendered. If that
+// node is the root node of a bindChildren item, the item follows it.
+function rebindItemNode (oldNode, newNode) {
+  const item = oldNode._fnItem
+  if (item !== undefined && item.node === oldNode) {
+    item.node = newNode
+    newNode._fnItem = item
+  }
+}
+
+function runItemCleanups (item) {
+  const cleanups = item.cleanups
+  if (cleanups === null) return
+  item.cleanups = null
   for (const unsub of cleanups) unsub()
-  delete bindContext.elementCleanups[key]
+}
+
+function removeItem (ctx, bindContext, item, detach) {
+  runItemCleanups(item)
+  bindContext.items.delete(item.key)
+  if (ctx.selectObservers[item.key] !== undefined) {
+    delete ctx.selectObservers[item.key]
+  }
+  const node = item.node
+  if (node !== undefined) {
+    node._fnItem = undefined
+    if (detach) node.remove()
+  }
+}
+
+// Shared scratch list for subscriptions created while an item builder runs.
+// Builders nest (a bindChildren inside an item builder arranges synchronously),
+// so each build only owns the entries above its own start offset.
+const itemCleanupScratch = []
+
+function buildItemNode (bindContext, item) {
+  const prevCleanups = activeRenderCleanups
+  const start = itemCleanupScratch.length
+  activeRenderCleanups = itemCleanupScratch
+  try {
+    // Pass the item state (the fnstate wrapper) to the user's element builder
+    const evaluated = evaluateElement(bindContext.element, item.state)
+    assertSingleNode(evaluated, 'bindChildren')
+    const node = renderNode(evaluated)
+    if (itemCleanupScratch.length > start) {
+      item.cleanups = itemCleanupScratch.slice(start)
+    }
+    item.node = node
+    node._fnItem = item
+    return node
+  } finally {
+    itemCleanupScratch.length = start
+    activeRenderCleanups = prevCleanups
+  }
+}
+
+// insertAdjacentElement is faster, but some nodes don't have it (lookin' at you text)
+function insertBeforeNode (parent, ref, node) {
+  if (ref.insertAdjacentElement !== undefined && node.insertAdjacentElement !== undefined) {
+    ref.insertAdjacentElement('beforebegin', node)
+  } else {
+    parent.insertBefore(node, ref)
+  }
 }
 
 function arrangeElements (ctx, bindContext, oldState) {
-  if (!ctx?.currentValue?.length) {
+  const values = ctx.currentValue
+  const items = bindContext.items
+  if (!values?.length) {
     // Clean up subscriptions for all existing elements before clearing
-    if (bindContext.elementCleanups) {
-      for (const key in bindContext.elementCleanups) {
-        for (const unsub of bindContext.elementCleanups[key]) unsub()
-      }
-      bindContext.elementCleanups = {}
+    for (const item of items.values()) {
+      runItemCleanups(item)
+      if (item.node !== undefined) item.node._fnItem = undefined
     }
+    items.clear()
+    bindContext.order.length = 0
     bindContext.parent.textContent = ''
-    bindContext.boundElementByKey = {}
-    bindContext.elementStates = {}
     ctx.selectObservers = {}
     return
   }
 
-  // Initialize the element state map if it doesn't exist
-  if (!bindContext.elementStates) {
-    bindContext.elementStates = {}
-  }
+  const n = values.length
+  const gen = ++bindContext.gen
+  const order = bindContext.order
+  const mapKey = ctx.mapKey
+  // Only ever shrink here: the loop below fills order in sequence, so growing
+  // it is a plain append and never leaves holes (growing via .length first
+  // would have V8 hand out a sparse backing store).
+  if (order.length > n) order.length = n
 
-  const keys = {}
-  const keysArr = []
-
-  for (let i = 0; i < ctx.currentValue.length; i++) {
-    const rawValue = ctx.currentValue[i]
+  // 1. Map every array value to its item record, creating records for new
+  // keys and pushing changed values into existing item states.
+  for (let i = 0; i < n; i++) {
+    const rawValue = values[i]
     // Use the raw value to get the key
-    const key = keyMapper(ctx.mapKey, rawValue, i)
-
-    if (keys[key]) {
-      if (oldState) ctx.state(oldState)
-      throw new Error('Duplicate keys in a bound array are not allowed, state reset to previous value.')
-    }
-
-    keys[key] = i
-    keysArr[i] = key
-
-    // We look up the persistent fnstate for this key, or create it if new
-    let elementState = bindContext.elementStates[key]
-    if (!elementState) {
-      elementState = fnstate(rawValue)
-      // Ensure the parent state is set so child states can listen to selection changes
-      elementState.parentCtx = ctx
-      bindContext.elementStates[key] = elementState
-      // If the user replaces the value of this elementState (e.g. elementState(newObj)),
-      // we must update the original array to keep it in sync.
-      elementState.subscribe((newItem) => {
-        const currentArr = ctx.state()
-        // If the parent is no longer an array, abort
-        if (!Array.isArray(currentArr)) return
-
-        // find the element dynamically because sorting/filtering might have shifted the index
-        const idx = currentArr.findIndex((item, i) => keyMapper(ctx.mapKey, item, i) === key)
-
-        if (idx > -1 && currentArr[idx] !== newItem) {
-          currentArr[idx] = newItem
-        }
-      })
+    const key = keyMapper(mapKey, rawValue, i)
+    let item = items.get(key)
+    if (item === undefined) {
+      item = newItem(ctx, key, rawValue, i, gen)
+      items.set(key, item)
     } else {
-      // Update existing state with new raw value.
-      // fnstate handles the equality check (newValue !== oldValue) internally.
-      elementState(rawValue)
+      if (item.gen === gen) {
+        if (oldState) ctx.state(oldState)
+        throw new Error('Duplicate keys in a bound array are not allowed, state reset to previous value.')
+      }
+      item.gen = gen
+      item.index = i
+      // An item is only pushed into its state (and so re-rendered) when its
+      // reference changed. Callers who mutate an item in place must either
+      // call the item state the builder received, or replace the object in
+      // the array, for bindings on that item to update.
+      if (item.state._ctx.currentValue !== rawValue) {
+        item.state(rawValue)
+      }
     }
+    order[i] = item
   }
 
-  let prev = null
   const parent = bindContext.parent
+  let prev = null
 
-  // 2. Render Loop
-  for (let i = ctx.currentValue.length - 1; i >= 0; i--) {
-    const key = keysArr[i]
-    // Retrieve the element state to pass to the builder
-    const valueState = bindContext.elementStates[key]
-
-    let current = bindContext.boundElementByKey[key]
+  // 2. Render loop, walking from the end so each node is placed before the
+  // one that follows it.
+  for (let i = n - 1; i >= 0; i--) {
+    const item = order[i]
+    let current = item.node
     let isNew = false
-
     if (current === undefined) {
       isNew = true
-      // Track subscriptions created during the builder call so they can be
-      // cleaned up when this item is removed from the array.
-      if (!bindContext.elementCleanups) bindContext.elementCleanups = {}
-      const prevCleanups = activeRenderCleanups
-      const thisElementCleanups = []
-      activeRenderCleanups = thisElementCleanups
-      // Pass the valueState (the fnstate wrapper) to the user's element builder
-      const evaluated = evaluateElement(bindContext.element, valueState)
-      assertSingleNode(evaluated, 'bindChildren')
-      current = bindContext.boundElementByKey[key] = renderNode(evaluated)
-      activeRenderCleanups = prevCleanups
-      bindContext.elementCleanups[key] = thisElementCleanups
-      current.key = key
+      current = buildItemNode(bindContext, item)
     }
 
     // place the element in the parent
-    if (prev == null) {
-      if (!parent.lastChild || parent.lastChild.key !== current.key) {
+    if (prev === null) {
+      if (parent.lastChild !== current) {
         parent.append(current)
       }
     } else {
-      if (prev.previousSibling === null) {
-        // insertAdjacentElement is faster, but some nodes don't have it (lookin' at you text)
-        if (prev.insertAdjacentElement !== undefined && current.insertAdjacentElement !== undefined) {
-          prev.insertAdjacentElement('beforebegin', current)
-        } else {
-          parent.insertBefore(current, prev)
-        }
-      } else if (prev.previousSibling.key !== current.key) {
-        // the previous was deleted all together, so we will delete it and replace the element
-        if (keys[prev.previousSibling.key] === undefined) {
-          const keyToDelete = prev.previousSibling.key
-          cleanElementSubscriptions(bindContext, keyToDelete)
-          delete bindContext.boundElementByKey[keyToDelete]
-          delete bindContext.elementStates[keyToDelete] // Cleanup element state
-
-          delete ctx.selectObservers[keyToDelete]
-          prev.previousSibling.replaceWith(current)
+      const sib = prev.previousSibling
+      if (sib === null) {
+        insertBeforeNode(parent, prev, current)
+      } else if (sib !== current) {
+        const sibItem = sib._fnItem
+        if (sibItem === undefined || sibItem.gen !== gen) {
+          // the previous was deleted all together (or is not ours), so we
+          // will delete it and replace the element
+          if (sibItem !== undefined) removeItem(ctx, bindContext, sibItem, false)
+          sib.replaceWith(current)
         } else if (isNew) {
-          // insertAdjacentElement is faster, but some nodes don't have it (lookin' at you text)
-          if (prev.insertAdjacentElement !== undefined) {
-            prev.insertAdjacentElement('beforebegin', current)
-          } else {
-            parent.insertBefore(current, prev)
-          }
+          insertBeforeNode(parent, prev, current)
         } else {
           // if it's an existing key, replace the current object with the correct object
-          prev.previousSibling.replaceWith(current)
+          sib.replaceWith(current)
         }
       }
     }
     prev = current
   }
 
-  // 3. Catch any strays (Cleanup)
-  for (const key in bindContext.boundElementByKey) {
-    if (keys[key] === undefined) {
-      cleanElementSubscriptions(bindContext, key)
-      bindContext.boundElementByKey[key].remove()
-      delete bindContext.boundElementByKey[key]
-      delete bindContext.elementStates[key] // Cleanup element state
-
-      if (ctx.selectObservers[key] !== undefined) {
-        delete ctx.selectObservers[key]
-      }
+  // 3. Catch any strays (Cleanup). Every current key was visited above, so
+  // there are strays only when more records than values remain.
+  if (items.size > n) {
+    for (const item of items.values()) {
+      if (item.gen !== gen) removeItem(ctx, bindContext, item, true)
     }
   }
 }

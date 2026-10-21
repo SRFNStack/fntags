@@ -187,12 +187,14 @@ describe('elementState sync-back subscription leak', () => {
     await flush()
 
     // The sync-back sub on es2 still exists (it's on the elementState itself),
-    // but the elementState is no longer referenced by bindContext.elementStates,
-    // so it becomes eligible for GC. The important thing is that the parent
-    // array state (items) doesn't hold references to removed elementStates.
+    // but the item record holding the elementState is no longer referenced by
+    // bindContext.items, so it becomes eligible for GC. The important thing is
+    // that the parent array state (items) doesn't hold references to removed
+    // elementStates, and the kept node still points back at its record.
     const bindCtx = items._ctx.bindContexts[0]
-    expect(bindCtx.elementStates[2]).toBeUndefined()
-    expect(bindCtx.boundElementByKey[2]).toBeUndefined()
+    expect(bindCtx.items.get(2)).toBeUndefined()
+    expect(elementStates).toContain(bindCtx.items.get(1).state)
+    expect(bindCtx.items.get(1).node._fnItem).toBe(bindCtx.items.get(1))
   })
 
   it('items array state observer count stays stable through add/remove cycles', async () => {
