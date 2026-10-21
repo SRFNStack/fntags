@@ -85,7 +85,8 @@ tag(attrs?, ...children)
 
 - The first argument is an attributes object if it's a plain object without a `nodeType`; otherwise it's a child. Attribute names are the real HTML names (`class`, `for`, `tabindex`, lowercase).
 - `style` may be a string or a plain object (`{ color: 'red', marginTop: '10px' }`).
-- Any `on*` attribute whose value is a function is registered via `addEventListener('*')` (strips `on`).
+- Any `on*` attribute whose value is a function is registered via `addEventListener('*')` (strips `on`). The value may also be `[fn, arg]`, which calls `fn.call(element, arg, event)`, so list rows can share one handler instead of a closure each.
+- Opt-in delegation: `delegateEvents(['click', 'input'])` makes `on<type>` handlers on elements created afterwards (by `h`/tag functions, or by an `fntemplate` compiled afterwards) be stored as `element.__fnon_<type>` and run by one listener per type on `document`. Call it once at startup, before building UI or compiling templates. Delegated handlers run innermost first with `this` and `e.currentTarget` set to the element, and `e.stopPropagation()` stops outer delegated handlers, but they all run only after the event has bubbled to `document`, i.e. after every native listener. Elements must be connected to the document. Non-bubbling types (focus, blur, mouseenter, mouseleave, load, scroll, ...) are never delegated; they warn in dev mode and keep `addEventListener`.
 - Children may be strings, numbers, DOM nodes, arrays of any of these (nested to any depth), functions that return one, or Promises that resolve to one. Promises render a hidden placeholder that is replaced on resolution. A function or Promise may also produce an array; it is flattened into the parent.
 - Functions passed to `bindAs`, `bindSelect` and `bindChildren` must return exactly one node. Returning an array throws, because a fragment cannot be replaced on the next update. Wrap the items in an element instead.
 - `svgelements.mjs` exports SVG factories with the same convention in the SVG namespace. Some names collide with HTML (`a_`, `script_`, `style_`, `switch_`, `title_`); they are suffixed with `_`.
@@ -139,6 +140,7 @@ The returned `s` is both a getter and setter:
 - `styled(style, tag, children)`: create a pre-styled tag function (how `flexRow` etc. are built).
 - `fntemplate(templateFn)`: compile a template for fast cloning + binding. Use for hot paths that produce many identical subtrees.
 - `registeredComponent(id, fn)` / `registeredState(id, initial, mapKey?)` / `hmrRoot(container, appFn)`: used by the Vite HMR plugin. In handwritten code, use `registeredState` for any state that must survive SSR→client hydration.
+- `delegateEvents(types)`: opt in to event delegation for the given bubbling event types (see above).
 - `setDevMode(on)`: toggle dev-mode warnings (focus-replace warning, missing-mapKey warning, bindChildren-non-array warning). Default `true`. Call `setDevMode(false)` in production.
 
 ## Routing: `fnroute.mjs`
