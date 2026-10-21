@@ -41,11 +41,22 @@ export function setDevMode (on) {
   devMode = !!on
 }
 
+// Run one entry of a cleanup list. Entries are either plain functions or
+// binding objects (BindCtx, AttrBinding) with a dispose() method, which lets a
+// binding register itself instead of allocating a closure per registration.
+function runCleanupEntry (entry) {
+  if (typeof entry === 'function') {
+    entry()
+  } else {
+    entry.dispose()
+  }
+}
+
 function runCleanups (bindCtx) {
   const cleanups = bindCtx.cleanups
   if (cleanups === null) return
   bindCtx.cleanups = null
-  for (let i = 0; i < cleanups.length; i++) cleanups[i]()
+  for (let i = 0; i < cleanups.length; i++) runCleanupEntry(cleanups[i])
 }
 
 /**
@@ -332,7 +343,9 @@ function doSubscribe (callback) {
 
 // Register an observer of the parent list state's selection for the item
 // held by ctx, keyed by the item's key. Returns the key so the caller can
-// remove the observer later.
+// remove the observer later. A key with one observer stores the observer
+// itself (the common case, one bindSelectAttr per row); an array is only
+// allocated once a second observer joins. Observers are never arrays.
 function addSelectObserver (ctx, observer) {
   const parentCtx = ctx.parentCtx
   const key = keyMapper(parentCtx.mapKey, ctx.currentValue, 0)
@@ -340,33 +353,44 @@ function addSelectObserver (ctx, observer) {
   if (selectObservers === EMPTY_SELECT_OBSERVERS) {
     selectObservers = parentCtx.selectObservers = {}
   }
-  const list = selectObservers[key]
-  if (list === undefined) {
-    selectObservers[key] = [observer]
+  const entry = selectObservers[key]
+  if (entry === undefined) {
+    selectObservers[key] = observer
+  } else if (Array.isArray(entry)) {
+    entry.push(observer)
   } else {
-    list.push(observer)
+    selectObservers[key] = [entry, observer]
   }
   return key
 }
 
 function removeSelectObserver (parentCtx, key, observer) {
-  const list = parentCtx.selectObservers[key]
-  if (list === undefined) return
-  const idx = list.indexOf(observer)
-  if (idx !== -1) list.splice(idx, 1)
-  if (list.length === 0) delete parentCtx.selectObservers[key]
+  const entry = parentCtx.selectObservers[key]
+  if (entry === undefined) return
+  if (entry === observer) {
+    delete parentCtx.selectObservers[key]
+  } else if (Array.isArray(entry)) {
+    const idx = entry.indexOf(observer)
+    if (idx !== -1) entry.splice(idx, 1)
+    if (entry.length === 0) delete parentCtx.selectObservers[key]
+  }
 }
 
 const ATTR = 0
 const STYLE = 1
 
-// An observer that writes a bound attribute or style to its element. Stored
-// directly in the observer lists instead of a closure per subscription.
-function AttrBinding (kind, name, element, fn) {
+// One bindAttr/bindSelectAttr/bindStyle binding. It is created together with
+// the bound function, registered directly in the observer list (or the parent's
+// select observers) by init(), and registered as its own cleanup entry, so a
+// binding costs this object plus the bound function and nothing else.
+function AttrBinding (kind, fn, ctx, select) {
   this.kind = kind
-  this.name = name
-  this.element = element
+  this.name = null
+  this.element = null
   this.fn = fn
+  this.ctx = ctx
+  this.select = select
+  this.selectKey = undefined
 }
 
 AttrBinding.prototype.update = function (newValue, oldValue) {
@@ -379,31 +403,58 @@ AttrBinding.prototype.update = function (newValue, oldValue) {
   }
 }
 
-// Build the function h() recognises as a bound attribute. setAttribute calls
-// init(attrName, element) to register the binding, then calls the function
-// itself for the initial value. Both closures share one context.
+// The current value, as the bound function returns it.
+AttrBinding.prototype.value = function () {
+  const fn = this.fn
+  return fn.isFnState ? fn() : fn(this.ctx.state())
+}
+
+AttrBinding.prototype.init = function (name, element) {
+  this.name = name
+  this.element = element
+  if (this.select) {
+    this.selectKey = addSelectObserver(this.ctx, this)
+  } else {
+    addObserver(this.ctx, this)
+  }
+  registerCleanup(this)
+}
+
+AttrBinding.prototype.dispose = function () {
+  if (this.select) {
+    removeSelectObserver(this.ctx.parentCtx, this.selectKey, this)
+  } else {
+    removeObserver(this.ctx, this)
+  }
+}
+
+// Shared by every bound attribute and style function: setAttribute and
+// setStyle call fn.init(name, element), so `this` is the bound function.
+function initBound (name, element) {
+  this._binding.init(name, element)
+}
+
+// Build the function h() recognises as a bound attribute (or style). It is
+// callable for the current value and carries isBoundAttribute/isBoundStyle,
+// init and the binding it drives.
+function createBound (kind, fn, state, select) {
+  const binding = new AttrBinding(kind, fn, state._ctx, select)
+  const bound = () => binding.value()
+  if (kind === STYLE) {
+    bound.isBoundStyle = true
+  } else {
+    bound.isBoundAttribute = true
+  }
+  bound.init = initBound
+  bound._binding = binding
+  return bound
+}
+
 function createBoundAttr (fn, state, select) {
   if (typeof fn !== 'function') {
     throw new Error('You must pass a function to bindAttr')
   }
-  const boundAttr = () => fn.isFnState ? fn() : fn(state())
-  boundAttr.isBoundAttribute = true
-  boundAttr.init = select
-    ? (attrName, element) => {
-        const binding = new AttrBinding(ATTR, attrName, element, fn)
-        const key = addSelectObserver(state._ctx, binding)
-        if (activeRenderCleanups !== null) {
-          registerCleanup(() => removeSelectObserver(state._ctx.parentCtx, key, binding))
-        }
-      }
-    : (attrName, element) => {
-        const binding = new AttrBinding(ATTR, attrName, element, fn)
-        addObserver(state._ctx, binding)
-        if (activeRenderCleanups !== null) {
-          registerCleanup(() => removeObserver(state._ctx, binding))
-        }
-      }
-  return boundAttr
+  return createBound(ATTR, fn, state, select)
 }
 
 /**
@@ -434,22 +485,19 @@ function doBindStyle (style) {
   if (typeof fn !== 'function') {
     throw new Error('You must pass a function to bindStyle')
   }
-  const ctx = this._ctx
-  const state = this
-  const boundStyle = () => fn.isFnState ? fn() : fn(state())
-  boundStyle.isBoundStyle = true
-  boundStyle.init = (styleName, element) => {
-    const binding = new AttrBinding(STYLE, styleName, element, fn)
-    addObserver(ctx, binding)
-    if (activeRenderCleanups !== null) {
-      registerCleanup(() => removeObserver(ctx, binding))
-    }
-  }
-  return boundStyle
+  return createBound(STYLE, fn, this, false)
 }
 
 function notifySelect (observers, key) {
   if (observers === undefined) return
+  if (!Array.isArray(observers)) {
+    if (typeof observers === 'function') {
+      observers(key)
+    } else {
+      observers.update(key)
+    }
+    return
+  }
   const snapshot = observers.slice()
   for (let i = 0; i < snapshot.length; i++) {
     const observer = snapshot[i]
@@ -636,10 +684,16 @@ function assertSingleNode (evaluated, name) {
 // the observer of its state (or of the parent's selection), so a binding costs
 // one object instead of a subscription closure, an unsubscribe closure and an
 // update closure. Every field is declared so all instances share one shape.
-function BindCtx (ctx, element, current, cleanups, select) {
+function BindCtx (ctx, element, current, text, cleanups, select) {
   this.ctx = ctx
   this.element = element
+  // The live node, or null while a primitive render has not been turned into
+  // a node yet (see text). Read it through liveNode() unless null is handled.
   this.current = current
+  // The pending text of a primitive render while current is null. Nothing
+  // outside this module sees the null: the getter, update() and the template
+  // fill all materialise or adopt a node first.
+  this.text = text
   // Cleanups registered during the latest render of this binding, or null.
   this.cleanups = cleanups
   this.select = select
@@ -649,9 +703,25 @@ function BindCtx (ctx, element, current, cleanups, select) {
   this.dead = false
 }
 
+// Turn a pending primitive render into its text node.
+function liveNode (bindCtx) {
+  const current = bindCtx.current
+  if (current !== null) return current
+  const text = document.createTextNode(bindCtx.text)
+  bindCtx.current = text
+  bindCtx.text = null
+  return text
+}
+
+// A BindCtx registers itself as its own cleanup entry, see runCleanupEntry.
+BindCtx.prototype.dispose = function () {
+  teardownBind(this)
+}
+
 // Called by notify() on a state change, or by doSelect with the selected key.
 BindCtx.prototype.update = function (newValue, oldValue) {
   const ctx = this.ctx
+  liveNode(this)
   // Clean up subscriptions from the previous render before re-rendering.
   // This prevents nested bindAs/bindAttr/bindStyle subscriptions from
   // accumulating each time the parent state changes.
@@ -753,8 +823,20 @@ const doBind = function (ctx, element, select) {
   const childBindCtx = (typeof evaluated === 'function' && evaluated.isBindGetter)
     ? evaluated.elCtx
     : null
-  const current = renderNode(evaluated)
-  const bindCtx = new BindCtx(ctx, element, current, takeRenderCleanups(), select)
+  // A primitive result is kept as pending text: a template fill adopts its
+  // placeholder for it, so no throwaway text node is created.
+  let current = null
+  let text = null
+  if (evaluated === null) {
+    text = 'null'
+  } else if (typeof evaluated === 'string') {
+    text = evaluated
+  } else if (typeof evaluated !== 'object' && typeof evaluated !== 'function') {
+    text = evaluated + ''
+  } else {
+    current = renderNode(evaluated)
+  }
+  const bindCtx = new BindCtx(ctx, element, current, text, takeRenderCleanups(), select)
   activeRenderCleanups = prevRenderCleanups
   // When the evaluated element is itself a bind getter (a nested bindAs/bindSelect),
   // register this BindCtx as a back-ref on the child so that later child-driven
@@ -774,10 +856,10 @@ const doBind = function (ctx, element, select) {
   // down both the driving observer and all subscriptions created inside
   // this bindAs's render, so they don't outlive the parent's re-render.
   if (prevRenderCleanups !== null) {
-    registerCleanup(() => teardownBind(bindCtx))
+    registerCleanup(bindCtx)
   }
 
-  const getter = () => bindCtx.current
+  const getter = () => liveNode(bindCtx)
   getter.isBindGetter = true
   getter.elCtx = bindCtx
   return getter
@@ -948,7 +1030,7 @@ function runItemCleanups (item) {
   const cleanups = item.cleanups
   if (cleanups === null) return
   item.cleanups = null
-  for (const unsub of cleanups) unsub()
+  for (const entry of cleanups) runCleanupEntry(entry)
 }
 
 function removeItem (ctx, bindContext, item, detach) {
@@ -1378,6 +1460,7 @@ const TPL_ATTR = 1 // plain attribute: element.setAttribute for primitives, setA
 const TPL_ATTR_FULL = 2 // value, boolean, style or namespaced attribute: always the full setAttribute rules
 const TPL_EVENT = 3 // on* attribute: addEventListener with the event name stripped at compile time
 const TPL_STYLE = 4 // style property
+const TPL_ONLY = 5 // sole child placeholder of an element: dropped from the template, the parent is filled
 
 // Ops for the per-clone walk that locates bound nodes. The low two bits are the op,
 // the rest is a slot in the refs array. Captured slots serve both as binding targets
@@ -1391,6 +1474,8 @@ function compileTemplateBinding (b, ref) {
   const name = b.attr
   if (b.type === 'node') {
     return { kind: TPL_NODE, ref, prop: b.prop, name: null, event: null }
+  } else if (b.type === 'only') {
+    return { kind: TPL_ONLY, ref, prop: b.prop, name: null, event: null }
   } else if (b.type === 'style') {
     return { kind: TPL_STYLE, ref, prop: b.prop, name, event: null }
   } else if (name === 'value' || name === 'style' || booleanAttributes.has(name) || name.lastIndexOf(':') > -1) {
@@ -1411,6 +1496,14 @@ function fillTemplateText (target, val) {
     if (val.isBindGetter) {
       const elCtx = val.elCtx
       const current = elCtx.current
+      // A primitive render that no one has asked for a node yet: the placeholder
+      // becomes its node. Nothing can share it, so no nested-bind check is needed.
+      if (current === null) {
+        target.textContent = elCtx.text
+        elCtx.text = null
+        elCtx.current = target
+        return
+      }
       // Adopt only when nobody else holds this text node: it must be detached and the
       // render that produced it must not have created nested bindings (a nested bindAs
       // shares the same node through its own elCtx, which must keep pointing at the
@@ -1431,6 +1524,45 @@ function fillTemplateText (target, val) {
   }
 }
 
+// Fill an element whose only child was a placeholder (TPL_ONLY). The placeholder is not in the
+// clone: a non-empty primitive is written with textContent, which creates the text node natively,
+// and a pending bindAs text adopts the node textContent created. Empty text, and anything that
+// is or renders to a node, is appended as a node, which is what the placeholder would have become.
+function fillOnlyChild (parent, val) {
+  if (typeof val === 'function') {
+    if (val.isBindGetter) {
+      const elCtx = val.elCtx
+      if (elCtx.current === null) {
+        const text = elCtx.text
+        elCtx.text = null
+        if (text !== '') {
+          parent.textContent = text
+          elCtx.current = parent.firstChild
+        } else {
+          elCtx.current = parent.appendChild(document.createTextNode(''))
+        }
+        return
+      }
+      parent.appendChild(renderNode(val))
+    } else {
+      fillOnlyChild(parent, val())
+    }
+  } else if (val === null || typeof val !== 'object') {
+    const text = typeof val === 'string' ? val : val + ''
+    if (text !== '') {
+      parent.textContent = text
+    } else {
+      parent.appendChild(document.createTextNode(''))
+    }
+  } else {
+    parent.appendChild(renderNode(val))
+  }
+}
+
+// An empty attribute value means no attribute (see h). A fresh clone never has a bound
+// attribute, so an empty initial value writes nothing instead of removing nothing.
+const isEmptyAttr = val => val === '' || val === null || val === undefined
+
 /**
  * Create a compiled template function. The returned function takes a single object that contains the properties
  * defined in the template.
@@ -1443,7 +1575,8 @@ function fillTemplateText (target, val) {
  * Child placeholders are empty text nodes in the template. A primitive context value is written into the text node
  * in place. A bindAs/bindSelect getter whose current node is a text node adopts the placeholder as its live node,
  * so state changes keep updating the clone. A function value is evaluated like renderNode does. Nodes, arrays and
- * promises replace the placeholder with their rendered node.
+ * promises replace the placeholder with their rendered node. As with h(), an attribute value of '', null or undefined
+ * (including the initial value of a bound attribute) means no attribute.
  *
  * The locations of all placeholders are compiled once into a single firstChild/nextSibling walk over the clone,
  * which stops at the last bound node, so instantiation does not depend on the size of the unbound parts of the tree.
@@ -1476,6 +1609,15 @@ export function fntemplate (templateFn) {
   const counts = new Map()
   const boundNodes = []
   const count = node => {
+    // A child placeholder that is the only child of an element is dropped from the template and its
+    // binding moves to the element (TPL_ONLY), which saves cloning, walking to and replacing it.
+    const only = node.firstChild
+    if (node.nodeType === 1 && only !== null && only.nodeType === 3 && only.nextSibling === null && only._tpl_bind) {
+      if (!node._tpl_bind) node._tpl_bind = []
+      for (const b of only._tpl_bind) node._tpl_bind.push({ prop: b.prop, type: 'only', attr: null })
+      delete only._tpl_bind
+      node.removeChild(only)
+    }
     let n = 0
     if (node._tpl_bind) {
       n = 1
@@ -1535,11 +1677,32 @@ export function fntemplate (templateFn) {
 
   const nOps = ops.length
   const nBindings = bindings.length
+  // The refs of an instantiation only live until its bindings are filled, so one array is reused.
+  // Filling a binding can run user code that instantiates this same template; that inner
+  // instantiation sees busy and takes a fresh array. An exception leaves busy set, which only
+  // means later instantiations allocate.
+  const scratch = new Array(nRefs).fill(null)
+  let busy = false
 
   return (context) => {
     const clone = root.cloneNode(true)
     if (nBindings === 0) return clone
-    const refs = new Array(nRefs)
+    let refs = scratch
+    if (busy) {
+      refs = new Array(nRefs)
+    } else {
+      busy = true
+    }
+    fillClone(clone, context, refs)
+    if (refs === scratch) {
+      // Do not keep the last instance's nodes alive through the scratch array.
+      for (let i = 0; i < nRefs; i++) scratch[i] = null
+      busy = false
+    }
+    return clone
+  }
+
+  function fillClone (clone, context, refs) {
     let cur = clone
     for (let i = 0; i < nOps; i++) {
       const op = ops[i]
@@ -1565,10 +1728,19 @@ export function fntemplate (templateFn) {
         case TPL_NODE:
           fillTemplateText(target, val)
           break
+        case TPL_ONLY:
+          fillOnlyChild(target, val)
+          break
         case TPL_ATTR:
           if (typeof val === 'function') {
-            setAttribute(b.name, val, target)
-          } else {
+            if (val.isBoundAttribute) {
+              val.init(b.name, target)
+              const initial = val()
+              if (!isEmptyAttr(initial)) target.setAttribute(b.name, initial)
+            } else {
+              setAttribute(b.name, val, target)
+            }
+          } else if (!isEmptyAttr(val)) {
             target.setAttribute(b.name, val)
           }
           break
@@ -1586,6 +1758,5 @@ export function fntemplate (templateFn) {
           setAttribute(b.name, val, target)
       }
     }
-    return clone
   }
 }
