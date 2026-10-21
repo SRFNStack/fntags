@@ -13,6 +13,9 @@ export function setDevMode(on: boolean): void;
  *
  * Any attribute starting with 'on' that is a function is added as an event listener with the 'on' removed.
  * i.e. { onclick: fn } gets added to the element as element.addEventListener('click', fn)
+ * An event attribute can also be an array [fn, arg], which calls fn.call(element, arg, event).
+ * For event types passed to delegateEvents, the handler is stored on the element and run by a single
+ * listener on document instead (see delegateEvents for how ordering differs).
  *
  * The style attribute can be an object and the properties of the object will be added as style properties to the element.
  * i.e. { style: { color: blue } } becomes element.style.color = blue
@@ -82,6 +85,34 @@ export function fnstate<T>(initialValue: T, mapKey?: (T: any) => any): FnState<T
  * @returns {Node} The rendered node
  */
 export function renderNode(node: any): Node;
+/**
+ * Opt in to event delegation for the given event types. After this call, an `on<type>` handler on an element
+ * created by h(), or by an fntemplate compiled after this call, is stored on the element as a property
+ * (`element.__fnon_<type>`) instead of being added with addEventListener, and one listener per type is added to
+ * `document`. This saves a listener, and usually a closure, per element, which adds up in long lists.
+ *
+ * Semantics and caveats:
+ * - Only elements created after the call are delegated. Elements that already exist keep their listeners, and
+ *   templates compiled before the call keep using addEventListener for every instance.
+ * - Delegated handlers run when the event bubbles up to `document`, after every native listener on the target
+ *   and its ancestors has run. Calling stopPropagation() in a native listener therefore prevents delegated
+ *   handlers from running, and a delegated handler cannot stop a native listener on an ancestor.
+ * - Among delegated handlers the order is innermost first, like native bubbling: the walk follows the event's
+ *   composed path from the target up to `document`. stopPropagation() (or stopImmediatePropagation()) in a
+ *   delegated handler stops the walk. Removing an element during dispatch does not shorten the walk, because
+ *   the path is fixed when the event is dispatched, as it is for native listeners.
+ * - Inside a delegated handler `this` and `e.currentTarget` are the element the handler belongs to.
+ * - Elements must be connected to the document (directly or through open shadow roots) for handlers to run.
+ * - Events that do not bubble (focus, blur, mouseenter, mouseleave, load, scroll, ...) are never delegated:
+ *   they are skipped with a dev-mode warning and keep using addEventListener.
+ * - Delegation cannot be turned off again for a type.
+ *
+ * Any `on<type>` attribute, delegated or not, also accepts `[fn, arg]`, which calls `fn.call(element, arg, event)`,
+ * so every row of a list can share one handler function instead of allocating a closure per row.
+ *
+ * @param {string|string[]} types the event types to delegate, e.g. ['click', 'input']
+ */
+export function delegateEvents(types: string | string[]): void;
 /**
  * Check if the given value is an object that can be used as attributes
  * @param {any} val The value to check

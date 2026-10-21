@@ -132,6 +132,42 @@ button({
   ),
 
   contentSection(
+    'Event Delegation',
+    p('By default every ', code('on[event]'), ' attribute adds its own listener to its element. In long lists that is one listener (and usually one closure) per row. ',
+      code('delegateEvents'), ' opts in to delegation: handlers for the listed types are stored on their elements, and one listener per type on ',
+      code('document'), ' finds and runs them.'),
+    prismCode(
+`import { delegateEvents, fnstate } from '@srfnstack/fntags'
+import { tr, td, a } from '@srfnstack/fntags/fnelements'
+
+// Call once at startup, before building UI or compiling templates.
+delegateEvents(['click', 'input'])
+
+const rows = fnstate([], r => r.id)
+
+// [fn, arg] calls fn.call(element, arg, event), so rows share one function
+function remove (id, e) {
+    e.stopPropagation() // the row's own onclick will not run
+    rows(rows().filter(r => r.id !== id))
+}
+
+const row = r => tr({ onclick: () => rows.select(r().id) },
+    td(r().label),
+    td(a({ onclick: [remove, r().id] }, 'x'))
+)`),
+    p('Things to know about delegated handlers:'),
+    p('- Only elements created after the call, and templates compiled after it, are delegated. Existing elements keep their listeners.'),
+    p('- Delegated handlers run innermost first, with ', code('this'), ' and ', code('e.currentTarget'), ' set to the element, and ',
+      code('e.stopPropagation()'), ' stops the outer ones, just like native bubbling.'),
+    p('- They all run when the event reaches ', code('document'), ', so every native listener on the target and its ancestors runs first. ',
+      'A native listener that calls ', code('stopPropagation()'), ' prevents delegated handlers from running at all.'),
+    p('- Elements must be connected to the document for their handlers to run.'),
+    p('- Events that do not bubble (', code('focus'), ', ', code('blur'), ', ', code('mouseenter'), ', ', code('mouseleave'), ', ', code('load'), ', ',
+      code('scroll'), ', ...) are never delegated. They keep using addEventListener, with a warning in dev mode.'),
+    p('The ', code('[fn, arg]'), ' form also works without delegation.')
+  ),
+
+  contentSection(
     'Layout Helpers',
     p('fntags provides several convenience wrappers around flexbox to make layout easier.'),
     prismCode(

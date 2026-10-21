@@ -56,6 +56,9 @@ function runCleanups (bindCtx) {
  *
  * Any attribute starting with 'on' that is a function is added as an event listener with the 'on' removed.
  * i.e. { onclick: fn } gets added to the element as element.addEventListener('click', fn)
+ * An event attribute can also be an array [fn, arg], which calls fn.call(element, arg, event).
+ * For event types passed to delegateEvents, the handler is stored on the element and run by a single
+ * listener on document instead (see delegateEvents for how ordering differs).
  *
  * The style attribute can be an object and the properties of the object will be added as style properties to the element.
  * i.e. { style: { color: blue } } becomes element.style.color = blue
@@ -1234,6 +1237,121 @@ const eventName = attrName => {
   return name
 }
 
+// Event delegation (opt-in, see delegateEvents). For a delegated event type,
+// on<type> handlers are stored on the element under an expando key
+// ('__fnon_click') instead of being added with addEventListener, and a single
+// bubble-phase listener per type on document dispatches to them.
+
+// 'onclick' -> '__fnon_click' for every delegated type. Empty until delegateEvents is called.
+const delegatedAttrs = new Map()
+// 'click' -> '__fnon_click'
+const delegatedKeys = new Map()
+
+// Event types that do not bubble, so a listener on document would never see
+// them in the bubble phase. These always use addEventListener.
+const nonBubblingEvents = new Set([
+  'abort', 'blur', 'cancel', 'canplay', 'canplaythrough', 'close', 'durationchange', 'emptied', 'ended', 'error',
+  'focus', 'invalid', 'load', 'loadeddata', 'loadedmetadata', 'loadend', 'loadstart', 'mouseenter', 'mouseleave',
+  'pause', 'play', 'playing', 'pointerenter', 'pointerleave', 'progress', 'ratechange', 'resize', 'scroll',
+  'scrollend', 'seeked', 'seeking', 'stalled', 'suspend', 'timeupdate', 'toggle', 'unload', 'volumechange', 'waiting'
+])
+
+/**
+ * Opt in to event delegation for the given event types. After this call, an `on<type>` handler on an element
+ * created by h(), or by an fntemplate compiled after this call, is stored on the element as a property
+ * (`element.__fnon_<type>`) instead of being added with addEventListener, and one listener per type is added to
+ * `document`. This saves a listener, and usually a closure, per element, which adds up in long lists.
+ *
+ * Semantics and caveats:
+ * - Only elements created after the call are delegated. Elements that already exist keep their listeners, and
+ *   templates compiled before the call keep using addEventListener for every instance.
+ * - Delegated handlers run when the event bubbles up to `document`, after every native listener on the target
+ *   and its ancestors has run. Calling stopPropagation() in a native listener therefore prevents delegated
+ *   handlers from running, and a delegated handler cannot stop a native listener on an ancestor.
+ * - Among delegated handlers the order is innermost first, like native bubbling: the walk follows the event's
+ *   composed path from the target up to `document`. stopPropagation() (or stopImmediatePropagation()) in a
+ *   delegated handler stops the walk. Removing an element during dispatch does not shorten the walk, because
+ *   the path is fixed when the event is dispatched, as it is for native listeners.
+ * - Inside a delegated handler `this` and `e.currentTarget` are the element the handler belongs to.
+ * - Elements must be connected to the document (directly or through open shadow roots) for handlers to run.
+ * - Events that do not bubble (focus, blur, mouseenter, mouseleave, load, scroll, ...) are never delegated:
+ *   they are skipped with a dev-mode warning and keep using addEventListener.
+ * - Delegation cannot be turned off again for a type.
+ *
+ * Any `on<type>` attribute, delegated or not, also accepts `[fn, arg]`, which calls `fn.call(element, arg, event)`,
+ * so every row of a list can share one handler function instead of allocating a closure per row.
+ *
+ * @param {string|string[]} types the event types to delegate, e.g. ['click', 'input']
+ */
+export function delegateEvents (types) {
+  if (typeof types === 'string') types = [types]
+  for (const type of types) {
+    if (delegatedKeys.has(type)) continue
+    if (nonBubblingEvents.has(type)) {
+      if (devMode) {
+        console.warn('delegateEvents: \'' + type + '\' does not bubble and cannot be delegated, using addEventListener instead.')
+      }
+      continue
+    }
+    const key = '__fnon_' + type
+    delegatedKeys.set(type, key)
+    delegatedAttrs.set('on' + type, key)
+    if (typeof document !== 'undefined') document.addEventListener(type, dispatchDelegated)
+  }
+}
+
+// The element whose delegated handler is running, reported as e.currentTarget.
+let delegatedCurrentTarget = null
+function currentTargetGetter () {
+  return delegatedCurrentTarget
+}
+
+function dispatchDelegated (e) {
+  const key = delegatedKeys.get(e.type)
+  // The composed path is fixed when dispatch starts, so a handler that
+  // removes its own element (or an ancestor) does not cut the walk short.
+  const path = e.composedPath()
+  const prevTarget = delegatedCurrentTarget
+  let overridden = false
+  try {
+    for (let i = 0; i < path.length; i++) {
+      const node = path[i]
+      if (node === document) break
+      const handler = node[key]
+      if (handler === undefined) continue
+      if (!overridden) {
+        overridden = true
+        Object.defineProperty(e, 'currentTarget', { configurable: true, get: currentTargetGetter })
+      }
+      delegatedCurrentTarget = node
+      if (typeof handler === 'function') {
+        handler.call(node, e)
+      } else {
+        handler[0].call(node, handler[1], e)
+      }
+      if (e.cancelBubble) break
+    }
+  } finally {
+    delegatedCurrentTarget = prevTarget
+    // Drop the own property so the native getter (document) shows through again.
+    if (overridden) delete e.currentTarget
+  }
+}
+
+// Attach an on<type> handler: a function or [fn, arg].
+function setEventHandler (attrName, handler, element) {
+  const key = delegatedAttrs.size === 0 ? undefined : delegatedAttrs.get(attrName)
+  if (key !== undefined) {
+    element[key] = handler
+  } else if (typeof handler === 'function') {
+    element.addEventListener(eventName(attrName), handler)
+  } else {
+    const fn = handler[0]
+    const arg = handler[1]
+    element.addEventListener(eventName(attrName), function (e) { return fn.call(this, arg, e) })
+  }
+}
+
 const setAttribute = function (attrName, attr, element) {
   if (typeof attr === 'function') {
     if (attr.isBoundAttribute) {
@@ -1243,11 +1361,15 @@ const setAttribute = function (attrName, attr, element) {
       attr(element, 'attr', attrName)
       return
     } else if (attrName.startsWith('on')) {
-      element.addEventListener(eventName(attrName), attr)
+      setEventHandler(attrName, attr, element)
       return
     } else {
       attr = attr()
     }
+  } else if (typeof attr === 'object' && attr !== null && Array.isArray(attr) && typeof attr[0] === 'function' && attrName.startsWith('on')) {
+    // [fn, arg]: fn is called as fn.call(element, arg, event)
+    setEventHandler(attrName, attr, element)
+    return
   }
   if (attrName === 'value') {
     element.setAttribute('value', attr)
@@ -1414,6 +1536,7 @@ const TPL_ATTR = 1 // plain attribute: element.setAttribute for primitives, setA
 const TPL_ATTR_FULL = 2 // value, boolean, style or namespaced attribute: always the full setAttribute rules
 const TPL_EVENT = 3 // on* attribute: addEventListener with the event name stripped at compile time
 const TPL_STYLE = 4 // style property
+const TPL_EVENT_DELEGATED = 5 // on* attribute of a delegated type: event holds the expando key the handler is stored under
 
 // Ops for the per-clone walk that locates bound nodes. The low two bits are the op,
 // the rest is a slot in the refs array. Captured slots serve both as binding targets
@@ -1432,7 +1555,12 @@ function compileTemplateBinding (b, ref) {
   } else if (name === 'value' || name === 'style' || booleanAttributes.has(name) || name.lastIndexOf(':') > -1) {
     return { kind: TPL_ATTR_FULL, ref, prop: b.prop, name, event: null }
   } else if (name.startsWith('on')) {
-    return { kind: TPL_EVENT, ref, prop: b.prop, name, event: name.substring(2) }
+    // Delegation is decided when the template is compiled, so a delegated
+    // handler costs one property store per instance.
+    const key = delegatedAttrs.get(name)
+    return key !== undefined
+      ? { kind: TPL_EVENT_DELEGATED, ref, prop: b.prop, name, event: key }
+      : { kind: TPL_EVENT, ref, prop: b.prop, name, event: name.substring(2) }
   } else {
     return { kind: TPL_ATTR, ref, prop: b.prop, name, event: null }
   }
@@ -1611,6 +1739,13 @@ export function fntemplate (templateFn) {
         case TPL_EVENT:
           if (typeof val === 'function' && !val.isBoundAttribute) {
             target.addEventListener(b.event, val)
+          } else {
+            setAttribute(b.name, val, target)
+          }
+          break
+        case TPL_EVENT_DELEGATED:
+          if (typeof val === 'function' && !val.isBoundAttribute) {
+            target[b.event] = val
           } else {
             setAttribute(b.name, val, target)
           }
