@@ -70,7 +70,7 @@ div(
 })()
     ),
     p('When `name` changes, only the `span` is replaced. The surrounding `div` is untouched.'),
-    p(strong('Important: '), 'For form inputs (', code('input'), ', ', code('textarea'), ', ', code('select'), '), always bind to the ', code('value'), ' attribute with ', code('bindAttr'), ' — never wrap the input itself in ', code('bindAs'), '. ', code('bindAs'), ' replaces the element on every update, which destroys the currently-focused input and the user loses focus mid-keystroke. fntags emits a dev-mode console warning when this happens; call ', code('setDevMode(false)'), ' to silence it in production.'),
+    p(strong('Important: '), 'For form inputs (', code('input'), ', ', code('textarea'), ', ', code('select'), '), always bind to the ', code('value'), ' attribute with ', code('bindAttr'), ': never wrap the input itself in ', code('bindAs'), '. ', code('bindAs'), ' replaces the element on every update, which destroys the currently-focused input and the user loses focus mid-keystroke. fntags emits a dev-mode console warning when this happens; call ', code('setDevMode(false)'), ' to silence it in production.'),
     prismCode(
 `const name = fnstate('')
 
@@ -275,6 +275,45 @@ ul(
   )
 })()
     )
+  ),
+
+  contentSection(
+    'Fast Lists with bindRows',
+    p('For long lists whose rows are a pure function of the item and the current selection, ', code('bindRows'), ' renders each row from an ', code('fntemplate'), ' without creating a state, a subscription or a closure per row. Each row keeps a small record (its key, item, root node and the last values it wrote), so creating, swapping, removing and clearing rows costs close to hand-written DOM code.'),
+    p(code('values(item, selected)'), ' maps an item to the template\'s slots. It runs when a row is mounted and again only when the item\'s reference changes, or when the row gains or loses selection through ', code('select(key)'), '. Only the slots whose value changed are written. Slots named in ', code('handlers'), ' are event slots: every row shares one function per name, called as ', code('handler(event, item)'), ' with the row\'s current item. The template must have a single root element and the state needs a ', code('mapKey'), ', exactly as for ', code('bindChildren'), '.'),
+    p('Items are compared by reference, so update them immutably: replace the item in a new array instead of mutating it, or the row will not change.'),
+    prismCode(
+`const data = fnstate([], d => d.id)
+
+const row = fntemplate(ctx =>
+  tr({ class: ctx('cls'), onclick: ctx('select') },
+    td(ctx('id')),
+    td(a(ctx('label'))),
+    td(button({ onclick: ctx('remove') }, 'x'))
+  )
+)
+
+table(
+  data.bindRows(tbody(), row, {
+    values: (item, selected) => ({
+      id: item.id,
+      label: item.label,
+      cls: selected === item.id ? 'danger' : ''
+    }),
+    handlers: {
+      select: (e, item) => data.select(item.id),
+      remove: (e, item) => {
+        e.stopPropagation()
+        data(data().filter(d => d.id !== item.id))
+      }
+    }
+  })
+)
+
+// Update immutably: a new object for the changed item
+data(data().map(d => d.id === 3 ? { ...d, label: 'renamed' } : d))`
+    ),
+    p('Choose ', code('bindRows'), ' when a row only displays its item and the selection. Choose ', code('bindChildren'), ' when rows have their own state, nested reactivity, or bind to other states: its item builder receives a per-item state and can use every binding. As an escape hatch, ', code('values'), ' may return a bind getter (', code('bindAs'), ', ', code('bindAttr'), ', ', code('bindStyle'), ') or a node for a slot; bindings created there are cleaned up when ', code('values'), ' runs again or the row is removed, but each one costs a subscription per row, which is what ', code('bindRows'), ' otherwise avoids.')
   ),
 
   contentSection(

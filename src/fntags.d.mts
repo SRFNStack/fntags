@@ -42,6 +42,12 @@ export function h<T extends HTMLElement | SVGElement>(tag: string, ...children: 
  * @property {(parent: (()=>(Node|any))|any|Node, element: (childState: FnState)=>(Node|any))=>Node} bindChildren Bind the values of this state to the given element.
  * Values are items/elements of an array.
  * If the current value is not an array, this will behave the same as bindAs.
+ * @property {(parent: (()=>(Node|any))|Node, template: (context: any)=>Node, options?: BindRowsOptions)=>Node} bindRows Bind the values of this state
+ * to rows stamped from an fntemplate whose template has a single root element. `values(item, selected)` maps an item to the template's slots and
+ * runs at mount, then only when the item's reference changes or the row gains or loses selection; only changed slots are written. Slots named in
+ * `handlers` are event slots, called as handler(event, item) with the row's current item through one shared function per name.
+ * Rows keep no per-row state or subscriptions, so use this for rows that are a pure function of item and selection, and bindChildren for rows
+ * with their own state or nested reactivity. Items are compared by reference: update them immutably.
  * @property {(prop: string)=>Node} bindProp Bind to a property of an object stored in this state instead of the state itself.
  * Shortcut for `mystate.bindAs((current)=> current[prop])`
  * @property {(attribute?: (newValue: T, oldValue: T)=>(string|any))=>any} bindAttr Bind attribute values to state changes.
@@ -61,6 +67,13 @@ export function h<T extends HTMLElement | SVGElement>(tag: string, ...children: 
  * @property {(path: string, value: any, fillWithObjects: boolean)=>void} setPath Set a value at the given property path
  * @property {(subscriber: (newState: T, oldState: T)=>void) => void} subscribe Register a callback that will be executed whenever the state is changed
  * @property {boolean} isFnState A flag to indicate that this is a fnstate object
+ */
+/**
+ * @typedef BindRowsOptions Options for bindRows.
+ * @property {(item: any, selected: any)=>Object<string, any>} [values] Map an item and the currently selected key to the template's slot values.
+ * Defaults to the item itself. Return a fresh object: it is kept and compared slot by slot against the next result.
+ * A slot value may also be a bind getter (bindAs, bindAttr, bindStyle) or a node; bindings created here are cleaned up when values re-runs or the row is removed.
+ * @property {Object<string, (event: Event, item: any)=>any>} [handlers] Event handlers by slot name. The named slots must be on* attributes.
  */
 /**
  * @template T The type of data stored in the state container
@@ -172,9 +185,19 @@ export function hmrRoot(container: HTMLElement, appFn: (() => Node) | Node): HTM
  * Create a compiled template function. The returned function takes a single object that contains the properties
  * defined in the template.
  *
- * This allows fast rendering by pre-creating a dom element with the entire template structure then cloning and populating
- * the clone with data from the provided context. This avoids the work of having to re-execute the tag functions
- * one by one and can speed up situations where a similar element is created many times.
+ * The template function receives a context function. Calling `ctx('prop')` returns a placeholder that can be used
+ * as a child, as an attribute value, or as a style value. The template is rendered once to a dom tree; each
+ * instantiation clones that tree and fills the placeholders from the context object, which avoids re-executing
+ * the tag functions and can speed up situations where a similar element is created many times.
+ *
+ * Child placeholders are empty text nodes in the template. A primitive context value is written into the text node
+ * in place. A bindAs/bindSelect getter whose current node is a text node adopts the placeholder as its live node,
+ * so state changes keep updating the clone. A function value is evaluated like renderNode does. Nodes, arrays and
+ * promises replace the placeholder with their rendered node. As with h(), an attribute value of '', null or undefined
+ * (including the initial value of a bound attribute) means no attribute.
+ *
+ * The locations of all placeholders are compiled once into a single firstChild/nextSibling walk over the clone,
+ * which stops at the last bound node, so instantiation does not depend on the size of the unbound parts of the tree.
  *
  * You cannot bind state to the initial template. If you attempt to, the state will be read, but the elements will
  * not be updated when the state changes because they will not be bound to the cloned element.
@@ -201,6 +224,15 @@ export type FnStateObj<T> = {
      * If the current value is not an array, this will behave the same as bindAs.
      */
     bindChildren: (parent: (() => (Node | any)) | any | Node, element: (childState: any) => (Node | any)) => Node;
+    /**
+     * Bind the values of this state
+     * to rows stamped from an fntemplate whose template has a single root element. `values(item, selected)` maps an item to the template's slots and
+     * runs at mount, then only when the item's reference changes or the row gains or loses selection; only changed slots are written. Slots named in
+     * `handlers` are event slots, called as handler(event, item) with the row's current item through one shared function per name.
+     * Rows keep no per-row state or subscriptions, so use this for rows that are a pure function of item and selection, and bindChildren for rows
+     * with their own state or nested reactivity. Items are compared by reference: update them immutably.
+     */
+    bindRows: (parent: (() => (Node | any)) | Node, template: (context: any) => Node, options?: BindRowsOptions) => Node;
     /**
      * Bind to a property of an object stored in this state instead of the state itself.
      * Shortcut for `mystate.bindAs((current)=> current[prop])`
@@ -256,6 +288,25 @@ export type FnStateObj<T> = {
      * A flag to indicate that this is a fnstate object
      */
     isFnState: boolean;
+};
+/**
+ * Options for bindRows.
+ */
+export type BindRowsOptions = {
+    /**
+     * Map an item and the currently selected key to the template's slot values.
+     * Defaults to the item itself. Return a fresh object: it is kept and compared slot by slot against the next result.
+     * A slot value may also be a bind getter (bindAs, bindAttr, bindStyle) or a node; bindings created here are cleaned up when values re-runs or the row is removed.
+     */
+    values?: (item: any, selected: any) => {
+        [x: string]: any;
+    };
+    /**
+     * Event handlers by slot name. The named slots must be on* attributes.
+     */
+    handlers?: {
+        [x: string]: (event: Event, item: any) => any;
+    };
 };
 /**
  * A container for a state value that can be bound to.

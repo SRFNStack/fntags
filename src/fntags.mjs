@@ -200,6 +200,12 @@ const fnStateProto = Object.create(Function.prototype)
  * @property {(parent: (()=>(Node|any))|any|Node, element: (childState: FnState)=>(Node|any))=>Node} bindChildren Bind the values of this state to the given element.
  * Values are items/elements of an array.
  * If the current value is not an array, this will behave the same as bindAs.
+ * @property {(parent: (()=>(Node|any))|Node, template: (context: any)=>Node, options?: BindRowsOptions)=>Node} bindRows Bind the values of this state
+ * to rows stamped from an fntemplate whose template has a single root element. `values(item, selected)` maps an item to the template's slots and
+ * runs at mount, then only when the item's reference changes or the row gains or loses selection; only changed slots are written. Slots named in
+ * `handlers` are event slots, called as handler(event, item) with the row's current item through one shared function per name.
+ * Rows keep no per-row state or subscriptions, so use this for rows that are a pure function of item and selection, and bindChildren for rows
+ * with their own state or nested reactivity. Items are compared by reference: update them immutably.
  * @property {(prop: string)=>Node} bindProp Bind to a property of an object stored in this state instead of the state itself.
  * Shortcut for `mystate.bindAs((current)=> current[prop])`
  * @property {(attribute?: (newValue: T, oldValue: T)=>(string|any))=>any} bindAttr Bind attribute values to state changes.
@@ -219,6 +225,14 @@ const fnStateProto = Object.create(Function.prototype)
  * @property {(path: string, value: any, fillWithObjects: boolean)=>void} setPath Set a value at the given property path
  * @property {(subscriber: (newState: T, oldState: T)=>void) => void} subscribe Register a callback that will be executed whenever the state is changed
  * @property {boolean} isFnState A flag to indicate that this is a fnstate object
+ */
+
+/**
+ * @typedef BindRowsOptions Options for bindRows.
+ * @property {(item: any, selected: any)=>Object<string, any>} [values] Map an item and the currently selected key to the template's slot values.
+ * Defaults to the item itself. Return a fresh object: it is kept and compared slot by slot against the next result.
+ * A slot value may also be a bind getter (bindAs, bindAttr, bindStyle) or a node; bindings created here are cleaned up when values re-runs or the row is removed.
+ * @property {Object<string, (event: Event, item: any)=>any>} [handlers] Event handlers by slot name. The named slots must be on* attributes.
  */
 
 /**
@@ -252,6 +266,8 @@ export function fnstate (initialValue, mapKey) {
     mapKey,
     // The context of the bindChildren state this state is an item of.
     parentCtx: null,
+    // The bindRows bindings of this state, which doSelect re-runs rows of.
+    rowBindings: null,
     state: null
   }
   const state = function (newState) {
@@ -521,6 +537,10 @@ function doSelect (key) {
   ctx.selected = key
   notifySelect(ctx.selectObservers[previous], key)
   notifySelect(ctx.selectObservers[key], key)
+  const rowBindings = ctx.rowBindings
+  if (rowBindings !== null && previous !== key) {
+    for (let i = 0; i < rowBindings.length; i++) rowBindings[i].select(previous, key)
+  }
 }
 
 /**
@@ -943,6 +963,7 @@ function doBindAs (element) {
 // the FnStateObj typedef above.
 fnStateProto.bindAs = doBindAs
 fnStateProto.bindChildren = doBindChildren
+fnStateProto.bindRows = doBindRows
 fnStateProto.bindProp = doBindProp
 fnStateProto.bindAttr = doBindAttr
 fnStateProto.bindStyle = doBindStyle
@@ -1219,6 +1240,462 @@ function arrangeElements (ctx, bindContext, oldState) {
   if (items.size > n) {
     for (const item of items.values()) {
       if (item.gen !== gen) removeItem(ctx, bindContext, item, true)
+    }
+  }
+}
+
+/**
+ * Bind the array held by this state to rows stamped from a compiled template.
+ *
+ * Each row is a clone of the template's single root element. `values(item, selected)` maps an
+ * item to the template's slots; it runs when the row is mounted and again only when the item's
+ * reference changes or the row gains or loses selection, and only the slots whose value changed
+ * (Object.is) are written. Slots named in `handlers` are event slots: one shared function per
+ * name is attached to every row and is called as handler(event, item) with the row's current item.
+ * Rows hold no per-row state, subscriptions or closures, which makes this the fast path for long
+ * lists whose rows are a pure function of item and selection. Use bindChildren for rows that need
+ * their own state or nested reactivity.
+ *
+ * Items are compared by reference, so update them immutably (replace the object in the array).
+ *
+ * @param {(()=>(Node|any))|Node} parent The element the rows are rendered into
+ * @param {Function} template An fntemplate result whose template has a single root element
+ * @param {{values?: (item: any, selected: any)=>object, handlers?: Object<string, (event: Event, item: any)=>any>}} [options]
+ * values defaults to returning the item itself.
+ * @returns {Node} the parent
+ */
+function doBindRows (parent, template, options) {
+  const ctx = this._ctx
+  parent = renderNode(parent)
+  if (parent === undefined || parent.nodeType === undefined) {
+    throw new Error('You must provide a parent element to bind the rows to.')
+  }
+  const tpl = typeof template === 'function' ? template._fnTemplate : undefined
+  if (tpl === undefined) {
+    throw new Error('bindRows: template must be the result of fntemplate.')
+  }
+  if (tpl.root.nodeType !== 1) {
+    throw new Error('bindRows: the template must have a single root element.')
+  }
+  if (typeof ctx.mapKey !== 'function') {
+    if (devMode) {
+      console.warn('bindRows: no mapKey provided: falling back to array index as key, which can misbehave when items are moved, inserted, or removed. Pass a mapKey function as the second argument to fnstate(array, item => item.id).')
+    }
+    ctx.mapKey = (_, i) => i
+  }
+  if (!Array.isArray(ctx.currentValue)) {
+    throw new Error('You can only use bindRows with a state that contains an array. try myState([mystate]) before calling this function.')
+  }
+  const rows = new RowsBinding(ctx, parent, tpl, options || {})
+  addObserver(ctx, rows)
+  if (ctx.rowBindings === null) ctx.rowBindings = [rows]
+  else ctx.rowBindings.push(rows)
+  // Inside a bindAs render: tear the rows' scopes and the subscription down
+  // when that render is replaced.
+  registerCleanup(rows)
+  arrangeRows(rows, undefined)
+  return parent
+}
+
+// One row of a bindRows list. vals is the object values() returned last (the
+// item itself when values is omitted), read back to diff the next run. scope
+// holds the cleanups registered while values ran and its slots were applied,
+// or null when there were none.
+function Row (key, item, gen) {
+  this.key = key
+  this.item = item
+  this.node = null
+  this.vals = null
+  this.scope = null
+  this.gen = gen
+}
+
+const identityValues = item => item
+
+// The state of one bindRows call. It is the state's observer (update) and
+// its own cleanup entry (dispose); doSelect reaches it through ctx.rowBindings.
+function RowsBinding (ctx, parent, tpl, options) {
+  this.ctx = ctx
+  this.parent = parent
+  this.root = tpl.root
+  this.ops = tpl.ops
+  this.values = typeof options.values === 'function' ? options.values : identityValues
+  const handlers = options.handlers || {}
+  // The compiled bindings values() fills.
+  this.valueSlots = []
+  // The compiled bindings handlers fill, flattened as binding, listener pairs.
+  this.eventSlots = []
+  const listeners = new Map()
+  for (const b of tpl.bindings) {
+    const fn = Object.prototype.hasOwnProperty.call(handlers, b.prop) ? handlers[b.prop] : undefined
+    if (typeof fn !== 'function') {
+      this.valueSlots.push(b)
+      continue
+    }
+    if (b.kind !== TPL_EVENT && b.kind !== TPL_EVENT_DELEGATED) {
+      throw new Error('bindRows: handler \'' + b.prop + '\' must be bound to an on* attribute in the template.')
+    }
+    let listener = listeners.get(b.prop)
+    if (listener === undefined) {
+      listener = rowListener(this, fn)
+      listeners.set(b.prop, listener)
+    }
+    this.eventSlots.push(b, listener)
+  }
+  this.rows = new Map()
+  this.order = []
+  this.gen = 0
+  // Number of rows whose scope is not null, so clearing a list that has no
+  // bindings skips the walk over its rows.
+  this.scoped = 0
+  this.scratch = new Array(tpl.nRefs).fill(null)
+  this.busy = false
+}
+
+// The one listener a list attaches for a handler name. It finds its row by
+// walking up to the row root, so no row needs a closure of its own and the
+// item it passes is the row's current one.
+function rowListener (rows, fn) {
+  return function (e) {
+    let node = this
+    let row
+    while ((row = node._fnRow) === undefined) {
+      node = node.parentNode
+      if (node === null) return
+    }
+    if (rows.rows.get(row.key) !== row) return
+    return fn.call(this, e, row.item)
+  }
+}
+
+RowsBinding.prototype.update = function (newValue, oldValue) {
+  if (!Array.isArray(newValue)) {
+    if (devMode) {
+      console.warn('bindRows: state was updated to a non-array value. Wrapping it in a single-element array.')
+    }
+    this.ctx.state([newValue])
+    return
+  }
+  arrangeRows(this, oldValue)
+}
+
+// Called by doSelect: only the rows that lose and gain selection re-run.
+RowsBinding.prototype.select = function (previous, key) {
+  const selected = this.ctx.selected
+  let row = this.rows.get(previous)
+  if (row !== undefined && row.node !== null) rerunRow(this, row, selected)
+  row = this.rows.get(key)
+  if (row !== undefined && row.node !== null) rerunRow(this, row, selected)
+}
+
+RowsBinding.prototype.dispose = function () {
+  const ctx = this.ctx
+  removeObserver(ctx, this)
+  const list = ctx.rowBindings
+  const idx = list === null ? -1 : list.indexOf(this)
+  if (idx !== -1) list.splice(idx, 1)
+  if (this.scoped > 0) {
+    for (const row of this.rows.values()) runRowScope(this, row)
+  }
+  this.rows.clear()
+  this.order.length = 0
+}
+
+function runRowScope (rows, row) {
+  const scope = row.scope
+  if (scope === null) return
+  row.scope = null
+  rows.scoped--
+  for (let i = 0; i < scope.length; i++) runCleanupEntry(scope[i])
+}
+
+// Close the cleanup scope a row's values() and slot writes ran in.
+function closeRowScope (rows, row, prevCleanups) {
+  const scope = takeRenderCleanups()
+  activeRenderCleanups = prevCleanups
+  if (scope !== null) {
+    row.scope = scope
+    rows.scoped++
+  }
+}
+
+// Locate the bound nodes of a row. The refs live until releaseRowRefs.
+function rowRefs (rows, node) {
+  let refs = rows.scratch
+  if (rows.busy) {
+    refs = new Array(refs.length)
+  } else {
+    rows.busy = true
+  }
+  walkTemplate(rows.ops, node, refs)
+  return refs
+}
+
+function releaseRowRefs (rows, refs) {
+  if (refs !== rows.scratch) return
+  for (let i = 0; i < refs.length; i++) refs[i] = null
+  rows.busy = false
+}
+
+// A fragment empties itself when inserted, so its nodes could not be found
+// or replaced on the next run.
+function assertRowSlotValue (val) {
+  if (Array.isArray(val) || val.nodeType === 11) {
+    throw new Error('bindRows values must be a primitive or a single node, not an array or fragment. Wrap the items in an element.')
+  }
+}
+
+function mountRow (rows, row, selected) {
+  const node = rows.root.cloneNode(true)
+  row.node = node
+  node._fnRow = row
+  const refs = rowRefs(rows, node)
+  const eventSlots = rows.eventSlots
+  for (let i = 0; i < eventSlots.length; i += 2) {
+    const b = eventSlots[i]
+    if (b.kind === TPL_EVENT_DELEGATED) {
+      refs[b.ref][b.event] = eventSlots[i + 1]
+    } else {
+      refs[b.ref].addEventListener(b.event, eventSlots[i + 1])
+    }
+  }
+  const slots = rows.valueSlots
+  if (slots.length === 0) {
+    releaseRowRefs(rows, refs)
+    return node
+  }
+  const prevCleanups = activeRenderCleanups
+  activeRenderCleanups = NO_CLEANUPS
+  try {
+    const vals = rows.values(row.item, selected)
+    row.vals = vals
+    for (let i = 0; i < slots.length; i++) {
+      const b = slots[i]
+      const val = vals[b.prop]
+      if ((b.kind === TPL_NODE || b.kind === TPL_ONLY) && typeof val === 'object' && val !== null) assertRowSlotValue(val)
+      fillBinding(b, refs[b.ref], val)
+    }
+  } finally {
+    closeRowScope(rows, row, prevCleanups)
+    releaseRowRefs(rows, refs)
+  }
+  return node
+}
+
+// Run values again for a mounted row and write the slots whose value changed.
+function rerunRow (rows, row, selected) {
+  const slots = rows.valueSlots
+  if (slots.length === 0) return
+  runRowScope(rows, row)
+  const prevCleanups = activeRenderCleanups
+  activeRenderCleanups = NO_CLEANUPS
+  let refs = null
+  try {
+    const vals = rows.values(row.item, selected)
+    const old = row.vals
+    row.vals = vals
+    for (let i = 0; i < slots.length; i++) {
+      const b = slots[i]
+      const val = vals[b.prop]
+      const prev = old[b.prop]
+      if (Object.is(val, prev)) continue
+      // The bound nodes are found again instead of being kept per row: a
+      // re-run is rare next to a mount, and a node that replaced a slot's
+      // node sits where the old one was, so the walk finds it.
+      if (refs === null) refs = rowRefs(rows, row.node)
+      if ((b.kind === TPL_NODE || b.kind === TPL_ONLY) && typeof val === 'object' && val !== null) assertRowSlotValue(val)
+      updateRowSlot(b, refs[b.ref], prev, val)
+    }
+  } finally {
+    closeRowScope(rows, row, prevCleanups)
+    if (refs !== null) releaseRowRefs(rows, refs)
+  }
+}
+
+const isPrimitive = val => val === null || (typeof val !== 'object' && typeof val !== 'function')
+
+function updateRowSlot (b, target, prev, val) {
+  switch (b.kind) {
+    case TPL_NODE:
+      replaceRowChild(target, prev, val)
+      break
+    case TPL_ONLY:
+      if (target.firstChild === null) {
+        fillOnlyChild(target, val)
+      } else {
+        replaceRowChild(target.firstChild, prev, val)
+      }
+      break
+    case TPL_ATTR:
+      if (typeof val === 'function') {
+        if (val.isBoundAttribute) {
+          val.init(b.name, target)
+          const v = val()
+          if (isEmptyAttr(v)) target.removeAttribute(b.name)
+          else target.setAttribute(b.name, v)
+        } else {
+          setAttribute(b.name, val, target)
+        }
+      } else if (isEmptyAttr(val)) {
+        target.removeAttribute(b.name)
+      } else {
+        target.setAttribute(b.name, val)
+      }
+      break
+    case TPL_EVENT:
+      if (typeof prev === 'function') target.removeEventListener(b.event, prev)
+      if (val !== null && val !== undefined) setAttribute(b.name, val, target)
+      break
+    case TPL_EVENT_DELEGATED:
+      target[b.event] = val === null ? undefined : val
+      break
+    case TPL_STYLE:
+      setStyle(b.name, val, target)
+      break
+    default:
+      setAttribute(b.name, val, target)
+  }
+}
+
+// Replace what a child slot shows. cur is the node in the slot now.
+function replaceRowChild (cur, prev, val) {
+  if (typeof val === 'function' && !val.isBindGetter) val = val()
+  if (isPrimitive(val)) {
+    const text = typeof val === 'string' ? val : val + ''
+    if (isPrimitive(prev) && cur.nodeType === 3) {
+      cur.textContent = text
+    } else {
+      cur.replaceWith(document.createTextNode(text))
+    }
+  } else if (typeof val === 'function') {
+    // A bind getter: give it a text node to adopt, or to be replaced by its node.
+    const placeholder = document.createTextNode('')
+    cur.replaceWith(placeholder)
+    fillTemplateText(placeholder, val)
+  } else {
+    const node = renderNode(val)
+    if (node !== cur) cur.replaceWith(node)
+  }
+}
+
+function removeRow (rows, row, detach) {
+  runRowScope(rows, row)
+  rows.rows.delete(row.key)
+  const node = row.node
+  if (node !== null) {
+    node._fnRow = undefined
+    if (detach) node.remove()
+  }
+}
+
+// Drop every row whose gen is not keepGen (all of them for -1) and empty the parent.
+function dropAllRows (rows, keepGen) {
+  const map = rows.rows
+  if (keepGen === -1) {
+    if (rows.scoped > 0) {
+      for (const row of map.values()) runRowScope(rows, row)
+    }
+    map.clear()
+  } else {
+    for (const row of map.values()) {
+      if (row.gen === keepGen) continue
+      runRowScope(rows, row)
+      map.delete(row.key)
+    }
+  }
+  rows.parent.textContent = ''
+}
+
+// Reconcile the rows with the state's array. Same passes as arrangeElements:
+// map values to rows, then either the all-new fast path or the keyed walk
+// from the end, then the strays.
+function arrangeRows (rows, oldState) {
+  const ctx = rows.ctx
+  const values = ctx.currentValue
+  const map = rows.rows
+  const parent = rows.parent
+  if (!values?.length) {
+    if (map.size > 0) dropAllRows(rows, -1)
+    else parent.textContent = ''
+    rows.order.length = 0
+    return
+  }
+
+  const n = values.length
+  const gen = ++rows.gen
+  const order = rows.order
+  const mapKey = ctx.mapKey
+  const selected = ctx.selected
+  if (order.length > n) order.length = n
+  const oldSize = map.size
+  let matched = 0
+
+  for (let i = 0; i < n; i++) {
+    const item = values[i]
+    const key = keyMapper(mapKey, item, i)
+    let row = map.get(key)
+    if (row === undefined) {
+      row = new Row(key, item, gen)
+      map.set(key, row)
+    } else {
+      if (row.gen === gen) {
+        if (oldState) ctx.state(oldState)
+        throw new Error('Duplicate keys in a bound array are not allowed, state reset to previous value.')
+      }
+      matched++
+      row.gen = gen
+      if (row.item !== item) {
+        row.item = item
+        if (row.node !== null) rerunRow(rows, row, selected)
+      }
+    }
+    order[i] = row
+  }
+
+  if (matched === 0) {
+    if (oldSize > 0) dropAllRows(rows, gen)
+    for (let i = 0; i < n; i++) {
+      parent.appendChild(mountRow(rows, order[i], selected))
+    }
+    return
+  }
+
+  let prev = null
+  for (let i = n - 1; i >= 0; i--) {
+    const row = order[i]
+    let current = row.node
+    let isNew = false
+    if (current === null) {
+      isNew = true
+      current = mountRow(rows, row, selected)
+    }
+    if (prev === null) {
+      if (parent.lastChild !== current) {
+        parent.append(current)
+      }
+    } else {
+      const sib = prev.previousSibling
+      if (sib === null) {
+        insertBeforeNode(parent, prev, current)
+      } else if (sib !== current) {
+        const sibRow = sib._fnRow
+        if (sibRow === undefined || sibRow.gen !== gen) {
+          // A row that is gone (or a node that is not ours): drop it.
+          if (sibRow !== undefined && map.get(sibRow.key) === sibRow) removeRow(rows, sibRow, false)
+          sib.replaceWith(current)
+        } else if (isNew) {
+          insertBeforeNode(parent, prev, current)
+        } else {
+          sib.replaceWith(current)
+        }
+      }
+    }
+    prev = current
+  }
+
+  if (map.size > n) {
+    for (const row of map.values()) {
+      if (row.gen !== gen) removeRow(rows, row, true)
     }
   }
 }
@@ -1839,7 +2316,6 @@ export function fntemplate (templateFn) {
   visit(root, 0)
   for (const node of boundNodes) delete node._tpl_bind
 
-  const nOps = ops.length
   const nBindings = bindings.length
   // The refs of an instantiation only live until its bindings are filled, so one array is reused.
   // Filling a binding can run user code that instantiates this same template; that inner
@@ -1848,7 +2324,7 @@ export function fntemplate (templateFn) {
   const scratch = new Array(nRefs).fill(null)
   let busy = false
 
-  return (context) => {
+  const instantiate = (context) => {
     const clone = root.cloneNode(true)
     if (nBindings === 0) return clone
     let refs = scratch
@@ -1865,69 +2341,82 @@ export function fntemplate (templateFn) {
     }
     return clone
   }
+  // The compiled form, read by bindRows to clone, walk and fill rows itself.
+  instantiate._fnTemplate = { root, ops, bindings, nRefs }
+  return instantiate
 
   function fillClone (clone, context, refs) {
-    let cur = clone
-    for (let i = 0; i < nOps; i++) {
-      const op = ops[i]
-      switch (op & 3) {
-        case OP_FIRST_CHILD:
-          cur = cur.firstChild
-          break
-        case OP_NEXT_SIBLING:
-          cur = cur.nextSibling
-          break
-        case OP_CAPTURE:
-          refs[op >> 2] = cur
-          break
-        default:
-          cur = refs[op >> 2].nextSibling
-      }
-    }
+    walkTemplate(ops, clone, refs)
     for (let i = 0; i < nBindings; i++) {
       const b = bindings[i]
-      const target = refs[b.ref]
-      const val = context[b.prop]
-      switch (b.kind) {
-        case TPL_NODE:
-          fillTemplateText(target, val)
-          break
-        case TPL_ONLY:
-          fillOnlyChild(target, val)
-          break
-        case TPL_ATTR:
-          if (typeof val === 'function') {
-            if (val.isBoundAttribute) {
-              val.init(b.name, target)
-              const initial = val()
-              if (!isEmptyAttr(initial)) target.setAttribute(b.name, initial)
-            } else {
-              setAttribute(b.name, val, target)
-            }
-          } else if (!isEmptyAttr(val)) {
-            target.setAttribute(b.name, val)
-          }
-          break
-        case TPL_EVENT:
-          if (typeof val === 'function' && !val.isBoundAttribute) {
-            target.addEventListener(b.event, val)
-          } else {
-            setAttribute(b.name, val, target)
-          }
-          break
-        case TPL_EVENT_DELEGATED:
-          if (typeof val === 'function' && !val.isBoundAttribute) {
-            target[b.event] = val
-          } else {
-            setAttribute(b.name, val, target)
-          }
-          break
-        case TPL_STYLE:
-          setStyle(b.name, val, target)
-          break
-        default:
-          setAttribute(b.name, val, target)
-      }
+      fillBinding(b, refs[b.ref], context[b.prop])
     }
+  }
+}
+
+// Run a compiled op list over a clone (or a live instance with the same
+// structure), storing the captured nodes in refs.
+function walkTemplate (ops, clone, refs) {
+  let cur = clone
+  for (let i = 0; i < ops.length; i++) {
+    const op = ops[i]
+    switch (op & 3) {
+      case OP_FIRST_CHILD:
+        cur = cur.firstChild
+        break
+      case OP_NEXT_SIBLING:
+        cur = cur.nextSibling
+        break
+      case OP_CAPTURE:
+        refs[op >> 2] = cur
+        break
+      default:
+        cur = refs[op >> 2].nextSibling
+    }
+  }
+}
+
+// Fill one compiled template binding of a fresh clone with its context value.
+// Shared by fntemplate instances and bindRows mounts.
+function fillBinding (b, target, val) {
+  switch (b.kind) {
+    case TPL_NODE:
+      fillTemplateText(target, val)
+      break
+    case TPL_ONLY:
+      fillOnlyChild(target, val)
+      break
+    case TPL_ATTR:
+      if (typeof val === 'function') {
+        if (val.isBoundAttribute) {
+          val.init(b.name, target)
+          const initial = val()
+          if (!isEmptyAttr(initial)) target.setAttribute(b.name, initial)
+        } else {
+          setAttribute(b.name, val, target)
+        }
+      } else if (!isEmptyAttr(val)) {
+        target.setAttribute(b.name, val)
+      }
+      break
+    case TPL_EVENT:
+      if (typeof val === 'function' && !val.isBoundAttribute) {
+        target.addEventListener(b.event, val)
+      } else {
+        setAttribute(b.name, val, target)
+      }
+      break
+    case TPL_EVENT_DELEGATED:
+      if (typeof val === 'function' && !val.isBoundAttribute) {
+        target[b.event] = val
+      } else {
+        setAttribute(b.name, val, target)
+      }
+      break
+    case TPL_STYLE:
+      setStyle(b.name, val, target)
+      break
+    default:
+      setAttribute(b.name, val, target)
   }
 }

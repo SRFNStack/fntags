@@ -27,6 +27,7 @@ Always bind at the finest granularity that expresses the change:
 | A `value`, `checked`, or `selected` on an input  | **`bindAttr`, never `bindAs`** (see traps below) |
 | An element's structure/type changes              | `state.bindAs(v => ...)`: the narrowest element that differs |
 | A list of items                                  | `state.bindChildren(parent, itemState => ...)` with a `mapKey` |
+| A long list whose rows only show item + selection | `state.bindRows(parent, fntemplate(...), { values, handlers })` with a `mapKey` |
 | One property of an object state                  | `state.bindProp('field')` |
 
 **Anti-pattern:** wrapping an entire component, page, or route in a single top-level `bindAs`. This turns the framework into a worse virtual-DOM library: every change tears down and rebuilds the whole subtree, destroys focus, breaks transitions, and orphans event listeners. If you catch yourself doing this, push the bind down the tree until it wraps only the element that actually changes.
@@ -112,6 +113,7 @@ The returned `s` is both a getter and setter:
 | `s.bindAttr(fn?)` | Update one attribute value | Element is mutated in place. Synchronous. Prefer for inputs. Omit `fn` to use the value directly. |
 | `s.bindStyle(fn?)` | Update one style property | Element is mutated in place. Synchronous. |
 | `s.bindChildren(parent, itemRenderer)` | Render an array | **Requires** `mapKey` on the `fnstate`. `itemRenderer(itemState)` returns an element for each array item; `itemState` is itself an `fnstate` scoped to that item, so children can bind to it. |
+| `s.bindRows(parent, template, { values, handlers })` | Render an array from an `fntemplate`, fast path | Requires `mapKey`. The template needs a single root element. `values(item, selected)` returns the slot values; it re-runs only when the item's reference changes or the row gains or loses selection, and only changed slots are written, so items must be updated immutably. Slots named in `handlers` are event slots, called as `handler(event, item)` with the current item. No per-row state, subscriptions or closures. Use `bindChildren` instead when rows need their own state or nested reactivity. |
 | `s.bindProp(prop)` | Bind to one field of an object state | Shortcut for `s.bindAs(v => v[prop])`. |
 | `s.bindSelect(fn?)` / `s.bindSelectAttr(fn?)` | React to `select()` calls on a list state | Used on per-item states inside `bindChildren` to style the selected item. |
 
