@@ -17,6 +17,10 @@ export function setDevMode(on: boolean): void;
  * The style attribute can be an object and the properties of the object will be added as style properties to the element.
  * i.e. { style: { color: blue } } becomes element.style.color = blue
  *
+ * An attribute value of null, undefined or '' means no attribute: it is removed if present and never written,
+ * so { class: '' } produces an element without a class attribute. The value attribute and boolean attributes
+ * (disabled, checked, ...) are exempt and keep their property semantics.
+ *
  * The rest of the arguments will be considered children of this element and appended to it in the same order as passed.
  *
  * @template {HTMLElement|SVGElement} T

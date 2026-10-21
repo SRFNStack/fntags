@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import * as fntags from '@srfnstack/fntags'
-import { h, renderNode, getAttrs, styled, isAttrs } from '@srfnstack/fntags'
+import { h, renderNode, getAttrs, styled, isAttrs, fnstate } from '@srfnstack/fntags'
 
 describe('h', () => {
   it('should create an element with the passed in tag', () => {
@@ -153,15 +153,192 @@ describe('h', () => {
     const el = h('marquee', {
       style: { color: null },
       'data-blue': true,
-      null: undefined,
-      name: { nameio: 'jello' },
-      'http://www.w3.org/1999/xlink:href': null
+      'data-false': false,
+      'data-zero': 0,
+      name: { nameio: 'jello' }
     }, 'weee')
     expect(el.style.color).toBe('')
     expect(el.getAttribute('data-blue')).toBe('true')
-    expect(el.getAttribute('null')).toBe('undefined')
+    expect(el.getAttribute('data-false')).toBe('false')
+    expect(el.getAttribute('data-zero')).toBe('0')
     expect(el.getAttribute('name')).toBe('[object Object]')
-    expect(el.getAttributeNS('http://www.w3.org/1999/xlink', 'href')).toBe('null')
+  })
+
+  it('treats null, undefined and empty string attribute values as no attribute', () => {
+    const el = h('marquee', {
+      null: undefined,
+      title: null,
+      class: '',
+      'http://www.w3.org/1999/xlink:href': null
+    }, 'weee')
+    expect(el.hasAttribute('null')).toBe(false)
+    expect(el.hasAttribute('title')).toBe(false)
+    expect(el.hasAttribute('class')).toBe(false)
+    expect(el.hasAttributeNS('http://www.w3.org/1999/xlink', 'href')).toBe(false)
+    expect(el.outerHTML).toBe('<marquee>weee</marquee>')
+  })
+
+  it('keeps value and boolean attributes out of the empty value rule', () => {
+    const el = h('input', { value: '', disabled: '', checked: null })
+    expect(el.hasAttribute('value')).toBe(true)
+    expect(el.value).toBe('')
+    expect(el.disabled).toBe(false)
+    expect(el.checked).toBe(false)
+  })
+
+  it('removes a bound attribute when it becomes empty and sets it again when it does not', () => {
+    const selected = fnstate(false)
+    const el = h('tr', { id: 'r', class: selected.bindAttr(s => s ? 'danger' : '') })
+    expect(el.hasAttribute('class')).toBe(false)
+    selected(true)
+    expect(el.getAttribute('class')).toBe('danger')
+    selected(false)
+    expect(el.hasAttribute('class')).toBe(false)
+    expect(el.outerHTML).toBe('<tr id="r"></tr>')
+    selected(true)
+    expect(el.className).toBe('danger')
+  })
+
+  it('removes a namespaced bound attribute when it becomes empty', () => {
+    const href = fnstate('/a')
+    const el = h('http://www.w3.org/2000/svg:use', { 'http://www.w3.org/1999/xlink:href': href.bindAttr() })
+    expect(el.getAttributeNS('http://www.w3.org/1999/xlink', 'href')).toBe('/a')
+    href(null)
+    expect(el.hasAttributeNS('http://www.w3.org/1999/xlink', 'href')).toBe(false)
+    href('/b')
+    expect(el.getAttributeNS('http://www.w3.org/1999/xlink', 'href')).toBe('/b')
+  })
+
+  it('sets boolean attributes as properties, including false', () => {
+    const el = h('input', { disabled: false, checked: 'yes', hidden: 0, required: 1 })
+    expect(el.disabled).toBe(false)
+    expect(el.hasAttribute('disabled')).toBe(false)
+    expect(el.checked).toBe(true)
+    expect(el.hidden).toBe(false)
+    expect(el.required).toBe(true)
+  })
+
+  it('sets value last regardless of its position in the attributes object', () => {
+    const names = []
+    const spy = vi.spyOn(Element.prototype, 'setAttribute').mockImplementation(function (name, value) {
+      names.push(name)
+      return Element.prototype.getAttribute.call(this, name)
+    })
+    try {
+      h('input', { value: '150', type: 'range', min: '0', max: '200' })
+    } finally {
+      spy.mockRestore()
+    }
+    expect(names).toEqual(['type', 'min', 'max', 'value'])
+    const el = h('input', { value: 'v', type: 'text', name: 'n' })
+    expect(el.value).toBe('v')
+    expect(el.getAttribute('value')).toBe('v')
+  })
+
+  it('evaluates plain function attribute values and adds listeners for on* functions', () => {
+    let clicks = 0
+    const el = h('button', { title: () => 'computed', onclick: () => clicks++ },
+      h('span', { onclick: () => clicks++ }, 'x'))
+    expect(el.getAttribute('title')).toBe('computed')
+    el.click()
+    expect(clicks).toBe(1)
+    el.firstChild.click()
+    expect(clicks).toBe(3)
+  })
+
+  it('does not treat a non function on* attribute as a listener', () => {
+    const el = h('div', { onclick: 'alert(1)' })
+    expect(el.getAttribute('onclick')).toBe('alert(1)')
+  })
+})
+
+describe('h children', () => {
+  it('renders a single empty string child as an empty text node', () => {
+    const el = h('div', '')
+    expect(el.childNodes.length).toBe(1)
+    expect(el.firstChild.nodeType).toBe(3)
+    expect(el.textContent).toBe('')
+  })
+
+  it('renders 0 and other numbers as text', () => {
+    expect(h('div', 0).textContent).toBe('0')
+    expect(h('div', 0).childNodes.length).toBe(1)
+    expect(h('div', { id: 'n' }, 1.5).textContent).toBe('1.5')
+    expect(h('div', 'a', 0, 'b').textContent).toBe('a0b')
+  })
+
+  it('renders a single string child as one text node', () => {
+    const el = h('p', { class: 'c' }, 'hello')
+    expect(el.childNodes.length).toBe(1)
+    expect(el.firstChild.nodeType).toBe(3)
+    expect(el.outerHTML).toBe('<p class="c">hello</p>')
+  })
+
+  it('renders null, undefined and booleans as text', () => {
+    expect(h('div', null).textContent).toBe('null')
+    expect(h('div', undefined).textContent).toBe('undefined')
+    expect(h('div', true, false).textContent).toBe('truefalse')
+    expect(h('div', 'a', null, undefined).childNodes.length).toBe(3)
+  })
+
+  it('flattens nested arrays at any depth in order', () => {
+    const el = h('ul', [h('li', 'a'), [h('li', 'b'), [[h('li', 'c')], 'd']], 'e'], h('li', 'f'))
+    expect(el.textContent).toBe('abcdef')
+    expect(el.querySelectorAll('li').length).toBe(4)
+    expect(el.childNodes.length).toBe(6)
+  })
+
+  it('renders an empty array child as nothing', () => {
+    const el = h('div', [], 'x', [[]])
+    expect(el.childNodes.length).toBe(1)
+    expect(el.textContent).toBe('x')
+  })
+
+  it('evaluates function children and appends their result', () => {
+    const el = h('div', () => h('b', 'x'), () => 'y', () => 2, () => null, () => [h('i', 'z'), 'w'])
+    expect(el.innerHTML).toBe('<b>x</b>y2null<i>z</i>w')
+  })
+
+  it('stringifies a function child that returns a plain object', () => {
+    expect(h('div', () => ({})).textContent).toBe('[object Object]')
+  })
+
+  it('renders a fnstate child as its current value', () => {
+    const s = fnstate('now')
+    expect(h('div', s).textContent).toBe('now')
+  })
+
+  it('renders a promise child as a hidden marker that is replaced on resolve', async () => {
+    const el = h('div', 'a', Promise.resolve(h('b', 'x')), 'c')
+    const marker = el.querySelector('.fntags-promise-marker')
+    expect(marker).not.toBeNull()
+    expect(marker.style.display).toBe('none')
+    await new Promise(resolve => setTimeout(resolve, 0))
+    expect(el.innerHTML).toBe('a<b>x</b>c')
+  })
+
+  it('creates namespaced elements from a namespace:tag string with nested children', () => {
+    const svg = h('http://www.w3.org/2000/svg:svg', { viewBox: '0 0 1 1' },
+      h('http://www.w3.org/2000/svg:circle', { r: 1 }), 'txt')
+    expect(svg.namespaceURI).toBe('http://www.w3.org/2000/svg')
+    expect(svg.getAttribute('viewBox')).toBe('0 0 1 1')
+    expect(svg.firstChild.namespaceURI).toBe('http://www.w3.org/2000/svg')
+    expect(svg.firstChild.tagName).toBe('circle')
+    expect(svg.firstChild.getAttribute('r')).toBe('1')
+    expect(svg.lastChild.textContent).toBe('txt')
+  })
+
+  it('uses the attributes object only when it is the first child', () => {
+    const el = h('div', 'a', { id: 'x' })
+    expect(el.id).toBe('')
+    expect(el.textContent).toBe('a[object Object]')
+  })
+
+  it('does not treat a document fragment or a node as attributes', () => {
+    const frag = document.createDocumentFragment()
+    frag.append(h('i', 'f'))
+    const el = h('div', frag, h('b', 'n'))
+    expect(el.innerHTML).toBe('<i>f</i><b>n</b>')
   })
 })
 

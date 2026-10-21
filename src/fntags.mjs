@@ -40,6 +40,10 @@ function runCleanups (elCtx) {
  * The style attribute can be an object and the properties of the object will be added as style properties to the element.
  * i.e. { style: { color: blue } } becomes element.style.color = blue
  *
+ * An attribute value of null, undefined or '' means no attribute: it is removed if present and never written,
+ * so { class: '' } produces an element without a class attribute. The value attribute and boolean attributes
+ * (disabled, checked, ...) are exempt and keep their property semantics.
+ *
  * The rest of the arguments will be considered children of this element and appended to it in the same order as passed.
  *
  * @template {HTMLElement|SVGElement} T
@@ -49,56 +53,95 @@ function runCleanups (elCtx) {
  *
  */
 export function h (tag, ...children) {
-  let firstChildIdx = 0
-  let element
-  const nsIndex = hasNs(tag)
-  if (nsIndex > -1) {
-    const { ns, val } = splitNs(tag, nsIndex)
-    element = document.createElementNS(ns, val)
-  } else {
-    element = document.createElement(tag)
-  }
+  return createElement(tag, children)
+}
 
-  if (isAttrs(children[firstChildIdx])) {
-    const attrs = children[firstChildIdx]
-    firstChildIdx += 1
-    let hasValue = false
-    for (const a in attrs) {
-      // set value last to ensure value constraints are set before trying to set the value to avoid modification
-      // For example, when using a range and specifying a min and max
-      //  if the value is set first and is outside the default 1 to 100 range
-      //  the value will be adjusted to be within the range, even though the value attribute will be set correctly
-      if (a === 'value') {
-        hasValue = true
-        continue
-      }
-      setAttribute(a, attrs[a], element)
-    }
-    if (hasValue) {
-      setAttribute('value', attrs.value, element)
+// Create an element from an array of children (h and styled call into this).
+// Only tags with a namespace ('http://www.w3.org/2000/svg:svg') go through
+// createElementNS; lastIndexOf is used because the namespace itself has a ':'.
+function createElement (tag, children) {
+  const nsIndex = tag.lastIndexOf(':')
+  const element = nsIndex === -1
+    ? document.createElement(tag)
+    : document.createElementNS(tag.slice(0, nsIndex), tag.slice(nsIndex + 1))
+  const len = children.length
+  let i = 0
+  if (len > 0) {
+    const attrs = children[0]
+    if (isAttrs(attrs)) {
+      i = 1
+      setAttributes(attrs, element)
     }
   }
-  for (let i = firstChildIdx; i < children.length; i++) {
-    const child = children[i]
-    if (Array.isArray(child)) {
-      // Append array items directly to skip the DocumentFragment renderNode would build.
-      // Nested arrays inside still go through renderNode, which flattens them.
-      for (const c of child) {
-        element.append(renderNode(c))
+  if (i === len - 1) {
+    // A lone text child is set with textContent, which creates the text node
+    // without a JS wrapper. '' is left to the loop so it still produces an
+    // empty text node like it always has.
+    const only = children[i]
+    if (typeof only === 'string') {
+      if (only !== '') {
+        element.textContent = only
+        return element
       }
-    } else {
-      element.append(renderNode(child))
+    } else if (typeof only === 'number') {
+      element.textContent = '' + only
+      return element
     }
+  }
+  for (; i < len; i++) {
+    appendChild(element, children[i])
   }
   return element
 }
 
-function splitNs (val, i) {
-  return { ns: val.slice(0, i), val: val.slice(i + 1) }
+function setAttributes (attrs, element) {
+  let hasValue = false
+  for (const a in attrs) {
+    // set value last to ensure value constraints are set before trying to set the value to avoid modification
+    // For example, when using a range and specifying a min and max
+    //  if the value is set first and is outside the default 1 to 100 range
+    //  the value will be adjusted to be within the range, even though the value attribute will be set correctly
+    if (a === 'value') {
+      hasValue = true
+    } else {
+      setAttribute(a, attrs[a], element)
+    }
+  }
+  if (hasValue) {
+    setAttribute('value', attrs.value, element)
+  }
 }
 
-function hasNs (val) {
-  return val.lastIndexOf(':')
+// Append one h() child. Nodes go straight to appendChild; strings and other
+// primitives are appended as is, which lets the DOM create the text node
+// without a JS wrapper (null, undefined, numbers and objects stringify exactly
+// like createTextNode(x + '') did). Arrays append their items directly instead
+// of building the DocumentFragment renderNode would.
+function appendChild (element, child) {
+  if (typeof child === 'object') {
+    if (child === null) {
+      element.append('null')
+    } else if (child.nodeType !== undefined) {
+      element.appendChild(child)
+    } else if (Array.isArray(child)) {
+      for (let i = 0; i < child.length; i++) {
+        appendChild(element, child[i])
+      }
+    } else {
+      element.append(renderNode(child))
+    }
+  } else if (typeof child === 'function') {
+    // renderNode returns the function's result as is when it is a non-node
+    // object, and append stringifies that where appendChild would throw.
+    const rendered = renderNode(child)
+    if (rendered.nodeType !== undefined) {
+      element.appendChild(rendered)
+    } else {
+      element.append(rendered)
+    }
+  } else {
+    element.append(child)
+  }
 }
 
 /**
@@ -880,21 +923,21 @@ const evaluateElement = (element, value, oldValue) => {
  * @returns {Node} The rendered node
  */
 export function renderNode (node) {
-  if (node && node.isTemplatePlaceholder) {
-    const element = h('div')
-    node(element, 'node')
-    return element
-  } else if (Array.isArray(node)) {
-    // Arrays (including nested arrays and arrays resolved from promises) are
-    // flattened into a DocumentFragment so each item lands in the DOM as its
-    // own node. Without this, append/replaceWith would stringify the array.
-    const frag = document.createDocumentFragment()
-    for (const child of node) {
-      frag.append(renderNode(child))
-    }
-    return frag
-  } else if (node && typeof node === 'object') {
-    if (typeof node.then === 'function') {
+  if (typeof node === 'object') {
+    if (node === null) {
+      return document.createTextNode('null')
+    } else if (node.nodeType !== undefined) {
+      return node
+    } else if (Array.isArray(node)) {
+      // Arrays (including nested arrays and arrays resolved from promises) are
+      // flattened into a DocumentFragment so each item lands in the DOM as its
+      // own node. Without this, append/replaceWith would stringify the array.
+      const frag = document.createDocumentFragment()
+      for (let i = 0; i < node.length; i++) {
+        appendChild(frag, node[i])
+      }
+      return frag
+    } else if (typeof node.then === 'function') {
       let temp = h('div', { style: 'display:none', class: 'fntags-promise-marker' })
       node.then(el => {
         temp.replaceWith(renderNode(el))
@@ -904,7 +947,14 @@ export function renderNode (node) {
     } else {
       return node
     }
+  } else if (typeof node === 'string') {
+    return document.createTextNode(node)
   } else if (typeof node === 'function') {
+    if (node.isTemplatePlaceholder) {
+      const element = h('div')
+      node(element, 'node')
+      return element
+    }
     return renderNode(node())
   } else {
     return document.createTextNode(node + '')
@@ -914,32 +964,43 @@ export function renderNode (node) {
 /**
  * All of these attributes must be set to an actual boolean to function correctly
  */
-const booleanAttributes = {
-  allowfullscreen: true,
-  allowpaymentrequest: true,
-  async: true,
-  autofocus: true,
-  autoplay: true,
-  checked: true,
-  controls: true,
-  default: true,
-  disabled: true,
-  formnovalidate: true,
-  hidden: true,
-  ismap: true,
-  itemscope: true,
-  loop: true,
-  multiple: true,
-  muted: true,
-  nomodule: true,
-  novalidate: true,
-  open: true,
-  playsinline: true,
-  readonly: true,
-  required: true,
-  reversed: true,
-  selected: true,
-  truespeed: true
+const booleanAttributes = new Set([
+  'allowfullscreen',
+  'allowpaymentrequest',
+  'async',
+  'autofocus',
+  'autoplay',
+  'checked',
+  'controls',
+  'default',
+  'disabled',
+  'formnovalidate',
+  'hidden',
+  'ismap',
+  'itemscope',
+  'loop',
+  'multiple',
+  'muted',
+  'nomodule',
+  'novalidate',
+  'open',
+  'playsinline',
+  'readonly',
+  'required',
+  'reversed',
+  'selected',
+  'truespeed'
+])
+
+// 'onclick' -> 'click', computed once per attribute name instead of a substring per element
+const eventNames = new Map()
+const eventName = attrName => {
+  let name = eventNames.get(attrName)
+  if (name === undefined) {
+    name = attrName.slice(2)
+    eventNames.set(attrName, name)
+  }
+  return name
 }
 
 const setAttribute = function (attrName, attr, element) {
@@ -951,31 +1012,37 @@ const setAttribute = function (attrName, attr, element) {
       attr(element, 'attr', attrName)
       return
     } else if (attrName.startsWith('on')) {
-      element.addEventListener(attrName.substring(2), attr)
+      element.addEventListener(eventName(attrName), attr)
       return
     } else {
       attr = attr()
     }
   }
-  if (attrName === 'style' && typeof attr === 'object') {
-    for (const style in attr) {
-      setStyle(style, attr[style], element)
-    }
-  } else if (attrName === 'value') {
+  if (attrName === 'value') {
     element.setAttribute('value', attr)
     // html5 nodes like range don't update unless the value property on the object is set
     element.value = attr
-  } else if (booleanAttributes[attrName]) {
+  } else if (attrName === 'style' && typeof attr === 'object') {
+    for (const style in attr) {
+      setStyle(style, attr[style], element)
+    }
+  } else if (booleanAttributes.has(attrName)) {
     element[attrName] = !!attr
   } else {
-    let ns = null
-    const nsIndex = hasNs(attrName)
-    if (nsIndex > -1) {
-      const split = splitNs(attrName, nsIndex)
-      ns = split.ns
-      attrName = split.val
+    const nsIndex = attrName.lastIndexOf(':')
+    if (attr === '' || attr === null || attr === undefined) {
+      // An empty value means no attribute: remove it if present. Bound
+      // attributes rely on this to go from 'danger' back to nothing.
+      if (nsIndex === -1) {
+        element.removeAttribute(attrName)
+      } else {
+        element.removeAttributeNS(attrName.slice(0, nsIndex), attrName.slice(nsIndex + 1))
+      }
+    } else if (nsIndex === -1) {
+      element.setAttribute(attrName, attr)
+    } else {
+      element.setAttributeNS(attrName.slice(0, nsIndex), attrName.slice(nsIndex + 1), attr)
     }
-    element.setAttributeNS(ns, attrName, attr)
   }
 }
 
@@ -1000,7 +1067,7 @@ const setStyle = (style, styleValue, element) => {
  * @returns {boolean} true if the value is an object that can be used as attributes
  */
 export function isAttrs (val) {
-  return val && typeof val === 'object' && val.nodeType === undefined && !Array.isArray(val) && typeof val.then !== 'function'
+  return typeof val === 'object' && val !== null && val.nodeType === undefined && !Array.isArray(val) && typeof val.then !== 'function'
 }
 
 /**
@@ -1034,7 +1101,7 @@ export function styled (style, tag, children) {
   } else {
     children.unshift({ style })
   }
-  return h(tag, ...children)
+  return createElement(tag, children)
 }
 
 const stringifyStyle = style =>
