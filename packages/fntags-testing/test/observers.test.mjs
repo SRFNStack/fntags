@@ -147,6 +147,46 @@ describe('bound attribute and style value functions', () => {
     items([])
     expect(Object.keys(items._ctx.selectObservers).length).toBe(0)
   })
+
+  it('several select observers on one key notify and unregister independently', async () => {
+    const items = fnstate([{ id: 1 }, { id: 2 }], o => o.id)
+    const toggle = fnstate(true)
+    const container = h('div')
+    items.bindChildren(container, item =>
+      h('p',
+        { class: item.bindSelectAttr(key => key === item().id ? 'sel' : '') },
+        item.bindSelect(() => items.selected() === item().id ? 'yes' : 'no'),
+        toggle.bindAs(on => on ? h('b', { title: item.bindSelectAttr(key => key === item().id ? 't' : '') }) : h('i'))
+      )
+    )
+    items.select(1)
+    await flush()
+    const first = container.children[0]
+    expect(first.className).toBe('sel')
+    expect(first.textContent).toBe('yes')
+    expect(first.querySelector('b').getAttribute('title')).toBe('t')
+    // the inner bindAs re-render removes its own select observer and keeps the others
+    toggle(false)
+    await flush()
+    expect(first.querySelector('i')).not.toBeNull()
+    items.select(2)
+    await flush()
+    expect(first.hasAttribute('class')).toBe(false)
+    expect(first.textContent).toBe('no')
+    expect(container.children[1].className).toBe('sel')
+    expect(container.children[1].textContent).toBe('yes')
+    items([])
+    expect(Object.keys(items._ctx.selectObservers).length).toBe(0)
+  })
+
+  it('cleanup lists hold the bindings themselves, not closures', () => {
+    const outer = fnstate('a')
+    const inner = fnstate('x')
+    const nested = outer.bindAs(() => h('span', { class: inner.bindAttr() }, inner.bindAs()))
+    const cleanups = nested.elCtx.cleanups
+    expect(cleanups.length).toBe(2)
+    expect(cleanups.every(c => typeof c === 'object' && typeof c.dispose === 'function')).toBe(true)
+  })
 })
 
 describe('batched bindAs replacement', () => {

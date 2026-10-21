@@ -123,7 +123,7 @@ describe('selectObserver leak detection', () => {
 
     // Count total select observers across all keys — should not grow with each toggle
     const totalObservers = Object.values(items._ctx.selectObservers)
-      .reduce((sum, arr) => sum + arr.length, 0)
+      .reduce((sum, entry) => sum + (Array.isArray(entry) ? entry.length : 1), 0)
     // Initial render creates some observers per item, and that count should stay stable
     expect(totalObservers).toBeLessThanOrEqual(4) // at most 2 per key
   })
