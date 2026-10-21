@@ -881,9 +881,10 @@ const evaluateElement = (element, value, oldValue) => {
  */
 export function renderNode (node) {
   if (node && node.isTemplatePlaceholder) {
-    const element = h('div')
-    node(element, 'node')
-    return element
+    // Template child placeholders are empty text nodes that fntemplate fills in place per clone.
+    const text = document.createTextNode('')
+    node(text, 'node')
+    return text
   } else if (Array.isArray(node)) {
     // Arrays (including nested arrays and arrays resolved from promises) are
     // flattened into a DocumentFragment so each item lands in the DOM as its
@@ -1109,13 +1110,82 @@ export function hmrRoot (container, appFn) {
   return container
 }
 
+// Binding kinds for compiled templates, resolved once per template so instantiation
+// only switches on a small integer per binding instead of inspecting names and values.
+const TPL_NODE = 0 // child placeholder: an empty text node in the template, filled in place
+const TPL_ATTR = 1 // plain attribute: element.setAttribute for primitives, setAttribute() otherwise
+const TPL_ATTR_FULL = 2 // value, boolean, style or namespaced attribute: always the full setAttribute rules
+const TPL_EVENT = 3 // on* attribute: addEventListener with the event name stripped at compile time
+const TPL_STYLE = 4 // style property
+
+// Ops for the per-clone walk that locates bound nodes. The low two bits are the op,
+// the rest is a slot in the refs array. Captured slots serve both as binding targets
+// and as anchors to return to after a sibling's subtree has been walked.
+const OP_FIRST_CHILD = 0 // cur = cur.firstChild
+const OP_NEXT_SIBLING = 1 // cur = cur.nextSibling
+const OP_CAPTURE = 2 // refs[slot] = cur
+const OP_NEXT_FROM = 3 // cur = refs[slot].nextSibling
+
+function compileTemplateBinding (b, ref) {
+  const name = b.attr
+  if (b.type === 'node') {
+    return { kind: TPL_NODE, ref, prop: b.prop, name: null, event: null }
+  } else if (b.type === 'style') {
+    return { kind: TPL_STYLE, ref, prop: b.prop, name, event: null }
+  } else if (name === 'value' || name === 'style' || booleanAttributes[name] || hasNs(name) > -1) {
+    return { kind: TPL_ATTR_FULL, ref, prop: b.prop, name, event: null }
+  } else if (name.startsWith('on')) {
+    return { kind: TPL_EVENT, ref, prop: b.prop, name, event: name.substring(2) }
+  } else {
+    return { kind: TPL_ATTR, ref, prop: b.prop, name, event: null }
+  }
+}
+
+// Fill a child placeholder (an empty text node already in the clone) with a context value.
+// Primitives are written into the text node (textContent measured faster than data for Text nodes), so no node is created or inserted. A bindAs
+// getter whose live node is a detached text node adopts the placeholder as its live node,
+// so later updates replace the placeholder in place. Anything else is rendered and swapped in.
+function fillTemplateText (target, val) {
+  if (typeof val === 'function') {
+    if (val.isBindGetter) {
+      const elCtx = val.elCtx
+      const current = elCtx.current
+      // Adopt only when nobody else holds this text node: it must be detached and the
+      // render that produced it must not have created nested bindings (a nested bindAs
+      // shares the same node through its own elCtx, which must keep pointing at the
+      // node that is actually in the document).
+      if (current.nodeType === 3 && current.parentNode === null && (!elCtx.cleanups || elCtx.cleanups.length === 0)) {
+        target.textContent = current.data
+        elCtx.current = target
+        return
+      }
+      target.replaceWith(renderNode(val))
+    } else {
+      fillTemplateText(target, val())
+    }
+  } else if (val === null || typeof val !== 'object') {
+    target.textContent = typeof val === 'string' ? val : val + ''
+  } else {
+    target.replaceWith(renderNode(val))
+  }
+}
+
 /**
  * Create a compiled template function. The returned function takes a single object that contains the properties
  * defined in the template.
  *
- * This allows fast rendering by pre-creating a dom element with the entire template structure then cloning and populating
- * the clone with data from the provided context. This avoids the work of having to re-execute the tag functions
- * one by one and can speed up situations where a similar element is created many times.
+ * The template function receives a context function. Calling `ctx('prop')` returns a placeholder that can be used
+ * as a child, as an attribute value, or as a style value. The template is rendered once to a dom tree; each
+ * instantiation clones that tree and fills the placeholders from the context object, which avoids re-executing
+ * the tag functions and can speed up situations where a similar element is created many times.
+ *
+ * Child placeholders are empty text nodes in the template. A primitive context value is written into the text node
+ * in place. A bindAs/bindSelect getter whose current node is a text node adopts the placeholder as its live node,
+ * so state changes keep updating the clone. A function value is evaluated like renderNode does. Nodes, arrays and
+ * promises replace the placeholder with their rendered node.
+ *
+ * The locations of all placeholders are compiled once into a single firstChild/nextSibling walk over the clone,
+ * which stops at the last bound node, so instantiation does not depend on the size of the unbound parts of the tree.
  *
  * You cannot bind state to the initial template. If you attempt to, the state will be read, but the elements will
  * not be updated when the state changes because they will not be bound to the cloned element.
@@ -1130,57 +1200,129 @@ export function fntemplate (templateFn) {
     throw new Error('You must pass a function to fntemplate.')
   }
 
-  const bindingsByPath = []
-
   const initContext = prop => {
-    const placeholder = (element, type, attr) => {
-      if (!element._tpl_bind) element._tpl_bind = []
-      element._tpl_bind.push({ prop, type, attr })
+    const placeholder = (node, type, attr) => {
+      if (!node._tpl_bind) node._tpl_bind = []
+      node._tpl_bind.push({ prop, type, attr })
     }
     placeholder.isTemplatePlaceholder = true
     return placeholder
   }
 
-  const root = templateFn(initContext)
+  const root = renderNode(templateFn(initContext))
 
-  const traverse = (node, path) => {
+  // Count bound nodes per subtree so the walk can skip unbound subtrees and stop after the last binding.
+  const counts = new Map()
+  const boundNodes = []
+  const count = node => {
+    let n = 0
     if (node._tpl_bind) {
-      bindingsByPath.push({ path: [...path], binds: node._tpl_bind })
-      delete node._tpl_bind
+      n = 1
+      boundNodes.push(node)
     }
-
-    let child = node.firstChild
-    let i = 0
-    while (child) {
-      traverse(child, [...path, i])
-      child = child.nextSibling
-      i++
+    for (let child = node.firstChild; child; child = child.nextSibling) {
+      n += count(child)
     }
+    counts.set(node, n)
+    return n
   }
+  count(root)
 
-  traverse(root, [])
+  const ops = []
+  const bindings = []
+  let nRefs = 0
+
+  // Emit the ops that visit every bound node in node's subtree in document order. On entry the cursor is at
+  // node. `after` is the number of bound nodes still to visit once this subtree is done; when it is zero the
+  // cursor never needs to come back, so no anchor is captured. Returns node's ref slot, or -1.
+  const visit = (node, after) => {
+    const bound = node._tpl_bind
+    const inside = counts.get(node) - (bound ? 1 : 0)
+    let ref = -1
+    if (bound || (inside > 0 && after > 0)) {
+      ref = nRefs++
+      ops.push(OP_CAPTURE | (ref << 2))
+      if (bound) {
+        for (const b of bound) bindings.push(compileTemplateBinding(b, ref))
+      }
+    }
+    if (inside === 0) return ref
+    ops.push(OP_FIRST_CHILD)
+    let left = inside
+    let child = node.firstChild
+    while (true) {
+      const cnt = counts.get(child)
+      if (cnt > 0) {
+        left -= cnt
+        const childRef = visit(child, left + after)
+        if (left === 0) break
+        // visit moved the cursor into child's subtree if child has bound descendants
+        if (cnt - (child._tpl_bind ? 1 : 0) > 0) {
+          ops.push(OP_NEXT_FROM | (childRef << 2))
+        } else {
+          ops.push(OP_NEXT_SIBLING)
+        }
+      } else {
+        ops.push(OP_NEXT_SIBLING)
+      }
+      child = child.nextSibling
+    }
+    return ref
+  }
+  visit(root, 0)
+  for (const node of boundNodes) delete node._tpl_bind
+
+  const nOps = ops.length
+  const nBindings = bindings.length
 
   return (context) => {
     const clone = root.cloneNode(true)
-    for (let i = 0; i < bindingsByPath.length; i++) {
-      const entry = bindingsByPath[i]
-      let target = clone
-      const path = entry.path
-      for (let j = 0; j < path.length; j++) {
-        target = target.childNodes[path[j]]
+    if (nBindings === 0) return clone
+    const refs = new Array(nRefs)
+    let cur = clone
+    for (let i = 0; i < nOps; i++) {
+      const op = ops[i]
+      switch (op & 3) {
+        case OP_FIRST_CHILD:
+          cur = cur.firstChild
+          break
+        case OP_NEXT_SIBLING:
+          cur = cur.nextSibling
+          break
+        case OP_CAPTURE:
+          refs[op >> 2] = cur
+          break
+        default:
+          cur = refs[op >> 2].nextSibling
       }
-
-      const binds = entry.binds
-      for (let j = 0; j < binds.length; j++) {
-        const b = binds[j]
-        const val = context[b.prop]
-        if (b.type === 'node') {
-          target.replaceWith(renderNode(val))
-        } else if (b.type === 'attr') {
-          setAttribute(b.attr, val, target)
-        } else if (b.type === 'style') {
-          setStyle(b.attr, val, target)
-        }
+    }
+    for (let i = 0; i < nBindings; i++) {
+      const b = bindings[i]
+      const target = refs[b.ref]
+      const val = context[b.prop]
+      switch (b.kind) {
+        case TPL_NODE:
+          fillTemplateText(target, val)
+          break
+        case TPL_ATTR:
+          if (typeof val === 'function') {
+            setAttribute(b.name, val, target)
+          } else {
+            target.setAttribute(b.name, val)
+          }
+          break
+        case TPL_EVENT:
+          if (typeof val === 'function' && !val.isBoundAttribute) {
+            target.addEventListener(b.event, val)
+          } else {
+            setAttribute(b.name, val, target)
+          }
+          break
+        case TPL_STYLE:
+          setStyle(b.name, val, target)
+          break
+        default:
+          setAttribute(b.name, val, target)
       }
     }
     return clone
