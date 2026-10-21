@@ -964,6 +964,30 @@ function removeItem (ctx, bindContext, item, detach) {
   }
 }
 
+// Tear down every record whose gen is not keepGen and empty the parent. Used
+// when no old key survives an update (including clearing the list), so the
+// per-record work is only the item's own cleanups.
+function dropAllItems (ctx, bindContext, keepGen) {
+  const items = bindContext.items
+  // The select observers of a state are keyed by item key and shared by all
+  // of its bindChildren bindings. With a single binding every registered key
+  // belongs to a record being dropped here (new records are not built yet),
+  // so the map is reset once up front and the cleanups' own removals find
+  // nothing to do. Otherwise each dropped key is deleted individually.
+  const shared = ctx.bindContexts.length > 1
+  if (!shared) ctx.selectObservers = EMPTY_SELECT_OBSERVERS
+  for (const item of items.values()) {
+    if (item.gen === keepGen) continue
+    runItemCleanups(item)
+    if (shared && ctx.selectObservers[item.key] !== undefined) {
+      delete ctx.selectObservers[item.key]
+    }
+    if (item.node !== undefined) item.node._fnItem = undefined
+    if (keepGen !== -1) items.delete(item.key)
+  }
+  bindContext.parent.textContent = ''
+}
+
 // Shared scratch list for subscriptions created while an item builder runs.
 // Builders nest (a bindChildren inside an item builder arranges synchronously),
 // so each build only owns the entries above its own start offset.
@@ -1003,15 +1027,10 @@ function arrangeElements (ctx, bindContext, oldState) {
   const values = ctx.currentValue
   const items = bindContext.items
   if (!values?.length) {
-    // Clean up subscriptions for all existing elements before clearing
-    for (const item of items.values()) {
-      runItemCleanups(item)
-      if (item.node !== undefined) item.node._fnItem = undefined
-    }
+    if (items.size > 0) dropAllItems(ctx, bindContext, -1)
+    else bindContext.parent.textContent = ''
     items.clear()
     bindContext.order.length = 0
-    bindContext.parent.textContent = ''
-    ctx.selectObservers = {}
     return
   }
 
@@ -1023,6 +1042,10 @@ function arrangeElements (ctx, bindContext, oldState) {
   // it is a plain append and never leaves holes (growing via .length first
   // would have V8 hand out a sparse backing store).
   if (order.length > n) order.length = n
+  const oldSize = items.size
+  // Existing records reused by this pass. Zero means every old record is
+  // stale and every record in order is new.
+  let matched = 0
 
   // 1. Map every array value to its item record, creating records for new
   // keys and pushing changed values into existing item states.
@@ -1039,6 +1062,7 @@ function arrangeElements (ctx, bindContext, oldState) {
         if (oldState) ctx.state(oldState)
         throw new Error('Duplicate keys in a bound array are not allowed, state reset to previous value.')
       }
+      matched++
       item.gen = gen
       item.index = i
       // An item is only pushed into its state (and so re-rendered) when its
@@ -1053,6 +1077,18 @@ function arrangeElements (ctx, bindContext, oldState) {
   }
 
   const parent = bindContext.parent
+
+  if (matched === 0) {
+    // Nothing survives: tear every old record down in one pass, empty the
+    // parent with a single DOM call and append the new nodes in order. No
+    // sibling has to be compared or replaced.
+    if (oldSize > 0) dropAllItems(ctx, bindContext, gen)
+    for (let i = 0; i < n; i++) {
+      parent.appendChild(buildItemNode(bindContext, order[i]))
+    }
+    return
+  }
+
   let prev = null
 
   // 2. Render loop, walking from the end so each node is placed before the
