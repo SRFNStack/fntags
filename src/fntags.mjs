@@ -1343,7 +1343,9 @@ function RowsBinding (ctx, parent, tpl, options) {
     this.eventSlots.push(b, listener)
   }
   this.rows = new Map()
+  // The rows in DOM order, and the buffer the next pass maps values into.
   this.order = []
+  this.next = []
   this.gen = 0
   // Number of rows whose scope is not null, so clearing a list that has no
   // bindings skips the walk over its rows.
@@ -1399,6 +1401,7 @@ RowsBinding.prototype.dispose = function () {
   }
   this.rows.clear()
   this.order.length = 0
+  this.next.length = 0
 }
 
 function runRowScope (rows, row) {
@@ -1606,9 +1609,12 @@ function dropAllRows (rows, keepGen) {
   rows.parent.textContent = ''
 }
 
-// Reconcile the rows with the state's array. Same passes as arrangeElements:
-// map values to rows, then either the all-new fast path or the keyed walk
-// from the end, then the strays.
+// Reconcile the rows with the state's array: map values to rows (rows.next,
+// in the new order), then either the all-new fast path or a keyed diff
+// against rows.order, the previous order, which is the DOM order of the rows.
+// The diff skips the common prefix and suffix, then handles pure removal,
+// pure insertion and two rows trading places directly, and otherwise moves
+// only the rows outside the longest increasing subsequence of old positions.
 function arrangeRows (rows, oldState) {
   const ctx = rows.ctx
   const values = ctx.currentValue
@@ -1618,86 +1624,196 @@ function arrangeRows (rows, oldState) {
     if (map.size > 0) dropAllRows(rows, -1)
     else parent.textContent = ''
     rows.order.length = 0
+    rows.next.length = 0
     return
   }
 
   const n = values.length
   const gen = ++rows.gen
-  const order = rows.order
+  const old = rows.order
+  const next = rows.next
   const mapKey = ctx.mapKey
   const selected = ctx.selected
-  if (order.length > n) order.length = n
+  if (next.length > n) next.length = n
   const oldSize = map.size
+  const m = old.length
   let matched = 0
 
   for (let i = 0; i < n; i++) {
     const item = values[i]
-    const key = keyMapper(mapKey, item, i)
-    let row = map.get(key)
-    if (row === undefined) {
-      row = new Row(key, item, gen)
-      map.set(key, row)
-    } else {
-      if (row.gen === gen) {
-        if (oldState) ctx.state(oldState)
-        throw new Error('Duplicate keys in a bound array are not allowed, state reset to previous value.')
-      }
-      matched++
-      row.gen = gen
-      if (row.item !== item) {
-        row.item = item
-        if (row.node !== null) rerunRow(rows, row, selected)
+    // Most rows keep their position and item, and every row of old is in the
+    // map: the row at the same old position answers when it holds the same
+    // item (items are compared by reference, so it has the same key), or
+    // when its key matches.
+    let row = i < m ? old[i] : undefined
+    if (row === undefined || row.item !== item) {
+      const key = keyMapper(mapKey, item, i)
+      if (row === undefined || row.key !== key) row = map.get(key)
+      if (row === undefined) {
+        row = new Row(key, item, gen)
+        map.set(key, row)
+        next[i] = row
+        continue
       }
     }
-    order[i] = row
+    if (row.gen === gen) {
+      if (oldState) ctx.state(oldState)
+      throw new Error('Duplicate keys in a bound array are not allowed, state reset to previous value.')
+    }
+    matched++
+    row.gen = gen
+    if (row.item !== item) {
+      row.item = item
+      if (row.node !== null) rerunRow(rows, row, selected)
+    }
+    next[i] = row
   }
+
+  rows.order = next
+  rows.next = old
 
   if (matched === 0) {
     if (oldSize > 0) dropAllRows(rows, gen)
     for (let i = 0; i < n; i++) {
-      parent.appendChild(mountRow(rows, order[i], selected))
+      parent.appendChild(mountRow(rows, next[i], selected))
     }
+    old.length = 0
     return
   }
 
-  let prev = null
-  for (let i = n - 1; i >= 0; i--) {
-    const row = order[i]
-    let current = row.node
-    let isNew = false
-    if (current === null) {
-      isNew = true
-      current = mountRow(rows, row, selected)
-    }
-    if (prev === null) {
-      if (parent.lastChild !== current) {
-        parent.append(current)
-      }
-    } else {
-      const sib = prev.previousSibling
-      if (sib === null) {
-        insertBeforeNode(parent, prev, current)
-      } else if (sib !== current) {
-        const sibRow = sib._fnRow
-        if (sibRow === undefined || sibRow.gen !== gen) {
-          // A row that is gone (or a node that is not ours): drop it.
-          if (sibRow !== undefined && map.get(sibRow.key) === sibRow) removeRow(rows, sibRow, false)
-          sib.replaceWith(current)
-        } else if (isNew) {
-          insertBeforeNode(parent, prev, current)
-        } else {
-          sib.replaceWith(current)
-        }
-      }
-    }
-    prev = current
+  // What follows the last row: null, or a node that is not ours.
+  const lastNode = m > 0 ? old[m - 1].node : null
+  const tail = lastNode !== null ? lastNode.nextSibling : null
+  let start = 0
+  let oldEnd = m - 1
+  let newEnd = n - 1
+  while (start <= oldEnd && start <= newEnd && old[start] === next[start]) start++
+  while (oldEnd >= start && newEnd >= start && old[oldEnd] === next[newEnd]) {
+    oldEnd--
+    newEnd--
   }
 
+  if (start > oldEnd) {
+    // Only insertions.
+    if (start <= newEnd) {
+      const ref = newEnd + 1 < n ? next[newEnd + 1].node : tail
+      for (let i = start; i <= newEnd; i++) placeRow(rows, next[i], ref, selected)
+    }
+  } else if (start > newEnd) {
+    // Only removals.
+    for (let i = start; i <= oldEnd; i++) removeRow(rows, old[i], true)
+    old.length = 0
+  } else if (oldEnd - start === newEnd - start && old[start] === next[newEnd] &&
+    old[oldEnd] === next[start] && sameRun(old, next, start + 1, oldEnd)) {
+    // Two rows trading places.
+    const a = old[start].node
+    const b = old[oldEnd].node
+    if (oldEnd - start === 1) {
+      parent.insertBefore(b, a)
+    } else {
+      const afterB = b.nextSibling
+      parent.insertBefore(b, a)
+      parent.insertBefore(a, afterB)
+    }
+  } else {
+    reorderRows(rows, old, next, start, oldEnd, newEnd, tail, gen, selected)
+  }
+
+  // Rows left in the map by a pass that threw on a duplicate key.
   if (map.size > n) {
     for (const row of map.values()) {
       if (row.gen !== gen) removeRow(rows, row, true)
     }
   }
+}
+
+function sameRun (a, b, from, to) {
+  for (let i = from; i < to; i++) {
+    if (a[i] !== b[i]) return false
+  }
+  return true
+}
+
+// Insert a row's node before ref, mounting it first if it is new.
+function placeRow (rows, row, ref, selected) {
+  const node = row.node === null ? mountRow(rows, row, selected) : row.node
+  rows.parent.insertBefore(node, ref)
+}
+
+// The general keyed diff of old[start..oldEnd] against next[start..newEnd].
+function reorderRows (rows, old, next, start, oldEnd, newEnd, tail, gen, selected) {
+  const len = newEnd - start + 1
+  // sources[j] is the old index of next[start + j], or -1 for a new row.
+  const sources = new Int32Array(len).fill(-1)
+  const newIndex = new Map()
+  for (let j = start; j <= newEnd; j++) newIndex.set(next[j], j)
+  let moved = false
+  let removed = false
+  let last = 0
+  for (let i = start; i <= oldEnd; i++) {
+    const row = old[i]
+    if (row.gen !== gen) {
+      removeRow(rows, row, true)
+      removed = true
+      continue
+    }
+    const j = newIndex.get(row)
+    sources[j - start] = i
+    if (j < last) moved = true
+    else last = j
+  }
+  if (removed) old.length = 0
+
+  const parent = rows.parent
+  const n = next.length
+  const lis = moved ? longestIncreasingSubsequence(sources) : null
+  let k = lis === null ? -1 : lis.length - 1
+  for (let j = len - 1; j >= 0; j--) {
+    const pos = start + j
+    const row = next[pos]
+    if (sources[j] === -1) {
+      placeRow(rows, row, pos + 1 < n ? next[pos + 1].node : tail, selected)
+    } else if (moved) {
+      if (k >= 0 && lis[k] === j) {
+        k--
+      } else {
+        parent.insertBefore(row.node, pos + 1 < n ? next[pos + 1].node : tail)
+      }
+    }
+  }
+}
+
+// Indices into a of a longest strictly increasing subsequence, skipping -1.
+function longestIncreasingSubsequence (a) {
+  const n = a.length
+  const prev = new Int32Array(n)
+  const result = []
+  for (let i = 0; i < n; i++) {
+    const v = a[i]
+    if (v === -1) continue
+    const len = result.length
+    if (len === 0 || a[result[len - 1]] < v) {
+      prev[i] = len > 0 ? result[len - 1] : -1
+      result.push(i)
+      continue
+    }
+    let lo = 0
+    let hi = len - 1
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1
+      if (a[result[mid]] < v) lo = mid + 1
+      else hi = mid
+    }
+    prev[i] = lo > 0 ? result[lo - 1] : -1
+    result[lo] = i
+  }
+  let k = result.length
+  let u = result[k - 1]
+  while (k-- > 0) {
+    result[k] = u
+    u = prev[u]
+  }
+  return result
 }
 
 const evaluateElement = (element, value, oldValue) => {
