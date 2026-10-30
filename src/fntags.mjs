@@ -1766,7 +1766,7 @@ function mountRowFromMaster (rows, row, selected) {
   let refs = null
   try {
     const vals = rows.values(row.item, selected)
-    row.vals = vals
+    saveRowVals(rows, row, vals)
     let tmp = rows.masterVals
     let node
     if (writeRowMaster(rows, vals, tmp)) {
