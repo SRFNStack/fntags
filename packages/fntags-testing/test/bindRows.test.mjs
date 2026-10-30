@@ -264,8 +264,8 @@ describe('bindRows', () => {
   it('does not allocate a scope for rows without bindings', () => {
     const { data, tbody } = makeList()
     data.select(1)
-    expect(data._ctx.rowBindings[0].scoped).toBe(0)
-    for (const tr of tbody.children) expect(tr._fnRow.scope).toBe(null)
+    expect(data._ctx.rowBindings[0].scopes).toBe(null)
+    expect(tbody.children.length).toBe(3)
   })
 
   describe('escape hatch', () => {
@@ -373,6 +373,159 @@ describe('bindRows', () => {
     // updating the list after teardown touches nothing
     data(items(3))
     expect(document.body.textContent).toBe('gone')
+  })
+
+  describe('row bookkeeping', () => {
+    const binding = data => data._ctx.rowBindings[0]
+
+    it('handlers of rows dropped by a clear do nothing (delegated and not)', () => {
+      for (const template of [row, drow]) {
+        const { data, tbody, handled } = makeList(template)
+        const tr = tbody.children[0]
+        data([])
+        expect(tr.parentNode).toBe(null)
+        if (template === drow) tr.__fnon_click(new MouseEvent('click'))
+        else click(tr)
+        expect(handled).toEqual([])
+        // rows added after the clear are live
+        data(items(4))
+        click(tbody.children[0])
+        expect(handled.map(h => h[1].id)).toEqual([4])
+        document.body.textContent = ''
+      }
+    })
+
+    it('handlers of rows dropped when every key is replaced do nothing', () => {
+      const { data, tbody, handled } = makeList(drow)
+      const old = tbody.children[1]
+      data(items(4, 5))
+      old.__fnon_click(new MouseEvent('click'))
+      expect(handled).toEqual([])
+      tbody.children[1].__fnon_click(new MouseEvent('click'))
+      expect(handled.map(h => h[1].id)).toEqual([5])
+    })
+
+    it('handlers of a row removed by a reorder do nothing, survivors still work', () => {
+      const { data, tbody, handled } = makeList(row, items(1, 2, 3, 4))
+      const [a, b, c] = [...tbody.children]
+      data([data()[2], data()[0], data()[3]])
+      click(b)
+      expect(handled).toEqual([])
+      click(c)
+      click(a)
+      expect(handled.map(h => h[1].id)).toEqual([3, 1])
+    })
+
+    it('handlers of a disposed list do nothing', async () => {
+      const show = fnstate(true)
+      const data = fnstate(items(1, 2), d => d.id)
+      const handled = []
+      const el = show.bindAs(() => show()
+        ? h('table', data.bindRows(h('tbody'), drow, { handlers: { select: (e, item) => handled.push(item.id) } }))
+        : h('div', 'gone'))
+      document.body.append(h('div', el))
+      const tr = document.querySelector('tbody').children[0]
+      tr.__fnon_click(new MouseEvent('click'))
+      show(false)
+      await flush()
+      tr.__fnon_click(new MouseEvent('click'))
+      expect(handled).toEqual([1])
+    })
+
+    it('a removed row node does not keep its item or values', () => {
+      const { data, tbody } = makeList(row, items(1, 2, 3))
+      const tr = tbody.children[0]
+      data(data().slice(1))
+      expect(tr._fnRow).toBe(undefined)
+      expect(binding(data).store.includes('item 1')).toBe(false)
+      expect(binding(data).store.includes(1)).toBe(false)
+    })
+
+    it('a new row reuses a freed value range without mixing rows up', () => {
+      const { data, tbody } = makeList(row, items(1, 2, 3))
+      data(data().filter(d => d.id !== 2))
+      const size = binding(data).store.length
+      data([...data(), ...items(4)])
+      expect(binding(data).store.length).toBe(size)
+      expect(texts(tbody)).toEqual(['item 1', 'item 3', 'item 4'])
+      const next = data().slice()
+      next[2] = { id: 4, label: 'four' }
+      data(next)
+      data.select(3)
+      expect(texts(tbody)).toEqual(['item 1', 'item 3', 'four'])
+      expect([...tbody.children].map(tr => tr.className)).toEqual(['', 'danger', ''])
+      data.select(4)
+      expect([...tbody.children].map(tr => tr.className)).toEqual(['', '', 'danger'])
+    })
+
+    it('select after an item changed diffs against the values the update wrote', () => {
+      const { data, tbody, calls } = makeList(row, items(1, 2, 3))
+      const next = data().slice()
+      next[1] = { id: 2, label: 'two' }
+      data(next)
+      calls.length = 0
+      data.select(2)
+      expect(calls).toEqual([2])
+      const tr = tbody.children[1]
+      expect(tr.className).toBe('danger')
+      expect(tr.querySelector('a').textContent).toBe('two')
+      const next2 = data().slice()
+      next2[1] = { id: 2, label: 'TWO' }
+      data(next2)
+      expect(tr.className).toBe('danger')
+      expect(tr.querySelector('a').textContent).toBe('TWO')
+      data.select(1)
+      expect(tr.hasAttribute('class')).toBe(false)
+      expect(tbody.children[0].className).toBe('danger')
+      expect(tr.querySelector('a').textContent).toBe('TWO')
+    })
+
+    it('without values, an update diffs against the previous item and select re-runs nothing', () => {
+      const data = fnstate([{ id: 1, label: 'a', cls: 'x' }, { id: 2, label: 'b', cls: 'y' }], d => d.id)
+      const tbody = data.bindRows(h('tbody'), row)
+      const tr = tbody.children[0]
+      const label = tr.querySelector('a').firstChild
+      const setSpy = vi.spyOn(Element.prototype, 'setAttribute')
+      data([{ id: 1, label: 'A', cls: 'x' }, data()[1]])
+      expect(setSpy).not.toHaveBeenCalled()
+      data.select(1)
+      expect(setSpy).not.toHaveBeenCalled()
+      setSpy.mockRestore()
+      expect(tr.querySelector('a').firstChild).toBe(label)
+      expect(label.data).toBe('A')
+      expect(tr.className).toBe('x')
+      expect(binding(data).store).toBe(null)
+    })
+
+    it('a re-run walks past a slot whose node was replaced to reach a later slot', () => {
+      const data = fnstate([{ id: 1, label: 'a' }], d => d.id)
+      const tbody = data.bindRows(h('tbody'), row, {
+        values: item => ({ id: item.id === 1 ? h('b', 'one') : item.id, label: item.label, cls: item.label })
+      })
+      const tr = tbody.children[0]
+      expect(tr.querySelector('.id b').textContent).toBe('one')
+      data([{ id: 1, label: 'b' }])
+      expect(tr.querySelector('a').textContent).toBe('b')
+      expect(tr.className).toBe('b')
+      expect(tr.querySelector('.id').textContent).toBe('one')
+    })
+
+    it('detects a duplicate of a row kept at its position', () => {
+      const { data, tbody } = makeList()
+      const prev = data()
+      expect(() => data([prev[0], prev[1], prev[0]])).toThrow(/Duplicate keys/)
+      expect(data()).toBe(prev)
+      expect(texts(tbody)).toEqual(['item 1', 'item 2', 'item 3'])
+    })
+
+    it('finds a row by key when the row at its old position has another key', () => {
+      const { data, tbody } = makeList(row, items(1, 2, 3))
+      const before = [...tbody.children]
+      data([data()[1], ...items(9), data()[0]])
+      expect(texts(tbody)).toEqual(['item 2', 'item 9', 'item 1'])
+      expect(tbody.children[0]).toBe(before[1])
+      expect(tbody.children[2]).toBe(before[0])
+    })
   })
 
   it('wraps a non-array update in an array', () => {
