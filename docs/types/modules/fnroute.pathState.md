@@ -19,6 +19,7 @@ The current path state
 - [bindAttr](fnroute.pathState.md#bindattr)
 - [bindChildren](fnroute.pathState.md#bindchildren)
 - [bindProp](fnroute.pathState.md#bindprop)
+- [bindRows](fnroute.pathState.md#bindrows)
 - [bindSelect](fnroute.pathState.md#bindselect)
 - [bindSelectAttr](fnroute.pathState.md#bindselectattr)
 - [bindStyle](fnroute.pathState.md#bindstyle)
@@ -55,7 +56,7 @@ a state change and is a shortcut for `mystate(Object.assign(mystate(), update))`
 
 #### Defined in
 
-[fntags.d.mts:193](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.d.mts#L193)
+[fntags.d.mts:272](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.d.mts#L272)
 
 ___
 
@@ -65,6 +66,7 @@ ___
 
 Bind this state to the given element function. This causes the element to be replaced when the state changes.
 If called with no parameters, the state's value will be rendered as an element.
+Do not wrap form inputs (input, textarea, select) in bindAs: it replaces the element on every update and the focused input will lose focus mid-keystroke. Bind the `value` attribute with bindAttr instead.
 
 #### Parameters
 
@@ -78,7 +80,7 @@ If called with no parameters, the state's value will be rendered as an element.
 
 #### Defined in
 
-[fntags.d.mts:151](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.d.mts#L151)
+[fntags.d.mts:220](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.d.mts#L220)
 
 ___
 
@@ -86,7 +88,8 @@ ___
 
 ▸ **bindAttr**(`attribute?`): `any`
 
-Bind attribute values to state changes
+Bind attribute values to state changes.
+Prefer this over bindAs for form inputs: binding the `value` attribute updates the element in place without replacing it, so focus and caret position are preserved.
 
 #### Parameters
 
@@ -100,7 +103,7 @@ Bind attribute values to state changes
 
 #### Defined in
 
-[fntags.d.mts:166](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.d.mts#L166)
+[fntags.d.mts:245](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.d.mts#L245)
 
 ___
 
@@ -125,7 +128,7 @@ If the current value is not an array, this will behave the same as bindAs.
 
 #### Defined in
 
-[fntags.d.mts:157](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.d.mts#L157)
+[fntags.d.mts:226](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.d.mts#L226)
 
 ___
 
@@ -148,7 +151,36 @@ Shortcut for `mystate.bindAs((current)=> current[prop])`
 
 #### Defined in
 
-[fntags.d.mts:162](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.d.mts#L162)
+[fntags.d.mts:240](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.d.mts#L240)
+
+___
+
+### bindRows
+
+▸ **bindRows**(`parent`, `template`, `options?`): `Node`
+
+Bind the values of this state
+to rows stamped from an fntemplate whose template has a single root element. `values(item, selected)` maps an item to the template's slots and
+runs at mount, then only when the item's reference changes or the row gains or loses selection; only changed slots are written. Slots named in
+`handlers` are event slots, called as handler(event, item) with the row's current item through one shared function per name.
+Rows keep no per-row state or subscriptions, so use this for rows that are a pure function of item and selection, and bindChildren for rows
+with their own state or nested reactivity. Items are compared by reference: update them immutably.
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `parent` | `Node` \| () => `any` |
+| `template` | (`context`: `any`) => `Node` |
+| `options?` | `BindRowsOptions` |
+
+#### Returns
+
+`Node`
+
+#### Defined in
+
+[fntags.d.mts:235](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.d.mts#L235)
 
 ___
 
@@ -170,7 +202,7 @@ Bind selected state to an element
 
 #### Defined in
 
-[fntags.d.mts:174](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.d.mts#L174)
+[fntags.d.mts:253](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.d.mts#L253)
 
 ___
 
@@ -192,7 +224,7 @@ Bind selected state to an attribute
 
 #### Defined in
 
-[fntags.d.mts:178](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.d.mts#L178)
+[fntags.d.mts:257](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.d.mts#L257)
 
 ___
 
@@ -214,7 +246,7 @@ Bind style values to state changes
 
 #### Defined in
 
-[fntags.d.mts:170](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.d.mts#L170)
+[fntags.d.mts:249](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.d.mts#L249)
 
 ___
 
@@ -238,7 +270,7 @@ will not be reflected correctly.
 
 #### Defined in
 
-[fntags.d.mts:199](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.d.mts#L199)
+[fntags.d.mts:278](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.d.mts#L278)
 
 ___
 
@@ -262,7 +294,7 @@ This causes the bound select functions to be executed.
 
 #### Defined in
 
-[fntags.d.mts:184](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.d.mts#L184)
+[fntags.d.mts:263](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.d.mts#L263)
 
 ___
 
@@ -278,7 +310,7 @@ Get the currently selected key
 
 #### Defined in
 
-[fntags.d.mts:188](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.d.mts#L188)
+[fntags.d.mts:267](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.d.mts#L267)
 
 ___
 
@@ -302,7 +334,7 @@ Set a value at the given property path
 
 #### Defined in
 
-[fntags.d.mts:203](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.d.mts#L203)
+[fntags.d.mts:282](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.d.mts#L282)
 
 ___
 
@@ -324,4 +356,4 @@ Register a callback that will be executed whenever the state is changed
 
 #### Defined in
 
-[fntags.d.mts:207](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.d.mts#L207)
+[fntags.d.mts:286](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.d.mts#L286)

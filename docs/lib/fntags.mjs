@@ -4,7 +4,26 @@
 
 // Tracks subscriptions created during a bindAs render so they can be cleaned
 // up when the bindAs re-renders. null means we are not inside a render.
+// NO_CLEANUPS means we are inside a render that has not registered a cleanup
+// yet: its push materializes a real array on the first registration, so a
+// render that registers nothing (the common case) allocates nothing. Foreign
+// `activeRenderCleanups.push(fn)` call sites keep working against it.
+const NO_CLEANUPS = {
+  push (fn) {
+    activeRenderCleanups = [fn]
+  }
+}
 let activeRenderCleanups = null
+
+function registerCleanup (fn) {
+  if (activeRenderCleanups !== null) activeRenderCleanups.push(fn)
+}
+
+// The cleanups registered during the render that just finished, or null when
+// none were registered.
+function takeRenderCleanups () {
+  return activeRenderCleanups === NO_CLEANUPS ? null : activeRenderCleanups
+}
 
 // When on, the framework emits console warnings for misuse that is easy to
 // hit and hard to diagnose (e.g. bindAs replacing a focused input, omitting
@@ -22,10 +41,22 @@ export function setDevMode (on) {
   devMode = !!on
 }
 
-function runCleanups (elCtx) {
-  if (!elCtx.cleanups) return
-  for (const unsub of elCtx.cleanups) unsub()
-  elCtx.cleanups = null
+// Run one entry of a cleanup list. Entries are either plain functions or
+// binding objects (BindCtx, AttrBinding) with a dispose() method, which lets a
+// binding register itself instead of allocating a closure per registration.
+function runCleanupEntry (entry) {
+  if (typeof entry === 'function') {
+    entry()
+  } else {
+    entry.dispose()
+  }
+}
+
+function runCleanups (bindCtx) {
+  const cleanups = bindCtx.cleanups
+  if (cleanups === null) return
+  bindCtx.cleanups = null
+  for (let i = 0; i < cleanups.length; i++) runCleanupEntry(cleanups[i])
 }
 
 /**
@@ -36,9 +67,16 @@ function runCleanups (elCtx) {
  *
  * Any attribute starting with 'on' that is a function is added as an event listener with the 'on' removed.
  * i.e. { onclick: fn } gets added to the element as element.addEventListener('click', fn)
+ * An event attribute can also be an array [fn, arg], which calls fn.call(element, arg, event).
+ * For event types passed to delegateEvents, the handler is stored on the element and run by a single
+ * listener on document instead (see delegateEvents for how ordering differs).
  *
  * The style attribute can be an object and the properties of the object will be added as style properties to the element.
  * i.e. { style: { color: blue } } becomes element.style.color = blue
+ *
+ * An attribute value of null, undefined or '' means no attribute: it is removed if present and never written,
+ * so { class: '' } produces an element without a class attribute. The value attribute and boolean attributes
+ * (disabled, checked, ...) are exempt and keep their property semantics.
  *
  * The rest of the arguments will be considered children of this element and appended to it in the same order as passed.
  *
@@ -49,67 +87,125 @@ function runCleanups (elCtx) {
  *
  */
 export function h (tag, ...children) {
-  let firstChildIdx = 0
-  let element
-  const nsIndex = hasNs(tag)
-  if (nsIndex > -1) {
-    const { ns, val } = splitNs(tag, nsIndex)
-    element = document.createElementNS(ns, val)
-  } else {
-    element = document.createElement(tag)
-  }
+  return createElement(tag, children)
+}
 
-  if (isAttrs(children[firstChildIdx])) {
-    const attrs = children[firstChildIdx]
-    firstChildIdx += 1
-    let hasValue = false
-    for (const a in attrs) {
-      // set value last to ensure value constraints are set before trying to set the value to avoid modification
-      // For example, when using a range and specifying a min and max
-      //  if the value is set first and is outside the default 1 to 100 range
-      //  the value will be adjusted to be within the range, even though the value attribute will be set correctly
-      if (a === 'value') {
-        hasValue = true
-        continue
-      }
-      setAttribute(a, attrs[a], element)
-    }
-    if (hasValue) {
-      setAttribute('value', attrs.value, element)
+// Create an element from an array of children (h and styled call into this).
+// Only tags with a namespace ('http://www.w3.org/2000/svg:svg') go through
+// createElementNS; lastIndexOf is used because the namespace itself has a ':'.
+function createElement (tag, children) {
+  const nsIndex = tag.lastIndexOf(':')
+  const element = nsIndex === -1
+    ? document.createElement(tag)
+    : document.createElementNS(tag.slice(0, nsIndex), tag.slice(nsIndex + 1))
+  const len = children.length
+  let i = 0
+  if (len > 0) {
+    const attrs = children[0]
+    if (isAttrs(attrs)) {
+      i = 1
+      setAttributes(attrs, element)
     }
   }
-  for (let i = firstChildIdx; i < children.length; i++) {
-    const child = children[i]
-    if (Array.isArray(child)) {
-      // Append array items directly to skip the DocumentFragment renderNode would build.
-      // Nested arrays inside still go through renderNode, which flattens them.
-      for (const c of child) {
-        element.append(renderNode(c))
+  if (i === len - 1) {
+    // A lone text child is set with textContent, which creates the text node
+    // without a JS wrapper. '' is left to the loop so it still produces an
+    // empty text node like it always has.
+    const only = children[i]
+    if (typeof only === 'string') {
+      if (only !== '') {
+        element.textContent = only
+        return element
       }
-    } else {
-      element.append(renderNode(child))
+    } else if (typeof only === 'number') {
+      element.textContent = '' + only
+      return element
     }
+  }
+  for (; i < len; i++) {
+    appendChild(element, children[i])
   }
   return element
 }
 
-function splitNs (val, i) {
-  return { ns: val.slice(0, i), val: val.slice(i + 1) }
+function setAttributes (attrs, element) {
+  let hasValue = false
+  for (const a in attrs) {
+    // set value last to ensure value constraints are set before trying to set the value to avoid modification
+    // For example, when using a range and specifying a min and max
+    //  if the value is set first and is outside the default 1 to 100 range
+    //  the value will be adjusted to be within the range, even though the value attribute will be set correctly
+    if (a === 'value') {
+      hasValue = true
+    } else {
+      setAttribute(a, attrs[a], element)
+    }
+  }
+  if (hasValue) {
+    setAttribute('value', attrs.value, element)
+  }
 }
 
-function hasNs (val) {
-  return val.lastIndexOf(':')
+// Append one h() child. Nodes go straight to appendChild; strings and other
+// primitives are appended as is, which lets the DOM create the text node
+// without a JS wrapper (null, undefined, numbers and objects stringify exactly
+// like createTextNode(x + '') did). Arrays append their items directly instead
+// of building the DocumentFragment renderNode would.
+function appendChild (element, child) {
+  if (typeof child === 'object') {
+    if (child === null) {
+      element.append('null')
+    } else if (child.nodeType !== undefined) {
+      element.appendChild(child)
+    } else if (Array.isArray(child)) {
+      for (let i = 0; i < child.length; i++) {
+        appendChild(element, child[i])
+      }
+    } else {
+      element.append(renderNode(child))
+    }
+  } else if (typeof child === 'function') {
+    // renderNode returns the function's result as is when it is a non-node
+    // object, and append stringifies that where appendChild would throw.
+    const rendered = renderNode(child)
+    if (rendered.nodeType !== undefined) {
+      element.appendChild(rendered)
+    } else {
+      element.append(rendered)
+    }
+  } else {
+    element.append(child)
+  }
 }
+
+// Shared, frozen "nothing registered yet" values. A state only pays for an
+// observer list or a select observer map once something subscribes to it.
+// They are frozen so a stray write fails loudly instead of leaking between
+// states; reads, iteration and `delete` of absent keys behave like an empty
+// array or object.
+const EMPTY_OBSERVERS = Object.freeze([])
+const EMPTY_SELECT_OBSERVERS = Object.freeze({})
+
+// Every fnstate function shares this prototype, so creating a state does not
+// copy the method table onto the function. The methods read the state's
+// context through `this._ctx`, the only own property a state function has.
+const fnStateProto = Object.create(Function.prototype)
 
 /**
  * @template T The type of data stored in the state container
  * @typedef FnStateObj A container for a state value that can be bound to.
  * @property {(element?: (newValue: T, oldValue: T)=>(Node|any))=>Node} bindAs Bind this state to the given element function. This causes the element to be replaced when the state changes.
  * If called with no parameters, the state's value will be rendered as an element.
- * Do not wrap form inputs (input, textarea, select) in bindAs — it replaces the element on every update and the focused input will lose focus mid-keystroke. Bind the `value` attribute with bindAttr instead.
+ * Do not wrap form inputs (input, textarea, select) in bindAs: it replaces the element on every update and the focused input will lose focus mid-keystroke. Bind the `value` attribute with bindAttr instead.
  * @property {(parent: (()=>(Node|any))|any|Node, element: (childState: FnState)=>(Node|any))=>Node} bindChildren Bind the values of this state to the given element.
  * Values are items/elements of an array.
  * If the current value is not an array, this will behave the same as bindAs.
+ * @property {(parent: (()=>(Node|any))|Node, template: (context: any)=>Node, options?: BindRowsOptions)=>Node} bindRows Bind the values of this state
+ * to rows stamped from an fntemplate whose template has a single root element. `values(item, selected)` maps an item to the template's slots and
+ * runs at mount, then only when the item's reference changes or the row gains or loses selection; only changed slots are written. Slots named in
+ * `handlers` are event slots, called as handler(event, item) with the row's current item through one shared function per name.
+ * Rows keep no per-row state or subscriptions, so use this for rows that are a pure function of item and selection, and bindChildren for rows
+ * with their own state or nested reactivity. Items are compared by reference: update them immutably.
  * @property {(prop: string)=>Node} bindProp Bind to a property of an object stored in this state instead of the state itself.
  * Shortcut for `mystate.bindAs((current)=> current[prop])`
  * @property {(attribute?: (newValue: T, oldValue: T)=>(string|any))=>any} bindAttr Bind attribute values to state changes.
@@ -132,6 +228,14 @@ function hasNs (val) {
  */
 
 /**
+ * @typedef BindRowsOptions Options for bindRows.
+ * @property {(item: any, selected: any)=>Object<string, any>} [values] Map an item and the currently selected key to the template's slot values.
+ * Defaults to the item itself. Return a fresh object: it is kept and compared slot by slot against the next result.
+ * A slot value may also be a bind getter (bindAs, bindAttr, bindStyle) or a node; bindings created here are cleaned up when values re-runs or the row is removed.
+ * @property {Object<string, (event: Event, item: any)=>any>} [handlers] Event handlers by slot name. The named slots must be on* attributes.
+ */
+
+/**
  * @template T The type of data stored in the state container
  * @typedef {FnStateObj<T> & ((newState?: T)=>T)} FnState A container for a state value that can be bound to.
  */
@@ -148,247 +252,320 @@ function hasNs (val) {
  * or the changes won't be reflected correctly and binding updates won't be triggered even though the state appears to be correct.
  */
 export function fnstate (initialValue, mapKey) {
+  // Every field is declared here so all contexts share one hidden class.
   const ctx = {
     currentValue: initialValue,
-    observers: [],
+    // Callbacks, or binding objects with an update(newValue, oldValue) method.
+    observers: EMPTY_OBSERVERS,
+    // Depth of notify() calls in progress. While non-zero, observer list
+    // changes copy the list instead of mutating the one being iterated.
+    notifying: 0,
     bindContexts: [],
-    selectObservers: {},
-    nextId: 0,
+    selectObservers: EMPTY_SELECT_OBSERVERS,
+    selected: undefined,
     mapKey,
-    state (newState) {
-      if (arguments.length === 0 || (arguments.length === 1 && arguments[0] === ctx.state)) {
-        return ctx.currentValue
-      } else {
-        const oldState = ctx.currentValue
-        ctx.currentValue = newState
-        const snapshot = ctx.observers.slice()
-        for (const observer of snapshot) {
-          observer.fn(newState, oldState)
-        }
-      }
-      return newState
-    }
+    // The context of the bindChildren state this state is an item of.
+    parentCtx: null,
+    // The bindRows bindings of this state, which doSelect re-runs rows of.
+    rowBindings: null,
+    state: null
   }
-  // make context available to static functions to avoid declaring functions on every new state
-  ctx.state._ctx = ctx
-
-  /**
-   * Bind this state to the given element
-   *
-   * @param {((T)=>(Node|any))?} [element] The element to bind to. If not a function, an update function must be passed. If not passed, defaults to the state's value
-   * @returns {()=>Node}
-   */
-  ctx.state.bindAs = doBindAs
-
-  /**
-   * Bind the values of this state to the given element.
-   * Values are items/elements of an array.
-   * If the current value is not an array, this will behave the same as bindAs.
-   *
-   * @param {(()=>(Node|any)) | Node | any} parent The parent to bind the children to.
-   * @param {(childState: FnState)=>(Node|any)} element A function that receives each element wrapped as a fnstate and produces an element
-   * @returns {Node}
-   */
-  ctx.state.bindChildren = doBindChildren
-
-  /**
-   * Bind to a property of an object stored in this state instead of the state itself.
-   *
-   * Shortcut for `mystate.bindAs((current)=> current[prop])`
-   *
-   * @param {string} prop The object property to bind as
-   * @returns {()=>Node}
-   */
-  ctx.state.bindProp = doBindProp
-
-  /**
-   * Bind attribute values to state changes
-   * @param {(()=>(string|any))?} [attribute] A function that returns an attribute value. If not passed, defaults to the state's value
-   * @returns {()=>(string|any)} A function that calls the passed function, with some extra metadata
-   */
-  ctx.state.bindAttr = doBindAttr
-
-  /**
-   * Bind style values to state changes
-   * @param {(()=>string)?} [style] A function that returns a style's value. If not passed, defaults to the state's value
-   * @returns {()=>Node} A function that calls the passed function, with some extra metadata
-   */
-  ctx.state.bindStyle = doBindStyle
-
-  /**
-   * Bind select and deselect to an element
-   * @param {(()=>(Node|any))?} [element] The element to bind to. If not passed, defaults to the state's value
-   * @returns {()=>Node}
-   */
-  ctx.state.bindSelect = doBindSelect
-
-  /**
-   * Bind select and deselect to an attribute
-   * @param {(()=>(string|any))?} [attribute] A function that returns an attribute value. If not passed, defaults to the state's value
-   * @returns {()=>(string|any)} A function that calls the passed function, with some extra metadata
-   */
-  ctx.state.bindSelectAttr = doBindSelectAttr
-
-  /**
-   * Mark the element with the given key as selected. This causes the bound select functions to be executed.
-   */
-  ctx.state.select = doSelect
-
-  /**
-   * Get the currently selected key
-   * @returns {any}
-   */
-  ctx.state.selected = doSelected
-
-  ctx.state.isFnState = true
-
-  /**
-   * Perform an Object.assign() on the current state using the provided update
-   * @param {T} [update]
-   */
-  ctx.state.assign = doAssign
-
-  /**
-   * Get a value at the given property path, an error is thrown if the value is not an object
-   *
-   * This returns a reference to the real current value. If you perform any modifications to the object, be sure to call setPath after you're done or the changes
-   * will not be reflected correctly.
-   * @param {string} [path] a json path type path that points to a property
-   */
-  ctx.state.getPath = doGetPath
-
-  /**
-   * Set a value at the given property path
-   * @param {string} path The JSON path of the value to set
-   * @param {any} value The value to set the path to
-   * @param {boolean} fillWithObjects Whether to replace non object values with new empty objects.
-   */
-  ctx.state.setPath = doSetPath
-
-  /**
-   * Register a callback that will be executed whenever the state is changed
-   * @param {(newValue:T,oldValue:T)=>void} callback
-   * @return {()=>void} a function to stop the subscription
-   */
-  ctx.state.subscribe = doSubscribe
-
-  return ctx.state
+  const state = function (newState) {
+    // `arguments` is only consulted when the argument is undefined, to tell
+    // state() (a read) from state(undefined) (a write of undefined).
+    if (newState === undefined ? arguments.length === 0 : newState === state) {
+      return ctx.currentValue
+    }
+    const oldState = ctx.currentValue
+    ctx.currentValue = newState
+    notify(ctx, newState, oldState)
+    return newState
+  }
+  Object.setPrototypeOf(state, fnStateProto)
+  // make context available to the shared methods to avoid declaring functions on every new state
+  state._ctx = ctx
+  ctx.state = state
+  return state
 }
 
+function notify (ctx, newState, oldState) {
+  const observers = ctx.observers
+  if (observers.length === 0) return
+  ctx.notifying++
+  try {
+    // Observers added or removed during this loop never touch this array
+    // (see addObserver/removeObserver), so no snapshot copy is needed.
+    for (let i = 0; i < observers.length; i++) {
+      const observer = observers[i]
+      if (typeof observer === 'function') {
+        observer(newState, oldState)
+      } else {
+        observer.update(newState, oldState)
+      }
+    }
+  } finally {
+    ctx.notifying--
+  }
+}
+
+function addObserver (ctx, observer) {
+  const observers = ctx.observers
+  if (observers === EMPTY_OBSERVERS) {
+    ctx.observers = [observer]
+  } else if (ctx.notifying !== 0) {
+    const copy = observers.slice()
+    copy.push(observer)
+    ctx.observers = copy
+  } else if (observers.length === 1) {
+    // A literal is sized exactly; push would grow the backing store to 17 slots.
+    ctx.observers = [observers[0], observer]
+  } else {
+    observers.push(observer)
+  }
+}
+
+function removeObserver (ctx, observer) {
+  const observers = ctx.observers
+  const idx = observers.indexOf(observer)
+  if (idx === -1) return
+  if (ctx.notifying !== 0) {
+    const copy = observers.slice()
+    copy.splice(idx, 1)
+    ctx.observers = copy
+  } else {
+    observers.splice(idx, 1)
+  }
+}
+
+/**
+ * Register a callback that will be executed whenever the state is changed
+ * @param {(newValue:T,oldValue:T)=>void} callback
+ * @return {()=>void} a function to stop the subscription
+ */
 function doSubscribe (callback) {
   const ctx = this._ctx
-  const id = ctx.nextId++
-  ctx.observers.push({ id, fn: callback })
-  // Idempotent unsub — safe to call multiple times
+  addObserver(ctx, callback)
+  // Idempotent unsub, safe to call multiple times even if the same callback
+  // was subscribed more than once.
   let active = true
   const unsub = () => {
     if (!active) return
     active = false
-    const idx = ctx.observers.findIndex(l => l.id === id)
-    if (idx !== -1) ctx.observers.splice(idx, 1)
+    removeObserver(ctx, callback)
   }
   // If we're inside a bindAs render, register this subscription for cleanup
   // on the next re-render. This prevents nested bindAs/bindAttr/bindStyle
   // subscriptions from accumulating when the parent bindAs re-renders.
-  if (activeRenderCleanups !== null) {
-    activeRenderCleanups.push(unsub)
-  }
+  registerCleanup(unsub)
   return unsub
 }
 
-const subscribeSelect = (ctx, callback) => {
-  const parentCtx = ctx.state.parentCtx
+// Register an observer of the parent list state's selection for the item
+// held by ctx, keyed by the item's key. Returns the key so the caller can
+// remove the observer later. A key with one observer stores the observer
+// itself (the common case, one bindSelectAttr per row); an array is only
+// allocated once a second observer joins. Observers are never arrays.
+function addSelectObserver (ctx, observer) {
+  const parentCtx = ctx.parentCtx
   const key = keyMapper(parentCtx.mapKey, ctx.currentValue, 0)
-  if (parentCtx.selectObservers[key] === undefined) {
-    parentCtx.selectObservers[key] = []
+  let selectObservers = parentCtx.selectObservers
+  if (selectObservers === EMPTY_SELECT_OBSERVERS) {
+    selectObservers = parentCtx.selectObservers = {}
   }
-  parentCtx.selectObservers[key].push(callback)
-
-  // Return an unsub that removes this callback, and register it in
-  // activeRenderCleanups so parent bindAs re-renders clean it up.
-  let active = true
-  const unsub = () => {
-    if (!active) return
-    active = false
-    const arr = parentCtx.selectObservers[key]
-    if (arr) {
-      const idx = arr.indexOf(callback)
-      if (idx !== -1) arr.splice(idx, 1)
-      if (arr.length === 0) delete parentCtx.selectObservers[key]
-    }
+  const entry = selectObservers[key]
+  if (entry === undefined) {
+    selectObservers[key] = observer
+  } else if (Array.isArray(entry)) {
+    entry.push(observer)
+  } else {
+    selectObservers[key] = [entry, observer]
   }
-  if (activeRenderCleanups !== null) {
-    activeRenderCleanups.push(unsub)
-  }
-  return unsub
+  return key
 }
 
-function doBindSelectAttr (attribute) {
-  attribute = attribute ?? this
-  const ctx = this._ctx
-  const attrFn = (attribute && !attribute.isFnState && typeof attribute === 'function')
-    ? (...args) => attribute(args.length > 0 ? args[0] : ctx.selected)
-    : attribute
-  const boundAttr = createBoundAttr(attrFn, this)
-  boundAttr.init = (attrName, element) =>
-    subscribeSelect(ctx, (selectedKey) => setAttribute(attrName, attribute.isFnState ? attribute() : attribute(selectedKey), element))
-  return boundAttr
+function removeSelectObserver (parentCtx, key, observer) {
+  const entry = parentCtx.selectObservers[key]
+  if (entry === undefined) return
+  if (entry === observer) {
+    delete parentCtx.selectObservers[key]
+  } else if (Array.isArray(entry)) {
+    const idx = entry.indexOf(observer)
+    if (idx !== -1) entry.splice(idx, 1)
+    if (entry.length === 0) delete parentCtx.selectObservers[key]
+  }
 }
 
-function createBoundAttr (attr, state) {
-  if (typeof attr !== 'function') {
+const ATTR = 0
+const STYLE = 1
+
+// One bindAttr/bindSelectAttr/bindStyle binding. It is created together with
+// the bound function, registered directly in the observer list (or the parent's
+// select observers) by init(), and registered as its own cleanup entry, so a
+// binding costs this object plus the bound function and nothing else.
+function AttrBinding (kind, fn, ctx, select) {
+  this.kind = kind
+  this.name = null
+  this.element = null
+  this.fn = fn
+  this.ctx = ctx
+  this.select = select
+  this.selectKey = undefined
+}
+
+AttrBinding.prototype.update = function (newValue, oldValue) {
+  const fn = this.fn
+  const value = fn.isFnState ? fn() : fn(newValue, oldValue)
+  if (this.kind === STYLE) {
+    this.element.style[this.name] = value
+  } else {
+    setAttribute(this.name, value, this.element)
+  }
+}
+
+// The current value, as the bound function returns it.
+AttrBinding.prototype.value = function () {
+  const fn = this.fn
+  return fn.isFnState ? fn() : fn(this.ctx.state())
+}
+
+AttrBinding.prototype.init = function (name, element) {
+  this.name = name
+  this.element = element
+  if (this.select) {
+    this.selectKey = addSelectObserver(this.ctx, this)
+  } else {
+    addObserver(this.ctx, this)
+  }
+  registerCleanup(this)
+}
+
+AttrBinding.prototype.dispose = function () {
+  if (this.select) {
+    removeSelectObserver(this.ctx.parentCtx, this.selectKey, this)
+  } else {
+    removeObserver(this.ctx, this)
+  }
+}
+
+// Shared by every bound attribute and style function: setAttribute and
+// setStyle call fn.init(name, element), so `this` is the bound function.
+function initBound (name, element) {
+  this._binding.init(name, element)
+}
+
+// Build the function h() recognises as a bound attribute (or style). It is
+// callable for the current value and carries isBoundAttribute/isBoundStyle,
+// init and the binding it drives.
+function createBound (kind, fn, state, select) {
+  const binding = new AttrBinding(kind, fn, state._ctx, select)
+  const bound = () => binding.value()
+  if (kind === STYLE) {
+    bound.isBoundStyle = true
+  } else {
+    bound.isBoundAttribute = true
+  }
+  bound.init = initBound
+  bound._binding = binding
+  return bound
+}
+
+function createBoundAttr (fn, state, select) {
+  if (typeof fn !== 'function') {
     throw new Error('You must pass a function to bindAttr')
   }
-  // wrap the function to avoid modifying it
-  const boundAttr = () => attr(state())
-  boundAttr.isBoundAttribute = true
-  return boundAttr
+  return createBound(ATTR, fn, state, select)
 }
 
+/**
+ * Bind select and deselect to an attribute
+ * @param {(()=>(string|any))?} [attribute] A function that returns an attribute value. If not passed, defaults to the state's value
+ * @returns {()=>(string|any)} A function that calls the passed function, with some extra metadata
+ */
+function doBindSelectAttr (attribute) {
+  return createBoundAttr(attribute ?? this, this, true)
+}
+
+/**
+ * Bind attribute values to state changes
+ * @param {(()=>(string|any))?} [attribute] A function that returns an attribute value. If not passed, defaults to the state's value
+ * @returns {()=>(string|any)} A function that calls the passed function, with some extra metadata
+ */
 function doBindAttr (attribute) {
-  attribute = attribute ?? this
-  const boundAttr = createBoundAttr(attribute, this)
-  boundAttr.init = (attrName, element) => {
-    setAttribute(attrName, attribute.isFnState ? attribute() : attribute(this()), element)
-    this.subscribe((newState, oldState) => setAttribute(attrName, attribute.isFnState ? attribute() : attribute(newState, oldState), element))
-  }
-  return boundAttr
+  return createBoundAttr(attribute ?? this, this, false)
 }
 
+/**
+ * Bind style values to state changes
+ * @param {(()=>string)?} [style] A function that returns a style's value. If not passed, defaults to the state's value
+ * @returns {()=>Node} A function that calls the passed function, with some extra metadata
+ */
 function doBindStyle (style) {
-  style = style ?? this
-  if (typeof style !== 'function') {
+  const fn = style ?? this
+  if (typeof fn !== 'function') {
     throw new Error('You must pass a function to bindStyle')
   }
-  const boundStyle = () => style()
-  boundStyle.isBoundStyle = true
-  boundStyle.init = (styleName, element) => {
-    element.style[styleName] = style.isFnState ? style() : style(this())
-    this.subscribe((newState, oldState) => { element.style[styleName] = style.isFnState ? style() : style(newState, oldState) })
-  }
-  return boundStyle
+  return createBound(STYLE, fn, this, false)
 }
 
+function notifySelect (observers, key) {
+  if (observers === undefined) return
+  if (!Array.isArray(observers)) {
+    if (typeof observers === 'function') {
+      observers(key)
+    } else {
+      observers.update(key)
+    }
+    return
+  }
+  const snapshot = observers.slice()
+  for (let i = 0; i < snapshot.length; i++) {
+    const observer = snapshot[i]
+    if (typeof observer === 'function') {
+      observer(key)
+    } else {
+      observer.update(key)
+    }
+  }
+}
+
+/**
+ * Mark the element with the given key as selected. This causes the bound select functions to be executed.
+ */
 function doSelect (key) {
   const ctx = this._ctx
-  const currentSelected = ctx.selected
+  const previous = ctx.selected
   ctx.selected = key
-  if (ctx.selectObservers[currentSelected] !== undefined) {
-    for (const obs of ctx.selectObservers[currentSelected].slice()) obs(ctx.selected)
-  }
-  if (ctx.selectObservers[ctx.selected] !== undefined) {
-    for (const obs of ctx.selectObservers[ctx.selected].slice()) obs(ctx.selected)
+  notifySelect(ctx.selectObservers[previous], key)
+  notifySelect(ctx.selectObservers[key], key)
+  const rowBindings = ctx.rowBindings
+  if (rowBindings !== null && previous !== key) {
+    for (let i = 0; i < rowBindings.length; i++) rowBindings[i].select(previous, key)
   }
 }
 
+/**
+ * Get the currently selected key
+ * @returns {any}
+ */
 function doSelected () {
   return this._ctx.selected
 }
 
+/**
+ * Perform an Object.assign() on the current state using the provided update
+ * @param {T} [update]
+ */
 function doAssign (update) {
   return this(Object.assign(this._ctx.currentValue, update))
 }
 
+/**
+ * Get a value at the given property path, an error is thrown if the value is not an object
+ *
+ * This returns a reference to the real current value. If you perform any modifications to the object, be sure to call setPath after you're done or the changes
+ * will not be reflected correctly.
+ * @param {string} [path] a json path type path that points to a property
+ */
 function doGetPath (path) {
   const ctx = this._ctx
   if (typeof path !== 'string') {
@@ -411,6 +588,12 @@ function doGetPath (path) {
     )
 }
 
+/**
+ * Set a value at the given property path
+ * @param {string} path The JSON path of the value to set
+ * @param {any} value The value to set the path to
+ * @param {boolean} fillWithObjects Whether to replace non object values with new empty objects.
+ */
 function doSetPath (path, value, fillWithObjects = false) {
   const ctx = this._ctx
   const s = path.split('.')
@@ -434,6 +617,14 @@ function doSetPath (path, value, fillWithObjects = false) {
   }
 }
 
+/**
+ * Bind to a property of an object stored in this state instead of the state itself.
+ *
+ * Shortcut for `mystate.bindAs((current)=> current[prop])`
+ *
+ * @param {string} prop The object property to bind as
+ * @returns {()=>Node}
+ */
 function doBindProp (prop) {
   return this.bindAs((st) => st[prop])
 }
@@ -449,7 +640,7 @@ function doBindChildren (parent, element) {
   }
   if (typeof ctx.mapKey !== 'function') {
     if (devMode) {
-      console.warn('bindChildren: no mapKey provided — falling back to array index as key, which can misbehave when items are moved, inserted, or removed. Pass a mapKey function as the second argument to fnstate(array, item => item.id).')
+      console.warn('bindChildren: no mapKey provided: falling back to array index as key, which can misbehave when items are moved, inserted, or removed. Pass a mapKey function as the second argument to fnstate(array, item => item.id).')
     }
     ctx.mapKey = (_, i) => i
   }
@@ -458,7 +649,11 @@ function doBindChildren (parent, element) {
     throw new Error('You can only use bindChildren with a state that contains an array. try myState([mystate]) before calling this function.')
   }
 
-  const bindContext = { element, parent }
+  // items: key -> item record (see newItem). order: the item records in array
+  // order, rebuilt by every arrangeElements pass and reused across passes to
+  // avoid allocating an array per update. gen: pass counter used to detect
+  // duplicate keys and strays without a per-pass key set.
+  const bindContext = { element, parent, items: new Map(), order: [], gen: 0 }
   ctx.bindContexts.push(bindContext)
 
   // If inside a parent bindAs render, register a cleanup that tears down all
@@ -467,12 +662,9 @@ function doBindChildren (parent, element) {
   // each array item would be orphaned when the parent replaces this tree.
   if (activeRenderCleanups !== null) {
     activeRenderCleanups.push(() => {
-      if (bindContext.elementCleanups) {
-        for (const key in bindContext.elementCleanups) {
-          for (const unsub of bindContext.elementCleanups[key]) unsub()
-        }
-        bindContext.elementCleanups = {}
-      }
+      for (const item of bindContext.items.values()) runItemCleanups(item)
+      bindContext.items.clear()
+      bindContext.order.length = 0
       // Remove this bindContext so reconcile doesn't operate on stale state
       const idx = ctx.bindContexts.indexOf(bindContext)
       if (idx !== -1) ctx.bindContexts.splice(idx, 1)
@@ -482,7 +674,7 @@ function doBindChildren (parent, element) {
   this.subscribe((_, oldState) => {
     if (!Array.isArray(ctx.currentValue)) {
       if (devMode) {
-        console.warn('bindChildren: state was updated to a non-array value. Wrapping it in a single-element array — if you meant to replace the whole binding, use bindAs instead.')
+        console.warn('bindChildren: state was updated to a non-array value. Wrapping it in a single-element array: if you meant to replace the whole binding, use bindAs instead.')
       }
       new Promise((resolve) => {
         this([ctx.currentValue])
@@ -511,72 +703,208 @@ function assertSingleNode (evaluated, name) {
   }
 }
 
-const doBind = function (ctx, element, handleReplace) {
+// The context of one bindAs/bindSelect binding. It is registered directly as
+// the observer of its state (or of the parent's selection), so a binding costs
+// one object instead of a subscription closure, an unsubscribe closure and an
+// update closure. Every field is declared so all instances share one shape.
+function BindCtx (ctx, element, current, text, cleanups, select) {
+  this.ctx = ctx
+  this.element = element
+  // The live node, or null while a primitive render has not been turned into
+  // a node yet (see text). Read it through liveNode() unless null is handled.
+  this.current = current
+  // The pending text of a primitive render while current is null. Nothing
+  // outside this module sees the null: the getter, update() and the template
+  // fill all materialise or adopt a node first.
+  this.text = text
+  // Cleanups registered during the latest render of this binding, or null.
+  this.cleanups = cleanups
+  this.select = select
+  this.selectKey = undefined
+  // Ancestor BindCtxs whose .current was this binding's node, see addParentRef.
+  this.parentRefs = null
+  this.dead = false
+}
+
+// Turn a pending primitive render into its text node.
+function liveNode (bindCtx) {
+  const current = bindCtx.current
+  if (current !== null) return current
+  const text = document.createTextNode(bindCtx.text)
+  bindCtx.current = text
+  bindCtx.text = null
+  return text
+}
+
+// A BindCtx registers itself as its own cleanup entry, see runCleanupEntry.
+BindCtx.prototype.dispose = function () {
+  teardownBind(this)
+}
+
+// Called by notify() on a state change, or by doSelect with the selected key.
+BindCtx.prototype.update = function (newValue, oldValue) {
+  const ctx = this.ctx
+  liveNode(this)
+  // Clean up subscriptions from the previous render before re-rendering.
+  // This prevents nested bindAs/bindAttr/bindStyle subscriptions from
+  // accumulating each time the parent state changes.
+  runCleanups(this)
+
+  // Track subscriptions created during this re-render for cleanup next time.
+  const prevRenderCleanups = activeRenderCleanups
+  activeRenderCleanups = NO_CLEANUPS
+  const evaluated = evaluateElement(this.element, ctx.currentValue, oldValue)
+  assertSingleNode(evaluated, 'bindAs')
+  const childBindCtx = (typeof evaluated === 'function' && evaluated.isBindGetter)
+    ? evaluated.elCtx
+    : null
+  const rendered = renderNode(evaluated)
+  this.cleanups = takeRenderCleanups()
+  activeRenderCleanups = prevRenderCleanups
+
+  if (rendered !== undefined) {
+    // If this bindAs renders the root node of a bindChildren item, point the
+    // item at the new node so the next arrange pass sees the live node.
+    rebindItemNode(this.current, rendered)
+    // Re-establish the parent-ref link when a re-render resolves to another
+    // nested bind getter, so future child swaps propagate back to this BindCtx.
+    if (childBindCtx !== null && childBindCtx.current === rendered) {
+      addParentRef(childBindCtx, this)
+    }
+    // Perform the DOM replacement on the next microtask to give the parent a
+    // chance to render first. All replacements queued by one synchronous run
+    // share a single microtask and are applied in the order they were queued,
+    // which is the order their individual microtasks would have run in.
+    pendingReplacements.push(this, rendered)
+    if (!replacementScheduled) {
+      replacementScheduled = true
+      queueMicrotask(flushReplacements)
+    }
+  }
+}
+
+// Pairs of (BindCtx, rendered node) waiting to be swapped into the DOM.
+let pendingReplacements = []
+let replacementScheduled = false
+
+function flushReplacements () {
+  const queue = pendingReplacements
+  pendingReplacements = []
+  replacementScheduled = false
+  let failure = null
+  for (let i = 0; i < queue.length; i += 2) {
+    const bindCtx = queue[i]
+    const rendered = queue[i + 1]
+    try {
+      // Guard: skip replaceWith when the same element is returned (e.g. when
+      // toggling between two pre-built element references). el.replaceWith(el)
+      // is a no-op in the DOM but wastes the work.
+      if (rendered !== bindCtx.current) {
+        const oldCurrent = bindCtx.current
+        if (devMode) warnIfReplacingFocused(oldCurrent)
+        oldCurrent.replaceWith(rendered)
+        bindCtx.current = rendered
+        // Keep any ancestor bindAs whose BindCtx shared this node in sync with
+        // the new node, so their next replaceWith targets a live DOM node.
+        propagateReplace(bindCtx, oldCurrent, rendered)
+      }
+    } catch (e) {
+      console.error('Failed to replace element with new element')
+      console.dir(bindCtx, rendered)
+      if (failure === null) failure = e
+    }
+  }
+  // Surface the first failure after the remaining replacements were applied.
+  if (failure !== null) throw failure
+}
+
+// Remove the binding's driving observer and everything its render registered.
+function teardownBind (bindCtx) {
+  if (bindCtx.select) {
+    removeSelectObserver(bindCtx.ctx.parentCtx, bindCtx.selectKey, bindCtx)
+  } else {
+    removeObserver(bindCtx.ctx, bindCtx)
+  }
+  runCleanups(bindCtx)
+  // Mark dead so any child BindCtx that still holds us in its parentRefs
+  // can prune us lazily on its next propagateReplace walk.
+  bindCtx.dead = true
+}
+
+const doBind = function (ctx, element, select) {
   if (typeof element !== 'function') {
     throw new Error('You must pass a function to bind with')
   }
 
   // Track subscriptions created during the initial render so they can be
-  // cleaned up if this bindAs itself re-renders (updateReplacer) or when
+  // cleaned up if this bindAs itself re-renders (BindCtx.update) or when
   // a parent bindAs re-renders and tears us down entirely.
   const prevRenderCleanups = activeRenderCleanups
-  const thisRenderCleanups = []
-  activeRenderCleanups = thisRenderCleanups
+  activeRenderCleanups = NO_CLEANUPS
   const evaluated = evaluateElement(element, ctx.currentValue)
   assertSingleNode(evaluated, 'bindAs')
-  const childElCtx = (typeof evaluated === 'function' && evaluated.isBindGetter)
+  const childBindCtx = (typeof evaluated === 'function' && evaluated.isBindGetter)
     ? evaluated.elCtx
     : null
-  const elCtx = { current: renderNode(evaluated), cleanups: thisRenderCleanups }
-  // When the evaluated element is itself a bind getter (a nested bindAs/bindSelect),
-  // register this elCtx as a back-ref on the child so that later child-driven
-  // node swaps keep this elCtx.current in sync with the live DOM node.
-  if (childElCtx && childElCtx.current === elCtx.current) {
-    addParentRef(childElCtx, elCtx)
+  // A primitive result is kept as pending text: a template fill adopts its
+  // placeholder for it, so no throwaway text node is created.
+  let current = null
+  let text = null
+  if (evaluated === null) {
+    text = 'null'
+  } else if (typeof evaluated === 'string') {
+    text = evaluated
+  } else if (typeof evaluated !== 'object' && typeof evaluated !== 'function') {
+    text = evaluated + ''
+  } else {
+    current = renderNode(evaluated)
   }
-  // Suppress tracking during handleReplace — the driving subscription is
-  // registered separately below as part of a cascading cleanup.
-  activeRenderCleanups = null
-  handleReplace(elCtx)
+  const bindCtx = new BindCtx(ctx, element, current, text, takeRenderCleanups(), select)
   activeRenderCleanups = prevRenderCleanups
+  // When the evaluated element is itself a bind getter (a nested bindAs/bindSelect),
+  // register this BindCtx as a back-ref on the child so that later child-driven
+  // node swaps keep this BindCtx.current in sync with the live DOM node.
+  if (childBindCtx !== null && childBindCtx.current === current) {
+    addParentRef(childBindCtx, bindCtx)
+  }
+  // The driving observer is not registered with the enclosing render; the
+  // cascading cleanup below tears it down together with everything else.
+  if (select) {
+    bindCtx.selectKey = addSelectObserver(ctx, bindCtx)
+  } else {
+    addObserver(ctx, bindCtx)
+  }
 
   // If inside a parent bindAs render, register a cascading cleanup that tears
-  // down both the driving subscription and all subscriptions created inside
+  // down both the driving observer and all subscriptions created inside
   // this bindAs's render, so they don't outlive the parent's re-render.
-  if (prevRenderCleanups !== null && (elCtx.drivingUnsub || elCtx.selectUnsub)) {
-    prevRenderCleanups.push(() => {
-      if (elCtx.drivingUnsub) elCtx.drivingUnsub()
-      if (elCtx.selectUnsub) elCtx.selectUnsub()
-      runCleanups(elCtx)
-      // Mark dead so any child elCtx that still holds us in its parentRefs
-      // can prune us lazily on its next propagateReplace walk.
-      elCtx.dead = true
-    })
+  if (prevRenderCleanups !== null) {
+    registerCleanup(bindCtx)
   }
 
-  const getter = () => elCtx.current
+  const getter = () => liveNode(bindCtx)
   getter.isBindGetter = true
-  getter.elCtx = elCtx
+  getter.elCtx = bindCtx
   return getter
 }
 
-// Register a back-ref from a child bind elCtx to a parent elCtx, avoiding
+// Register a back-ref from a child BindCtx to a parent BindCtx, avoiding
 // duplicate entries when the same parent re-renders against the same child.
-function addParentRef (childElCtx, parentElCtx) {
-  if (!childElCtx.parentRefs) {
-    childElCtx.parentRefs = [parentElCtx]
-  } else if (!childElCtx.parentRefs.includes(parentElCtx)) {
-    childElCtx.parentRefs.push(parentElCtx)
+function addParentRef (childBindCtx, parentBindCtx) {
+  if (childBindCtx.parentRefs === null) {
+    childBindCtx.parentRefs = [parentBindCtx]
+  } else if (!childBindCtx.parentRefs.includes(parentBindCtx)) {
+    childBindCtx.parentRefs.push(parentBindCtx)
   }
 }
 
-// Walk the back-ref chain and update any ancestor elCtx whose .current still
+// Walk the back-ref chain and update any ancestor BindCtx whose .current still
 // points at the old DOM node. Used when a nested bindAs swaps its node so the
 // outer bindAs keeps a live reference instead of a detached one. Prunes any
-// dead ancestors encountered so parentRefs does not retain torn-down elCtxs.
-function propagateReplace (elCtx, oldNode, newNode) {
-  const refs = elCtx.parentRefs
-  if (!refs) return
+// dead ancestors encountered so parentRefs does not retain torn-down BindCtxs.
+function propagateReplace (bindCtx, oldNode, newNode) {
+  const refs = bindCtx.parentRefs
+  if (refs === null) return
   for (let i = refs.length - 1; i >= 0; i--) {
     const parent = refs[i]
     if (parent.dead) {
@@ -612,90 +940,55 @@ function warnIfReplacingFocused (oldNode) {
   }
 }
 
-const updateReplacer = (ctx, element, elCtx) => (_, oldValue) => {
-  // Clean up subscriptions from the previous render before re-rendering.
-  // This prevents nested bindAs/bindAttr/bindStyle subscriptions from
-  // accumulating each time the parent state changes.
-  runCleanups(elCtx)
-
-  // Track subscriptions created during this re-render for cleanup next time.
-  const prevRenderCleanups = activeRenderCleanups
-  const thisRenderCleanups = []
-  activeRenderCleanups = thisRenderCleanups
-  const evaluated = evaluateElement(element, ctx.currentValue, oldValue)
-  assertSingleNode(evaluated, 'bindAs')
-  const childElCtx = (typeof evaluated === 'function' && evaluated.isBindGetter)
-    ? evaluated.elCtx
-    : null
-  let rendered = renderNode(evaluated)
-  activeRenderCleanups = prevRenderCleanups
-  elCtx.cleanups = thisRenderCleanups
-
-  if (rendered !== undefined) {
-    if (elCtx.current.key !== undefined) {
-      rendered.key = elCtx.current.key
-    }
-    if (ctx.parentCtx) {
-      for (const bindContext of ctx.parentCtx.bindContexts) {
-        bindContext.boundElementByKey[elCtx.current.key] = rendered
-      }
-    }
-    // Re-establish the parent-ref link when a re-render resolves to another
-    // nested bind getter, so future child swaps propagate back to this elCtx.
-    if (childElCtx && childElCtx.current === rendered) {
-      addParentRef(childElCtx, elCtx)
-    }
-    // Perform this action on the next event loop to give the parent a chance to render
-    new Promise((resolve) => {
-      // Guard: skip replaceWith when the same element is returned (e.g. when
-      // toggling between two pre-built element references). el.replaceWith(el)
-      // is a no-op in the DOM but wastes a microtask.
-      if (rendered !== elCtx.current) {
-        const oldCurrent = elCtx.current
-        if (devMode) warnIfReplacingFocused(oldCurrent)
-        elCtx.current.replaceWith(rendered)
-        elCtx.current = rendered
-        // Keep any ancestor bindAs whose elCtx shared this node in sync with
-        // the new node, so their next replaceWith targets a live DOM node.
-        propagateReplace(elCtx, oldCurrent, rendered)
-      }
-      rendered = null
-      resolve()
-    }).catch(e => {
-      console.error('Failed to replace element with new element')
-      console.dir(elCtx, rendered)
-      const err = new Error('Failed to replace element with new element')
-      err.stack += '\nCaused by: ' + e.stack
-      throw e
-    })
-  }
-}
-
+/**
+ * Bind select and deselect to an element
+ * @param {(()=>(Node|any))?} [element] The element to bind to. If not passed, defaults to the state's value
+ * @returns {()=>Node}
+ */
 function doBindSelect (element) {
-  element = element ?? this
-  const ctx = this._ctx
-  return doBind(ctx, element, (elCtx) => {
-    elCtx.selectUnsub = subscribeSelect(ctx, updateReplacer(ctx, element, elCtx))
-  })
+  return doBind(this._ctx, element ?? this, true)
 }
 
+/**
+ * Bind this state to the given element
+ *
+ * @param {((T)=>(Node|any))?} [element] The element to bind to. If not a function, an update function must be passed. If not passed, defaults to the state's value
+ * @returns {()=>Node}
+ */
 function doBindAs (element) {
-  const ctx = this._ctx
-  const el = element ?? this
-  return doBind(ctx, el, (elCtx) => {
-    // Store so doBind can build a cascading cleanup when nested inside another bindAs
-    elCtx.drivingUnsub = this.subscribe(updateReplacer(ctx, el, elCtx))
-  })
+  return doBind(this._ctx, element ?? this, false)
 }
+
+// The shared method table of every fnstate function. The property docs live on
+// the FnStateObj typedef above.
+fnStateProto.bindAs = doBindAs
+fnStateProto.bindChildren = doBindChildren
+fnStateProto.bindRows = doBindRows
+fnStateProto.bindProp = doBindProp
+fnStateProto.bindAttr = doBindAttr
+fnStateProto.bindStyle = doBindStyle
+fnStateProto.bindSelect = doBindSelect
+fnStateProto.bindSelectAttr = doBindSelectAttr
+fnStateProto.select = doSelect
+fnStateProto.selected = doSelected
+fnStateProto.isFnState = true
+fnStateProto.assign = doAssign
+fnStateProto.getPath = doGetPath
+fnStateProto.setPath = doSetPath
+fnStateProto.subscribe = doSubscribe
+// bindChildren marks its item states with `itemState.parentCtx = ctx`. Keep
+// that on the context so the state function itself keeps a single own
+// property (_ctx) and one hidden class.
+Object.defineProperty(fnStateProto, 'parentCtx', {
+  get () { return this._ctx.parentCtx },
+  set (parentCtx) { this._ctx.parentCtx = parentCtx }
+})
 
 /**
  * Reconcile the state of the current array value with the state of the bound elements
  */
 function reconcile (ctx, oldState) {
   for (const bindContext of ctx.bindContexts) {
-    if (bindContext.boundElementByKey === undefined) {
-      bindContext.boundElementByKey = {}
-    }
     arrangeElements(ctx, bindContext, oldState)
   }
 }
@@ -710,159 +1003,1182 @@ function keyMapper (mapKey, value, i) {
   }
 }
 
-function cleanElementSubscriptions (bindContext, key) {
-  const cleanups = bindContext.elementCleanups?.[key]
-  if (!cleanups) return
-  for (const unsub of cleanups) unsub()
-  delete bindContext.elementCleanups[key]
+// Each bindChildren item is tracked by one record:
+//   key      the mapKey result for the item
+//   state    the per-item fnstate handed to the builder
+//   node     the rendered root node, undefined until the builder has run
+//   cleanups subscriptions created by the builder, null when there are none
+//   index    the item's index in the array as of the last arrange pass
+//   gen      the bindContext.gen of the last arrange pass that saw this key
+// The root node carries a back reference to its record in `_fnItem` so the
+// arrange loop can identify a sibling it did not expect with a property load
+// instead of a lookup, and so a bindAs that swaps an item's root node can
+// update the record without knowing which bindContext it belongs to.
+function newItem (ctx, key, rawValue, index, gen) {
+  const state = fnstate(rawValue)
+  // Ensure the parent state is set so child states can listen to selection changes
+  state.parentCtx = ctx
+  const item = { key, state, node: undefined, cleanups: null, index, gen }
+  // If the user replaces the value of this item's state (e.g. itemState(newObj)),
+  // write it back into the parent array to keep the two in sync.
+  state.subscribe((newValue) => {
+    const arr = ctx.currentValue
+    // If the parent is no longer an array, abort
+    if (!Array.isArray(arr)) return
+    let idx = item.index
+    // Fast path: arrangeElements just synced this item from the array, or the
+    // array already holds the value. Nothing to write.
+    if (idx < arr.length && arr[idx] === newValue) return
+    // The recorded index is only trusted when the key still matches there.
+    // Sorting or filtering the array in place without calling the parent
+    // state would leave it stale, so fall back to a scan in that case.
+    if (idx >= arr.length || keyMapper(ctx.mapKey, arr[idx], idx) !== key) {
+      idx = arr.findIndex((v, i) => keyMapper(ctx.mapKey, v, i) === key)
+    }
+    if (idx > -1) arr[idx] = newValue
+  })
+  return item
+}
+
+// Called by BindCtx.update when a bindAs swaps the node it rendered. If that
+// node is the root node of a bindChildren item, the item follows it.
+function rebindItemNode (oldNode, newNode) {
+  const item = oldNode._fnItem
+  if (item !== undefined && item.node === oldNode) {
+    item.node = newNode
+    newNode._fnItem = item
+  }
+}
+
+function runItemCleanups (item) {
+  const cleanups = item.cleanups
+  if (cleanups === null) return
+  item.cleanups = null
+  for (const entry of cleanups) runCleanupEntry(entry)
+}
+
+function removeItem (ctx, bindContext, item, detach) {
+  runItemCleanups(item)
+  bindContext.items.delete(item.key)
+  if (ctx.selectObservers[item.key] !== undefined) {
+    delete ctx.selectObservers[item.key]
+  }
+  const node = item.node
+  if (node !== undefined) {
+    node._fnItem = undefined
+    if (detach) node.remove()
+  }
+}
+
+// Tear down every record whose gen is not keepGen and empty the parent. Used
+// when no old key survives an update (including clearing the list), so the
+// per-record work is only the item's own cleanups.
+function dropAllItems (ctx, bindContext, keepGen) {
+  const items = bindContext.items
+  // The select observers of a state are keyed by item key and shared by all
+  // of its bindChildren bindings. With a single binding every registered key
+  // belongs to a record being dropped here (new records are not built yet),
+  // so the map is reset once up front and the cleanups' own removals find
+  // nothing to do. Otherwise each dropped key is deleted individually.
+  const shared = ctx.bindContexts.length > 1
+  if (!shared) ctx.selectObservers = EMPTY_SELECT_OBSERVERS
+  for (const item of items.values()) {
+    if (item.gen === keepGen) continue
+    runItemCleanups(item)
+    if (shared && ctx.selectObservers[item.key] !== undefined) {
+      delete ctx.selectObservers[item.key]
+    }
+    if (item.node !== undefined) item.node._fnItem = undefined
+    if (keepGen !== -1) items.delete(item.key)
+  }
+  bindContext.parent.textContent = ''
+}
+
+// Shared scratch list for subscriptions created while an item builder runs.
+// Builders nest (a bindChildren inside an item builder arranges synchronously),
+// so each build only owns the entries above its own start offset.
+const itemCleanupScratch = []
+
+function buildItemNode (bindContext, item) {
+  const prevCleanups = activeRenderCleanups
+  const start = itemCleanupScratch.length
+  activeRenderCleanups = itemCleanupScratch
+  try {
+    // Pass the item state (the fnstate wrapper) to the user's element builder
+    const evaluated = evaluateElement(bindContext.element, item.state)
+    assertSingleNode(evaluated, 'bindChildren')
+    const node = renderNode(evaluated)
+    if (itemCleanupScratch.length > start) {
+      item.cleanups = itemCleanupScratch.slice(start)
+    }
+    item.node = node
+    node._fnItem = item
+    return node
+  } finally {
+    itemCleanupScratch.length = start
+    activeRenderCleanups = prevCleanups
+  }
+}
+
+// insertAdjacentElement is faster, but some nodes don't have it (lookin' at you text)
+function insertBeforeNode (parent, ref, node) {
+  if (ref.insertAdjacentElement !== undefined && node.insertAdjacentElement !== undefined) {
+    ref.insertAdjacentElement('beforebegin', node)
+  } else {
+    parent.insertBefore(node, ref)
+  }
 }
 
 function arrangeElements (ctx, bindContext, oldState) {
-  if (!ctx?.currentValue?.length) {
-    // Clean up subscriptions for all existing elements before clearing
-    if (bindContext.elementCleanups) {
-      for (const key in bindContext.elementCleanups) {
-        for (const unsub of bindContext.elementCleanups[key]) unsub()
-      }
-      bindContext.elementCleanups = {}
-    }
-    bindContext.parent.textContent = ''
-    bindContext.boundElementByKey = {}
-    bindContext.elementStates = {}
-    ctx.selectObservers = {}
+  const values = ctx.currentValue
+  const items = bindContext.items
+  if (!values?.length) {
+    if (items.size > 0) dropAllItems(ctx, bindContext, -1)
+    else bindContext.parent.textContent = ''
+    items.clear()
+    bindContext.order.length = 0
     return
   }
 
-  // Initialize the element state map if it doesn't exist
-  if (!bindContext.elementStates) {
-    bindContext.elementStates = {}
+  const n = values.length
+  const gen = ++bindContext.gen
+  const order = bindContext.order
+  const mapKey = ctx.mapKey
+  // Only ever shrink here: the loop below fills order in sequence, so growing
+  // it is a plain append and never leaves holes (growing via .length first
+  // would have V8 hand out a sparse backing store).
+  if (order.length > n) order.length = n
+  const oldSize = items.size
+  // Existing records reused by this pass. Zero means every old record is
+  // stale and every record in order is new.
+  let matched = 0
+
+  // 1. Map every array value to its item record, creating records for new
+  // keys and pushing changed values into existing item states.
+  for (let i = 0; i < n; i++) {
+    const rawValue = values[i]
+    // Use the raw value to get the key
+    const key = keyMapper(mapKey, rawValue, i)
+    let item = items.get(key)
+    if (item === undefined) {
+      item = newItem(ctx, key, rawValue, i, gen)
+      items.set(key, item)
+    } else {
+      if (item.gen === gen) {
+        if (oldState) ctx.state(oldState)
+        throw new Error('Duplicate keys in a bound array are not allowed, state reset to previous value.')
+      }
+      matched++
+      item.gen = gen
+      item.index = i
+      // An item is only pushed into its state (and so re-rendered) when its
+      // reference changed. Callers who mutate an item in place must either
+      // call the item state the builder received, or replace the object in
+      // the array, for bindings on that item to update.
+      if (item.state._ctx.currentValue !== rawValue) {
+        item.state(rawValue)
+      }
+    }
+    order[i] = item
   }
 
-  const keys = {}
-  const keysArr = []
+  const parent = bindContext.parent
 
-  for (let i = 0; i < ctx.currentValue.length; i++) {
-    const rawValue = ctx.currentValue[i]
-    // Use the raw value to get the key
-    const key = keyMapper(ctx.mapKey, rawValue, i)
-
-    if (keys[key]) {
-      if (oldState) ctx.state(oldState)
-      throw new Error('Duplicate keys in a bound array are not allowed, state reset to previous value.')
+  if (matched === 0) {
+    // Nothing survives: tear every old record down in one pass, empty the
+    // parent with a single DOM call and append the new nodes in order. No
+    // sibling has to be compared or replaced.
+    if (oldSize > 0) dropAllItems(ctx, bindContext, gen)
+    for (let i = 0; i < n; i++) {
+      parent.appendChild(buildItemNode(bindContext, order[i]))
     }
-
-    keys[key] = i
-    keysArr[i] = key
-
-    // We look up the persistent fnstate for this key, or create it if new
-    let elementState = bindContext.elementStates[key]
-    if (!elementState) {
-      elementState = fnstate(rawValue)
-      // Ensure the parent state is set so child states can listen to selection changes
-      elementState.parentCtx = ctx
-      bindContext.elementStates[key] = elementState
-      // If the user replaces the value of this elementState (e.g. elementState(newObj)),
-      // we must update the original array to keep it in sync.
-      elementState.subscribe((newItem) => {
-        const currentArr = ctx.state()
-        // If the parent is no longer an array, abort
-        if (!Array.isArray(currentArr)) return
-
-        // find the element dynamically because sorting/filtering might have shifted the index
-        const idx = currentArr.findIndex((item, i) => keyMapper(ctx.mapKey, item, i) === key)
-
-        if (idx > -1 && currentArr[idx] !== newItem) {
-          currentArr[idx] = newItem
-        }
-      })
-    } else {
-      // Update existing state with new raw value.
-      // fnstate handles the equality check (newValue !== oldValue) internally.
-      elementState(rawValue)
-    }
+    return
   }
 
   let prev = null
-  const parent = bindContext.parent
 
-  // 2. Render Loop
-  for (let i = ctx.currentValue.length - 1; i >= 0; i--) {
-    const key = keysArr[i]
-    // Retrieve the element state to pass to the builder
-    const valueState = bindContext.elementStates[key]
-
-    let current = bindContext.boundElementByKey[key]
+  // 2. Render loop, walking from the end so each node is placed before the
+  // one that follows it.
+  for (let i = n - 1; i >= 0; i--) {
+    const item = order[i]
+    let current = item.node
     let isNew = false
-
     if (current === undefined) {
       isNew = true
-      // Track subscriptions created during the builder call so they can be
-      // cleaned up when this item is removed from the array.
-      if (!bindContext.elementCleanups) bindContext.elementCleanups = {}
-      const prevCleanups = activeRenderCleanups
-      const thisElementCleanups = []
-      activeRenderCleanups = thisElementCleanups
-      // Pass the valueState (the fnstate wrapper) to the user's element builder
-      const evaluated = evaluateElement(bindContext.element, valueState)
-      assertSingleNode(evaluated, 'bindChildren')
-      current = bindContext.boundElementByKey[key] = renderNode(evaluated)
-      activeRenderCleanups = prevCleanups
-      bindContext.elementCleanups[key] = thisElementCleanups
-      current.key = key
+      current = buildItemNode(bindContext, item)
     }
 
     // place the element in the parent
-    if (prev == null) {
-      if (!parent.lastChild || parent.lastChild.key !== current.key) {
+    if (prev === null) {
+      if (parent.lastChild !== current) {
         parent.append(current)
       }
     } else {
-      if (prev.previousSibling === null) {
-        // insertAdjacentElement is faster, but some nodes don't have it (lookin' at you text)
-        if (prev.insertAdjacentElement !== undefined && current.insertAdjacentElement !== undefined) {
-          prev.insertAdjacentElement('beforebegin', current)
-        } else {
-          parent.insertBefore(current, prev)
-        }
-      } else if (prev.previousSibling.key !== current.key) {
-        // the previous was deleted all together, so we will delete it and replace the element
-        if (keys[prev.previousSibling.key] === undefined) {
-          const keyToDelete = prev.previousSibling.key
-          cleanElementSubscriptions(bindContext, keyToDelete)
-          delete bindContext.boundElementByKey[keyToDelete]
-          delete bindContext.elementStates[keyToDelete] // Cleanup element state
-
-          delete ctx.selectObservers[keyToDelete]
-          prev.previousSibling.replaceWith(current)
+      const sib = prev.previousSibling
+      if (sib === null) {
+        insertBeforeNode(parent, prev, current)
+      } else if (sib !== current) {
+        const sibItem = sib._fnItem
+        if (sibItem === undefined || sibItem.gen !== gen) {
+          // the previous was deleted all together (or is not ours), so we
+          // will delete it and replace the element
+          if (sibItem !== undefined) removeItem(ctx, bindContext, sibItem, false)
+          sib.replaceWith(current)
         } else if (isNew) {
-          // insertAdjacentElement is faster, but some nodes don't have it (lookin' at you text)
-          if (prev.insertAdjacentElement !== undefined) {
-            prev.insertAdjacentElement('beforebegin', current)
-          } else {
-            parent.insertBefore(current, prev)
-          }
+          insertBeforeNode(parent, prev, current)
         } else {
           // if it's an existing key, replace the current object with the correct object
-          prev.previousSibling.replaceWith(current)
+          sib.replaceWith(current)
         }
       }
     }
     prev = current
   }
 
-  // 3. Catch any strays (Cleanup)
-  for (const key in bindContext.boundElementByKey) {
-    if (keys[key] === undefined) {
-      cleanElementSubscriptions(bindContext, key)
-      bindContext.boundElementByKey[key].remove()
-      delete bindContext.boundElementByKey[key]
-      delete bindContext.elementStates[key] // Cleanup element state
+  // 3. Catch any strays (Cleanup). Every current key was visited above, so
+  // there are strays only when more records than values remain.
+  if (items.size > n) {
+    for (const item of items.values()) {
+      if (item.gen !== gen) removeItem(ctx, bindContext, item, true)
+    }
+  }
+}
 
-      if (ctx.selectObservers[key] !== undefined) {
-        delete ctx.selectObservers[key]
+/**
+ * Bind the array held by this state to rows stamped from a compiled template.
+ *
+ * Each row is a clone of the template's single root element. `values(item, selected)` maps an
+ * item to the template's slots; it runs when the row is mounted and again only when the item's
+ * reference changes or the row gains or loses selection, and only the slots whose value changed
+ * (Object.is) are written. Slots named in `handlers` are event slots: one shared function per
+ * name is attached to every row and is called as handler(event, item) with the row's current item.
+ * Rows hold no per-row state, subscriptions or closures, which makes this the fast path for long
+ * lists whose rows are a pure function of item and selection. Use bindChildren for rows that need
+ * their own state or nested reactivity.
+ *
+ * Items are compared by reference, so update them immutably (replace the object in the array).
+ *
+ * @param {(()=>(Node|any))|Node} parent The element the rows are rendered into
+ * @param {Function} template An fntemplate result whose template has a single root element
+ * @param {{values?: (item: any, selected: any)=>object, handlers?: Object<string, (event: Event, item: any)=>any>}} [options]
+ * values defaults to returning the item itself.
+ * @returns {Node} the parent
+ */
+function doBindRows (parent, template, options) {
+  const ctx = this._ctx
+  parent = renderNode(parent)
+  if (parent === undefined || parent.nodeType === undefined) {
+    throw new Error('You must provide a parent element to bind the rows to.')
+  }
+  const tpl = typeof template === 'function' ? template._fnTemplate : undefined
+  if (tpl === undefined) {
+    throw new Error('bindRows: template must be the result of fntemplate.')
+  }
+  if (tpl.root.nodeType !== 1) {
+    throw new Error('bindRows: the template must have a single root element.')
+  }
+  if (typeof ctx.mapKey !== 'function') {
+    if (devMode) {
+      console.warn('bindRows: no mapKey provided: falling back to array index as key, which can misbehave when items are moved, inserted, or removed. Pass a mapKey function as the second argument to fnstate(array, item => item.id).')
+    }
+    ctx.mapKey = (_, i) => i
+  }
+  if (!Array.isArray(ctx.currentValue)) {
+    throw new Error('You can only use bindRows with a state that contains an array. try myState([mystate]) before calling this function.')
+  }
+  const rows = new RowsBinding(ctx, parent, tpl, options || {})
+  addObserver(ctx, rows)
+  if (ctx.rowBindings === null) ctx.rowBindings = [rows]
+  else ctx.rowBindings.push(rows)
+  // Inside a bindAs render: tear the rows' scopes and the subscription down
+  // when that render is replaced.
+  registerCleanup(rows)
+  arrangeRows(rows, undefined)
+  return parent
+}
+
+// One row of a bindRows list. Every record is built by this one constructor
+// with its fields in this order, so all rows share a hidden class. slot is
+// where the row's last slot values start in the list's value store (-1 when
+// the list has none), read back to diff the next run. gen is the reconcile
+// pass that last saw the row, or ROW_DEAD once the row is removed. The
+// cleanups of the few rows that register any live in the list's scopes map,
+// not in a field every row would carry.
+class Row {
+  constructor (key, item, gen) {
+    this.key = key
+    this.item = item
+    this.node = null
+    this.slot = -1
+    this.gen = gen
+  }
+}
+
+const ROW_DEAD = -1
+
+const identityValues = item => item
+
+// The state of one bindRows call. It is the state's observer (update) and
+// its own cleanup entry (dispose); doSelect reaches it through ctx.rowBindings.
+function RowsBinding (ctx, parent, tpl, options) {
+  this.ctx = ctx
+  this.parent = parent
+  this.root = tpl.root
+  this.ops = tpl.ops
+  this.values = typeof options.values === 'function' ? options.values : identityValues
+  const handlers = options.handlers || {}
+  // The compiled bindings values() fills.
+  this.valueSlots = []
+  // Per value slot: how many ops of the template walk reach its bound node, so
+  // a re-run walks only as far as the slots that changed.
+  this.slotEnds = []
+  // The compiled bindings handlers fill, flattened as binding, listener pairs.
+  this.eventSlots = []
+  const listeners = new Map()
+  for (const b of tpl.bindings) {
+    const fn = Object.prototype.hasOwnProperty.call(handlers, b.prop) ? handlers[b.prop] : undefined
+    if (typeof fn !== 'function') {
+      this.valueSlots.push(b)
+      this.slotEnds.push(captureEnd(tpl.ops, b.ref))
+      continue
+    }
+    if (b.kind !== TPL_EVENT && b.kind !== TPL_EVENT_DELEGATED) {
+      throw new Error('bindRows: handler \'' + b.prop + '\' must be bound to an on* attribute in the template.')
+    }
+    let listener = listeners.get(b.prop)
+    if (listener === undefined) {
+      listener = rowListener(this, fn)
+      listeners.set(b.prop, listener)
+    }
+    this.eventSlots.push(b, listener)
+  }
+  // The slot values every mounted row wrote last, valueSlots.length per row
+  // from its slot index, so a row keeps no values object between runs. Freed
+  // ranges are reused. Without a values function the values are the item, and
+  // the item a row had is what the next run diffs against, so there is no store.
+  this.store = this.values === identityValues || this.valueSlots.length === 0 ? null : []
+  // The end of the store's used part: a store sized ahead of a mount can be longer.
+  this.storeTop = 0
+  this.freeSlots = []
+  this.rows = new Map()
+  // The rows in DOM order, and the buffer the next pass maps values into.
+  this.order = []
+  this.next = []
+  this.gen = 0
+  // Rows whose gen is below floor are gone: clearing every row raises it
+  // instead of marking each record, and removing one row sets its gen to
+  // ROW_DEAD, so a row's liveness is one compare.
+  this.floor = 0
+  // Row to the cleanups registered while its values ran and its slots were
+  // applied, for the rows that registered any. null until one does, so
+  // clearing a list that has no bindings has nothing to run.
+  this.scopes = null
+  this.scratch = new Array(tpl.nRefs).fill(null)
+  this.busy = false
+  initRowMaster(this, tpl)
+}
+
+// The one listener a list attaches for a handler name. It finds its row by
+// walking up to the row root, so no row needs a closure of its own and the
+// item it passes is the row's current one.
+function rowListener (rows, fn) {
+  return function (e) {
+    let node = this
+    let row
+    while ((row = node._fnRow) === undefined) {
+      node = node.parentNode
+      if (node === null) return
+    }
+    if (row.gen < rows.floor) return
+    return fn.call(this, e, row.item)
+  }
+}
+
+RowsBinding.prototype.update = function (newValue, oldValue) {
+  if (!Array.isArray(newValue)) {
+    if (devMode) {
+      console.warn('bindRows: state was updated to a non-array value. Wrapping it in a single-element array.')
+    }
+    this.ctx.state([newValue])
+    return
+  }
+  arrangeRows(this, oldValue)
+}
+
+// Called by doSelect: only the rows that lose and gain selection re-run.
+RowsBinding.prototype.select = function (previous, key) {
+  // The item is the values without a values function, so selection changes nothing.
+  if (this.store === null) return
+  const selected = this.ctx.selected
+  let row = this.rows.get(previous)
+  if (row !== undefined && row.node !== null) rerunRow(this, row, selected, null)
+  row = this.rows.get(key)
+  if (row !== undefined && row.node !== null) rerunRow(this, row, selected, null)
+}
+
+RowsBinding.prototype.dispose = function () {
+  const ctx = this.ctx
+  removeObserver(ctx, this)
+  const list = ctx.rowBindings
+  const idx = list === null ? -1 : list.indexOf(this)
+  if (idx !== -1) list.splice(idx, 1)
+  runAllRowScopes(this)
+  this.rows.clear()
+  this.order.length = 0
+  this.next.length = 0
+  this.floor = ++this.gen
+  resetRowVals(this, 0)
+}
+
+// Empty the value store, sized for count rows to be mounted next so filling
+// it does not grow it step by step.
+function resetRowVals (rows, count) {
+  if (rows.store === null) return
+  rows.store = count > 0 ? new Array(count * rows.valueSlots.length) : []
+  rows.storeTop = 0
+  rows.freeSlots.length = 0
+}
+
+// Keep the slot values a row was mounted with, for its next run to diff.
+function saveRowVals (rows, row, vals) {
+  const store = rows.store
+  if (store === null) return
+  const slots = rows.valueSlots
+  const free = rows.freeSlots
+  if (free.length > 0) {
+    const base = free.pop()
+    row.slot = base
+    for (let i = 0; i < slots.length; i++) store[base + i] = vals[slots[i].prop]
+  } else {
+    const base = rows.storeTop
+    rows.storeTop = base + slots.length
+    row.slot = base
+    for (let i = 0; i < slots.length; i++) store[base + i] = vals[slots[i].prop]
+  }
+}
+
+// Release a removed row's range of the value store, so it pins no values.
+function freeRowVals (rows, row) {
+  const store = rows.store
+  const base = row.slot
+  if (store === null || base === -1) return
+  row.slot = -1
+  for (let i = 0, n = rows.valueSlots.length; i < n; i++) store[base + i] = undefined
+  rows.freeSlots.push(base)
+}
+
+// The number of ops a walk runs to capture ref.
+function captureEnd (ops, ref) {
+  for (let i = 0; i < ops.length; i++) {
+    if ((ops[i] & 3) === OP_CAPTURE && ops[i] >> 2 === ref) return i + 1
+  }
+  return ops.length
+}
+
+function runRowScope (rows, row) {
+  const scopes = rows.scopes
+  if (scopes === null) return
+  const scope = scopes.get(row)
+  if (scope === undefined) return
+  scopes.delete(row)
+  for (let i = 0; i < scope.length; i++) runCleanupEntry(scope[i])
+}
+
+function runAllRowScopes (rows) {
+  const scopes = rows.scopes
+  if (scopes === null) return
+  rows.scopes = null
+  for (const scope of scopes.values()) {
+    for (let i = 0; i < scope.length; i++) runCleanupEntry(scope[i])
+  }
+}
+
+// Close the cleanup scope a row's values() and slot writes ran in.
+function closeRowScope (rows, row, prevCleanups) {
+  const scope = takeRenderCleanups()
+  activeRenderCleanups = prevCleanups
+  if (scope !== null) {
+    if (rows.scopes === null) rows.scopes = new Map()
+    rows.scopes.set(row, scope)
+  }
+}
+
+// Locate the bound nodes of a row. The refs live until releaseRowRefs.
+function rowRefs (rows, node) {
+  const refs = acquireRowRefs(rows)
+  walkTemplate(rows.ops, node, refs)
+  return refs
+}
+
+// The scratch refs array, or a fresh one when a nested run holds it.
+function acquireRowRefs (rows) {
+  if (rows.busy) return new Array(rows.scratch.length)
+  rows.busy = true
+  return rows.scratch
+}
+
+// Run ops[from, to) of a template walk from cur and return where it stopped,
+// so a re-run can walk a prefix and resume it for a later slot.
+function walkOps (ops, from, to, cur, refs) {
+  for (let i = from; i < to; i++) {
+    const op = ops[i]
+    switch (op & 3) {
+      case OP_FIRST_CHILD:
+        cur = cur.firstChild
+        break
+      case OP_NEXT_SIBLING:
+        cur = cur.nextSibling
+        break
+      case OP_CAPTURE:
+        refs[op >> 2] = cur
+        break
+      default:
+        cur = refs[op >> 2].nextSibling
+    }
+  }
+  return cur
+}
+
+function releaseRowRefs (rows, refs) {
+  if (refs !== rows.scratch) return
+  for (let i = 0; i < refs.length; i++) refs[i] = null
+  rows.busy = false
+}
+
+// A fragment empties itself when inserted, so its nodes could not be found
+// or replaced on the next run.
+function assertRowSlotValue (val) {
+  if (Array.isArray(val) || val.nodeType === 11) {
+    throw new Error('bindRows values must be a primitive or a single node, not an array or fragment. Wrap the items in an element.')
+  }
+}
+
+// Write then clone. Rows whose values are all primitives going into text,
+// plain attribute or style slots are filled by writing those values into a
+// private copy of the template (the master) and cloning it, so the clone
+// arrives filled and needs no walk or slot writes. A master slot is written
+// only when its value differs from what it holds, which makes repeated values
+// nearly free. Event slots are wired on the clone through a precomputed path
+// to each event node. Any other value takes the clone, walk and fill path.
+// The master is shared by every bindRows list of a template and never seen
+// by fntemplate's own instantiation.
+
+const MASTER_UNSET = {}
+
+function initRowMaster (rows, tpl) {
+  rows.master = null
+  const slots = rows.valueSlots
+  if (slots.length === 0) return
+  for (const b of slots) {
+    if (b.kind !== TPL_NODE && b.kind !== TPL_ONLY && b.kind !== TPL_ATTR && b.kind !== TPL_STYLE) return
+  }
+  const master = tpl.master || (tpl.master = createRowMaster(tpl))
+  rows.master = master
+  // The master slot of each value slot, in value slot order, and a reused
+  // array for the values read from values().
+  rows.masterSlots = slots.map(b => master.slots[tpl.bindings.indexOf(b)])
+  rows.masterVals = new Array(slots.length)
+  // The path from the row root to each event node, taken on the clone to wire
+  // the handlers. It reaches each node from the nearer end of its siblings.
+  const refs = new Array(tpl.nRefs)
+  walkTemplate(tpl.ops, master.root, refs)
+  rows.eventPaths = []
+  for (let i = 0; i < rows.eventSlots.length; i += 2) rows.eventPaths.push(masterPath(master.root, refs[rows.eventSlots[i].ref]))
+}
+
+const PATH_FIRST = 0
+const PATH_LAST = 1
+const PATH_NEXT = 2
+const PATH_PREV = 3
+
+function masterPath (root, node) {
+  const path = []
+  while (node !== root) {
+    const parent = node.parentNode
+    const kids = parent.childNodes
+    let idx = 0
+    while (kids[idx] !== node) idx++
+    const back = kids.length - 1 - idx
+    const steps = []
+    if (idx <= back) {
+      steps.push(PATH_FIRST)
+      for (let k = 0; k < idx; k++) steps.push(PATH_NEXT)
+    } else {
+      steps.push(PATH_LAST)
+      for (let k = 0; k < back; k++) steps.push(PATH_PREV)
+    }
+    path.unshift(...steps)
+    node = parent
+  }
+  return path
+}
+
+// Wire the handlers of a row cloned from the master, which has its structure.
+function wireMasterEvents (rows, node) {
+  const eventSlots = rows.eventSlots
+  const paths = rows.eventPaths
+  for (let i = 0; i < eventSlots.length; i += 2) {
+    const path = paths[i >> 1]
+    let cur = node
+    for (let k = 0; k < path.length; k++) {
+      const step = path[k]
+      cur = step === PATH_FIRST ? cur.firstChild : step === PATH_LAST ? cur.lastChild : step === PATH_NEXT ? cur.nextSibling : cur.previousSibling
+    }
+    const b = eventSlots[i]
+    if (b.kind === TPL_EVENT_DELEGATED) {
+      cur[b.event] = eventSlots[i + 1]
+    } else {
+      cur.addEventListener(b.event, eventSlots[i + 1])
+    }
+  }
+}
+
+// One bound node of the master and the value it holds (last).
+function MasterSlot (kind, name, target, group) {
+  this.kind = kind
+  this.name = name
+  this.target = target
+  this.group = group
+  this.last = MASTER_UNSET
+}
+
+function createRowMaster (tpl) {
+  const root = tpl.root.cloneNode(true)
+  const refs = new Array(tpl.nRefs)
+  walkTemplate(tpl.ops, root, refs)
+  const slots = []
+  const groups = new Map()
+  for (const b of tpl.bindings) {
+    const el = refs[b.ref]
+    if (b.kind === TPL_NODE) {
+      slots.push(new MasterSlot(b.kind, null, el, null))
+    } else if (b.kind === TPL_ONLY) {
+      // The placeholder was dropped from the template. A filled clone always
+      // holds one text node there (empty text included), so the master keeps one.
+      slots.push(new MasterSlot(b.kind, null, el.appendChild(document.createTextNode('')), null))
+    } else if (b.kind === TPL_ATTR || b.kind === TPL_STYLE) {
+      let g = groups.get(el)
+      if (g === undefined) {
+        g = { el, slots: [], hasStyle: false, staticStyle: null, dirty: false }
+        groups.set(el, g)
+      }
+      if (b.kind === TPL_STYLE && !g.hasStyle) {
+        g.hasStyle = true
+        g.staticStyle = el.getAttribute('style')
+      }
+      const s = new MasterSlot(b.kind, b.name, el, g)
+      g.slots.push(s)
+      slots.push(s)
+    } else {
+      slots.push(null)
+    }
+  }
+  return { root, slots, dirty: [] }
+}
+
+// Write one row's values into the master, reading them from vals into out.
+// Returns false, with every value read, when one of them cannot go into the
+// master; the slots written before it stay consistent with their last value.
+// Text slots and attributes whose presence does not change are written in
+// place. Adding an attribute next to other bound attributes, and any style
+// change, rebuilds that element's bound attributes in binding order, so the
+// attribute order and style text match what a fill of a fresh clone produces.
+function writeRowMaster (rows, vals, out) {
+  const slots = rows.masterSlots
+  const props = rows.valueSlots
+  const n = slots.length
+  for (let i = 0; i < n; i++) {
+    const val = vals[props[i].prop]
+    out[i] = val
+    if (val !== null && val !== undefined && typeof val !== 'string' && typeof val !== 'number' && typeof val !== 'boolean') {
+      for (i++; i < n; i++) out[i] = vals[props[i].prop]
+      return false
+    }
+    const s = slots[i]
+    const prev = s.last
+    if (Object.is(val, prev)) continue
+    s.last = val
+    if (s.kind === TPL_NODE || s.kind === TPL_ONLY) {
+      s.target.data = typeof val === 'string' ? val : val + ''
+      continue
+    }
+    const g = s.group
+    if (g.dirty) continue
+    if (s.kind === TPL_ATTR && !g.hasStyle) {
+      const was = prev !== MASTER_UNSET && !isEmptyAttr(prev)
+      if (isEmptyAttr(val)) {
+        if (was) s.target.removeAttribute(s.name)
+        continue
+      }
+      if (was || g.slots.length === 1) {
+        s.target.setAttribute(s.name, val)
+        continue
+      }
+    }
+    g.dirty = true
+    rows.master.dirty.push(g)
+  }
+  const dirty = rows.master.dirty
+  if (dirty.length !== 0) {
+    for (let i = 0; i < dirty.length; i++) rebuildMasterGroup(dirty[i])
+    dirty.length = 0
+  }
+  return true
+}
+
+function rebuildMasterGroup (g) {
+  g.dirty = false
+  const el = g.el
+  const slots = g.slots
+  for (let i = 0; i < slots.length; i++) {
+    if (slots[i].kind === TPL_ATTR) el.removeAttribute(slots[i].name)
+  }
+  if (g.hasStyle) {
+    if (g.staticStyle === null) el.removeAttribute('style')
+    else el.setAttribute('style', g.staticStyle)
+  }
+  for (let i = 0; i < slots.length; i++) {
+    const s = slots[i]
+    if (s.kind === TPL_ATTR) {
+      if (!isEmptyAttr(s.last)) el.setAttribute(s.name, s.last)
+    } else {
+      setStyle(s.name, s.last, el)
+    }
+  }
+}
+
+function wireRowEvents (rows, refs) {
+  const eventSlots = rows.eventSlots
+  for (let i = 0; i < eventSlots.length; i += 2) {
+    const b = eventSlots[i]
+    if (b.kind === TPL_EVENT_DELEGATED) {
+      refs[b.ref][b.event] = eventSlots[i + 1]
+    } else {
+      refs[b.ref].addEventListener(b.event, eventSlots[i + 1])
+    }
+  }
+}
+
+function mountRowFromMaster (rows, row, selected) {
+  const slots = rows.valueSlots
+  const prevCleanups = activeRenderCleanups
+  activeRenderCleanups = NO_CLEANUPS
+  let refs = null
+  try {
+    const vals = rows.values(row.item, selected)
+    saveRowVals(rows, row, vals)
+    let tmp = rows.masterVals
+    let node
+    if (writeRowMaster(rows, vals, tmp)) {
+      node = rows.master.root.cloneNode(true)
+      row.node = node
+      node._fnRow = row
+      wireMasterEvents(rows, node)
+    } else {
+      // Filling can run user code that mounts rows again, so keep a copy of the values.
+      tmp = tmp.slice()
+      rows.masterVals.fill(undefined)
+      node = rows.root.cloneNode(true)
+      row.node = node
+      node._fnRow = row
+      refs = rowRefs(rows, node)
+      wireRowEvents(rows, refs)
+      for (let i = 0; i < slots.length; i++) {
+        const b = slots[i]
+        const val = tmp[i]
+        if ((b.kind === TPL_NODE || b.kind === TPL_ONLY) && typeof val === 'object' && val !== null) assertRowSlotValue(val)
+        fillBinding(b, refs[b.ref], val)
+      }
+    }
+    return node
+  } finally {
+    closeRowScope(rows, row, prevCleanups)
+    if (refs !== null) releaseRowRefs(rows, refs)
+  }
+}
+
+function mountRow (rows, row, selected) {
+  if (rows.master !== null) return mountRowFromMaster(rows, row, selected)
+  const node = rows.root.cloneNode(true)
+  row.node = node
+  node._fnRow = row
+  const refs = rowRefs(rows, node)
+  const eventSlots = rows.eventSlots
+  for (let i = 0; i < eventSlots.length; i += 2) {
+    const b = eventSlots[i]
+    if (b.kind === TPL_EVENT_DELEGATED) {
+      refs[b.ref][b.event] = eventSlots[i + 1]
+    } else {
+      refs[b.ref].addEventListener(b.event, eventSlots[i + 1])
+    }
+  }
+  const slots = rows.valueSlots
+  if (slots.length === 0) {
+    releaseRowRefs(rows, refs)
+    return node
+  }
+  const prevCleanups = activeRenderCleanups
+  activeRenderCleanups = NO_CLEANUPS
+  try {
+    const vals = rows.values(row.item, selected)
+    saveRowVals(rows, row, vals)
+    for (let i = 0; i < slots.length; i++) {
+      const b = slots[i]
+      const val = vals[b.prop]
+      if ((b.kind === TPL_NODE || b.kind === TPL_ONLY) && typeof val === 'object' && val !== null) assertRowSlotValue(val)
+      fillBinding(b, refs[b.ref], val)
+    }
+  } finally {
+    closeRowScope(rows, row, prevCleanups)
+    releaseRowRefs(rows, refs)
+  }
+  return node
+}
+
+// Run values again for a mounted row and write the slots whose value changed.
+// prevItem is the item the row had before, which is what it showed when the
+// list has no value store.
+function rerunRow (rows, row, selected, prevItem) {
+  const slots = rows.valueSlots
+  if (slots.length === 0) return
+  runRowScope(rows, row)
+  const prevCleanups = activeRenderCleanups
+  activeRenderCleanups = NO_CLEANUPS
+  let refs = null
+  try {
+    const vals = rows.values(row.item, selected)
+    const store = rows.store
+    const base = row.slot
+    const ends = rows.slotEnds
+    let walked = 0
+    let cur = row.node
+    for (let i = 0; i < slots.length; i++) {
+      const b = slots[i]
+      const val = vals[b.prop]
+      const prev = store === null ? prevItem[b.prop] : store[base + i]
+      if (Object.is(val, prev)) continue
+      if (store !== null) store[base + i] = val
+      // The bound nodes are found again instead of being kept per row: a
+      // re-run is rare next to a mount, and a node that replaced a slot's
+      // node sits where the old one was, so the walk finds it. The walk stops
+      // at this slot's node and resumes from there for a later one.
+      const end = ends[i]
+      if (end > walked) {
+        if (refs === null) refs = acquireRowRefs(rows)
+        cur = walkOps(rows.ops, walked, end, cur, refs)
+        walked = end
+      }
+      if ((b.kind === TPL_NODE || b.kind === TPL_ONLY) && typeof val === 'object' && val !== null) assertRowSlotValue(val)
+      updateRowSlot(b, refs[b.ref], prev, val)
+    }
+  } finally {
+    closeRowScope(rows, row, prevCleanups)
+    if (refs !== null) releaseRowRefs(rows, refs)
+  }
+}
+
+const isPrimitive = val => val === null || (typeof val !== 'object' && typeof val !== 'function')
+
+function updateRowSlot (b, target, prev, val) {
+  switch (b.kind) {
+    case TPL_NODE:
+      replaceRowChild(target, prev, val)
+      break
+    case TPL_ONLY:
+      if (target.firstChild === null) {
+        fillOnlyChild(target, val)
+      } else {
+        replaceRowChild(target.firstChild, prev, val)
+      }
+      break
+    case TPL_ATTR:
+      if (typeof val === 'function') {
+        if (val.isBoundAttribute) {
+          val.init(b.name, target)
+          const v = val()
+          if (isEmptyAttr(v)) target.removeAttribute(b.name)
+          else target.setAttribute(b.name, v)
+        } else {
+          setAttribute(b.name, val, target)
+        }
+      } else if (isEmptyAttr(val)) {
+        target.removeAttribute(b.name)
+      } else {
+        target.setAttribute(b.name, val)
+      }
+      break
+    case TPL_EVENT:
+      if (typeof prev === 'function') target.removeEventListener(b.event, prev)
+      if (val !== null && val !== undefined) setAttribute(b.name, val, target)
+      break
+    case TPL_EVENT_DELEGATED:
+      target[b.event] = val === null ? undefined : val
+      break
+    case TPL_STYLE:
+      setStyle(b.name, val, target)
+      break
+    default:
+      setAttribute(b.name, val, target)
+  }
+}
+
+// Replace what a child slot shows. cur is the node in the slot now.
+function replaceRowChild (cur, prev, val) {
+  if (typeof val === 'function' && !val.isBindGetter) val = val()
+  if (isPrimitive(val)) {
+    const text = typeof val === 'string' ? val : val + ''
+    if (isPrimitive(prev) && cur.nodeType === 3) {
+      cur.textContent = text
+    } else {
+      cur.replaceWith(document.createTextNode(text))
+    }
+  } else if (typeof val === 'function') {
+    // A bind getter: give it a text node to adopt, or to be replaced by its node.
+    const placeholder = document.createTextNode('')
+    cur.replaceWith(placeholder)
+    fillTemplateText(placeholder, val)
+  } else {
+    const node = renderNode(val)
+    if (node !== cur) cur.replaceWith(node)
+  }
+}
+
+function removeRow (rows, row, detach) {
+  runRowScope(rows, row)
+  rows.rows.delete(row.key)
+  row.gen = ROW_DEAD
+  freeRowVals(rows, row)
+  const node = row.node
+  if (node !== null) {
+    node._fnRow = undefined
+    if (detach) node.remove()
+  }
+}
+
+// Drop every row whose gen is not keepGen (all of them for -1) and empty the parent.
+function dropAllRows (rows, keepGen) {
+  const map = rows.rows
+  // The rows kept are new ones that are not mounted yet, so every scope is a
+  // dropped row's.
+  runAllRowScopes(rows)
+  if (keepGen === -1) {
+    map.clear()
+    rows.floor = ++rows.gen
+  } else {
+    // Every row this pass kept has gen keepGen, the newest there is.
+    rows.floor = keepGen
+    for (const row of map.values()) {
+      if (row.gen !== keepGen) map.delete(row.key)
+    }
+  }
+  // No stored values survive either, and the store is sized for the kept rows.
+  resetRowVals(rows, keepGen === -1 ? 0 : rows.order.length)
+  rows.parent.textContent = ''
+}
+
+// Reconcile the rows with the state's array: map values to rows (rows.next,
+// in the new order), then either the all-new fast path or a keyed diff
+// against rows.order, the previous order, which is the DOM order of the rows.
+// The diff skips the common prefix and suffix, then handles pure removal,
+// pure insertion and two rows trading places directly, and otherwise moves
+// only the rows outside the longest increasing subsequence of old positions.
+function arrangeRows (rows, oldState) {
+  const ctx = rows.ctx
+  const values = ctx.currentValue
+  const map = rows.rows
+  const parent = rows.parent
+  if (!values?.length) {
+    if (map.size > 0) dropAllRows(rows, -1)
+    else parent.textContent = ''
+    rows.order.length = 0
+    rows.next.length = 0
+    return
+  }
+
+  const n = values.length
+  const gen = ++rows.gen
+  const old = rows.order
+  const next = rows.next
+  const mapKey = ctx.mapKey
+  const selected = ctx.selected
+  if (next.length > n) next.length = n
+  const oldSize = map.size
+  const m = old.length
+  let matched = 0
+
+  for (let i = 0; i < n; i++) {
+    const item = values[i]
+    const key = keyMapper(mapKey, item, i)
+    // The row at this position last pass is the usual match, and a live row is
+    // in the map under its key, so a key equal to it skips the map lookup.
+    let row = i < m ? old[i] : undefined
+    if (row === undefined || row.key !== key) row = map.get(key)
+    if (row === undefined) {
+      row = new Row(key, item, gen)
+      map.set(key, row)
+      next[i] = row
+      continue
+    }
+    if (row.gen === gen) {
+      if (oldState) ctx.state(oldState)
+      throw new Error('Duplicate keys in a bound array are not allowed, state reset to previous value.')
+    }
+    matched++
+    row.gen = gen
+    const prevItem = row.item
+    if (prevItem !== item) {
+      row.item = item
+      if (row.node !== null) rerunRow(rows, row, selected, prevItem)
+    }
+    next[i] = row
+  }
+
+  rows.order = next
+  rows.next = old
+
+  if (matched === 0) {
+    if (oldSize > 0) dropAllRows(rows, gen)
+    else resetRowVals(rows, n)
+    for (let i = 0; i < n; i++) {
+      parent.appendChild(mountRow(rows, next[i], selected))
+    }
+    old.length = 0
+    return
+  }
+
+  // What follows the last row: null, or a node that is not ours.
+  const lastNode = m > 0 ? old[m - 1].node : null
+  const tail = lastNode !== null ? lastNode.nextSibling : null
+  let start = 0
+  let oldEnd = m - 1
+  let newEnd = n - 1
+  while (start <= oldEnd && start <= newEnd && old[start] === next[start]) start++
+  while (oldEnd >= start && newEnd >= start && old[oldEnd] === next[newEnd]) {
+    oldEnd--
+    newEnd--
+  }
+
+  if (start > oldEnd) {
+    // Only insertions.
+    if (start <= newEnd) {
+      const ref = newEnd + 1 < n ? next[newEnd + 1].node : tail
+      for (let i = start; i <= newEnd; i++) placeRow(rows, next[i], ref, selected)
+    }
+  } else if (start > newEnd) {
+    // Only removals.
+    for (let i = start; i <= oldEnd; i++) removeRow(rows, old[i], true)
+    old.length = 0
+  } else if (oldEnd - start === newEnd - start && old[start] === next[newEnd] &&
+    old[oldEnd] === next[start] && sameRun(old, next, start + 1, oldEnd)) {
+    // Two rows trading places.
+    const a = old[start].node
+    const b = old[oldEnd].node
+    if (oldEnd - start === 1) {
+      parent.insertBefore(b, a)
+    } else {
+      const afterB = b.nextSibling
+      parent.insertBefore(b, a)
+      parent.insertBefore(a, afterB)
+    }
+  } else {
+    reorderRows(rows, old, next, start, oldEnd, newEnd, tail, gen, selected)
+  }
+
+  // Rows left in the map by a pass that threw on a duplicate key.
+  if (map.size > n) {
+    for (const row of map.values()) {
+      if (row.gen !== gen) removeRow(rows, row, true)
+    }
+  }
+}
+
+function sameRun (a, b, from, to) {
+  for (let i = from; i < to; i++) {
+    if (a[i] !== b[i]) return false
+  }
+  return true
+}
+
+// Insert a row's node before ref, mounting it first if it is new.
+function placeRow (rows, row, ref, selected) {
+  const node = row.node === null ? mountRow(rows, row, selected) : row.node
+  rows.parent.insertBefore(node, ref)
+}
+
+// The general keyed diff of old[start..oldEnd] against next[start..newEnd].
+function reorderRows (rows, old, next, start, oldEnd, newEnd, tail, gen, selected) {
+  const len = newEnd - start + 1
+  // sources[j] is the old index of next[start + j], or -1 for a new row.
+  const sources = new Int32Array(len).fill(-1)
+  const newIndex = new Map()
+  for (let j = start; j <= newEnd; j++) newIndex.set(next[j], j)
+  let moved = false
+  let removed = false
+  let last = 0
+  for (let i = start; i <= oldEnd; i++) {
+    const row = old[i]
+    if (row.gen !== gen) {
+      removeRow(rows, row, true)
+      removed = true
+      continue
+    }
+    const j = newIndex.get(row)
+    sources[j - start] = i
+    if (j < last) moved = true
+    else last = j
+  }
+  if (removed) old.length = 0
+
+  const parent = rows.parent
+  const n = next.length
+  const lis = moved ? longestIncreasingSubsequence(sources) : null
+  let k = lis === null ? -1 : lis.length - 1
+  for (let j = len - 1; j >= 0; j--) {
+    const pos = start + j
+    const row = next[pos]
+    if (sources[j] === -1) {
+      placeRow(rows, row, pos + 1 < n ? next[pos + 1].node : tail, selected)
+    } else if (moved) {
+      if (k >= 0 && lis[k] === j) {
+        k--
+      } else {
+        parent.insertBefore(row.node, pos + 1 < n ? next[pos + 1].node : tail)
       }
     }
   }
+}
+
+// Indices into a of a longest strictly increasing subsequence, skipping -1.
+function longestIncreasingSubsequence (a) {
+  const n = a.length
+  const prev = new Int32Array(n)
+  const result = []
+  for (let i = 0; i < n; i++) {
+    const v = a[i]
+    if (v === -1) continue
+    const len = result.length
+    if (len === 0 || a[result[len - 1]] < v) {
+      prev[i] = len > 0 ? result[len - 1] : -1
+      result.push(i)
+      continue
+    }
+    let lo = 0
+    let hi = len - 1
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1
+      if (a[result[mid]] < v) lo = mid + 1
+      else hi = mid
+    }
+    prev[i] = lo > 0 ? result[lo - 1] : -1
+    result[lo] = i
+  }
+  let k = result.length
+  let u = result[k - 1]
+  while (k-- > 0) {
+    result[k] = u
+    u = prev[u]
+  }
+  return result
 }
 
 const evaluateElement = (element, value, oldValue) => {
@@ -880,22 +2196,21 @@ const evaluateElement = (element, value, oldValue) => {
  * @returns {Node} The rendered node
  */
 export function renderNode (node) {
-  if (node && node.isTemplatePlaceholder) {
-    // Template child placeholders are empty text nodes that fntemplate fills in place per clone.
-    const text = document.createTextNode('')
-    node(text, 'node')
-    return text
-  } else if (Array.isArray(node)) {
-    // Arrays (including nested arrays and arrays resolved from promises) are
-    // flattened into a DocumentFragment so each item lands in the DOM as its
-    // own node. Without this, append/replaceWith would stringify the array.
-    const frag = document.createDocumentFragment()
-    for (const child of node) {
-      frag.append(renderNode(child))
-    }
-    return frag
-  } else if (node && typeof node === 'object') {
-    if (typeof node.then === 'function') {
+  if (typeof node === 'object') {
+    if (node === null) {
+      return document.createTextNode('null')
+    } else if (node.nodeType !== undefined) {
+      return node
+    } else if (Array.isArray(node)) {
+      // Arrays (including nested arrays and arrays resolved from promises) are
+      // flattened into a DocumentFragment so each item lands in the DOM as its
+      // own node. Without this, append/replaceWith would stringify the array.
+      const frag = document.createDocumentFragment()
+      for (let i = 0; i < node.length; i++) {
+        appendChild(frag, node[i])
+      }
+      return frag
+    } else if (typeof node.then === 'function') {
       let temp = h('div', { style: 'display:none', class: 'fntags-promise-marker' })
       node.then(el => {
         temp.replaceWith(renderNode(el))
@@ -905,7 +2220,15 @@ export function renderNode (node) {
     } else {
       return node
     }
+  } else if (typeof node === 'string') {
+    return document.createTextNode(node)
   } else if (typeof node === 'function') {
+    if (node.isTemplatePlaceholder) {
+      // Template child placeholders are empty text nodes that fntemplate fills in place per clone.
+      const text = document.createTextNode('')
+      node(text, 'node')
+      return text
+    }
     return renderNode(node())
   } else {
     return document.createTextNode(node + '')
@@ -915,32 +2238,158 @@ export function renderNode (node) {
 /**
  * All of these attributes must be set to an actual boolean to function correctly
  */
-const booleanAttributes = {
-  allowfullscreen: true,
-  allowpaymentrequest: true,
-  async: true,
-  autofocus: true,
-  autoplay: true,
-  checked: true,
-  controls: true,
-  default: true,
-  disabled: true,
-  formnovalidate: true,
-  hidden: true,
-  ismap: true,
-  itemscope: true,
-  loop: true,
-  multiple: true,
-  muted: true,
-  nomodule: true,
-  novalidate: true,
-  open: true,
-  playsinline: true,
-  readonly: true,
-  required: true,
-  reversed: true,
-  selected: true,
-  truespeed: true
+const booleanAttributes = new Set([
+  'allowfullscreen',
+  'allowpaymentrequest',
+  'async',
+  'autofocus',
+  'autoplay',
+  'checked',
+  'controls',
+  'default',
+  'disabled',
+  'formnovalidate',
+  'hidden',
+  'ismap',
+  'itemscope',
+  'loop',
+  'multiple',
+  'muted',
+  'nomodule',
+  'novalidate',
+  'open',
+  'playsinline',
+  'readonly',
+  'required',
+  'reversed',
+  'selected',
+  'truespeed'
+])
+
+// 'onclick' -> 'click', computed once per attribute name instead of a substring per element
+const eventNames = new Map()
+const eventName = attrName => {
+  let name = eventNames.get(attrName)
+  if (name === undefined) {
+    name = attrName.slice(2)
+    eventNames.set(attrName, name)
+  }
+  return name
+}
+
+// Event delegation (opt-in, see delegateEvents). For a delegated event type,
+// on<type> handlers are stored on the element under an expando key
+// ('__fnon_click') instead of being added with addEventListener, and a single
+// bubble-phase listener per type on document dispatches to them.
+
+// 'onclick' -> '__fnon_click' for every delegated type. Empty until delegateEvents is called.
+const delegatedAttrs = new Map()
+// 'click' -> '__fnon_click'
+const delegatedKeys = new Map()
+
+// Event types that do not bubble, so a listener on document would never see
+// them in the bubble phase. These always use addEventListener.
+const nonBubblingEvents = new Set([
+  'abort', 'blur', 'cancel', 'canplay', 'canplaythrough', 'close', 'durationchange', 'emptied', 'ended', 'error',
+  'focus', 'invalid', 'load', 'loadeddata', 'loadedmetadata', 'loadend', 'loadstart', 'mouseenter', 'mouseleave',
+  'pause', 'play', 'playing', 'pointerenter', 'pointerleave', 'progress', 'ratechange', 'resize', 'scroll',
+  'scrollend', 'seeked', 'seeking', 'stalled', 'suspend', 'timeupdate', 'toggle', 'unload', 'volumechange', 'waiting'
+])
+
+/**
+ * Opt in to event delegation for the given event types. After this call, an `on<type>` handler on an element
+ * created by h(), or by an fntemplate compiled after this call, is stored on the element as a property
+ * (`element.__fnon_<type>`) instead of being added with addEventListener, and one listener per type is added to
+ * `document`. This saves a listener, and usually a closure, per element, which adds up in long lists.
+ *
+ * Semantics and caveats:
+ * - Only elements created after the call are delegated. Elements that already exist keep their listeners, and
+ *   templates compiled before the call keep using addEventListener for every instance.
+ * - Delegated handlers run when the event bubbles up to `document`, after every native listener on the target
+ *   and its ancestors has run. Calling stopPropagation() in a native listener therefore prevents delegated
+ *   handlers from running, and a delegated handler cannot stop a native listener on an ancestor.
+ * - Among delegated handlers the order is innermost first, like native bubbling: the walk follows the event's
+ *   composed path from the target up to `document`. stopPropagation() (or stopImmediatePropagation()) in a
+ *   delegated handler stops the walk. Removing an element during dispatch does not shorten the walk, because
+ *   the path is fixed when the event is dispatched, as it is for native listeners.
+ * - Inside a delegated handler `this` and `e.currentTarget` are the element the handler belongs to.
+ * - Elements must be connected to the document (directly or through open shadow roots) for handlers to run.
+ * - Events that do not bubble (focus, blur, mouseenter, mouseleave, load, scroll, ...) are never delegated:
+ *   they are skipped with a dev-mode warning and keep using addEventListener.
+ * - Delegation cannot be turned off again for a type.
+ *
+ * Any `on<type>` attribute, delegated or not, also accepts `[fn, arg]`, which calls `fn.call(element, arg, event)`,
+ * so every row of a list can share one handler function instead of allocating a closure per row.
+ *
+ * @param {string|string[]} types the event types to delegate, e.g. ['click', 'input']
+ */
+export function delegateEvents (types) {
+  if (typeof types === 'string') types = [types]
+  for (const type of types) {
+    if (delegatedKeys.has(type)) continue
+    if (nonBubblingEvents.has(type)) {
+      if (devMode) {
+        console.warn('delegateEvents: \'' + type + '\' does not bubble and cannot be delegated, using addEventListener instead.')
+      }
+      continue
+    }
+    const key = '__fnon_' + type
+    delegatedKeys.set(type, key)
+    delegatedAttrs.set('on' + type, key)
+    if (typeof document !== 'undefined') document.addEventListener(type, dispatchDelegated)
+  }
+}
+
+// The element whose delegated handler is running, reported as e.currentTarget.
+let delegatedCurrentTarget = null
+function currentTargetGetter () {
+  return delegatedCurrentTarget
+}
+
+function dispatchDelegated (e) {
+  const key = delegatedKeys.get(e.type)
+  // The composed path is fixed when dispatch starts, so a handler that
+  // removes its own element (or an ancestor) does not cut the walk short.
+  const path = e.composedPath()
+  const prevTarget = delegatedCurrentTarget
+  let overridden = false
+  try {
+    for (let i = 0; i < path.length; i++) {
+      const node = path[i]
+      if (node === document) break
+      const handler = node[key]
+      if (handler === undefined) continue
+      if (!overridden) {
+        overridden = true
+        Object.defineProperty(e, 'currentTarget', { configurable: true, get: currentTargetGetter })
+      }
+      delegatedCurrentTarget = node
+      if (typeof handler === 'function') {
+        handler.call(node, e)
+      } else {
+        handler[0].call(node, handler[1], e)
+      }
+      if (e.cancelBubble) break
+    }
+  } finally {
+    delegatedCurrentTarget = prevTarget
+    // Drop the own property so the native getter (document) shows through again.
+    if (overridden) delete e.currentTarget
+  }
+}
+
+// Attach an on<type> handler: a function or [fn, arg].
+function setEventHandler (attrName, handler, element) {
+  const key = delegatedAttrs.size === 0 ? undefined : delegatedAttrs.get(attrName)
+  if (key !== undefined) {
+    element[key] = handler
+  } else if (typeof handler === 'function') {
+    element.addEventListener(eventName(attrName), handler)
+  } else {
+    const fn = handler[0]
+    const arg = handler[1]
+    element.addEventListener(eventName(attrName), function (e) { return fn.call(this, arg, e) })
+  }
 }
 
 const setAttribute = function (attrName, attr, element) {
@@ -952,31 +2401,41 @@ const setAttribute = function (attrName, attr, element) {
       attr(element, 'attr', attrName)
       return
     } else if (attrName.startsWith('on')) {
-      element.addEventListener(attrName.substring(2), attr)
+      setEventHandler(attrName, attr, element)
       return
     } else {
       attr = attr()
     }
+  } else if (typeof attr === 'object' && attr !== null && Array.isArray(attr) && typeof attr[0] === 'function' && attrName.startsWith('on')) {
+    // [fn, arg]: fn is called as fn.call(element, arg, event)
+    setEventHandler(attrName, attr, element)
+    return
   }
-  if (attrName === 'style' && typeof attr === 'object') {
-    for (const style in attr) {
-      setStyle(style, attr[style], element)
-    }
-  } else if (attrName === 'value') {
+  if (attrName === 'value') {
     element.setAttribute('value', attr)
     // html5 nodes like range don't update unless the value property on the object is set
     element.value = attr
-  } else if (booleanAttributes[attrName]) {
+  } else if (attrName === 'style' && typeof attr === 'object') {
+    for (const style in attr) {
+      setStyle(style, attr[style], element)
+    }
+  } else if (booleanAttributes.has(attrName)) {
     element[attrName] = !!attr
   } else {
-    let ns = null
-    const nsIndex = hasNs(attrName)
-    if (nsIndex > -1) {
-      const split = splitNs(attrName, nsIndex)
-      ns = split.ns
-      attrName = split.val
+    const nsIndex = attrName.lastIndexOf(':')
+    if (attr === '' || attr === null || attr === undefined) {
+      // An empty value means no attribute: remove it if present. Bound
+      // attributes rely on this to go from 'danger' back to nothing.
+      if (nsIndex === -1) {
+        element.removeAttribute(attrName)
+      } else {
+        element.removeAttributeNS(attrName.slice(0, nsIndex), attrName.slice(nsIndex + 1))
+      }
+    } else if (nsIndex === -1) {
+      element.setAttribute(attrName, attr)
+    } else {
+      element.setAttributeNS(attrName.slice(0, nsIndex), attrName.slice(nsIndex + 1), attr)
     }
-    element.setAttributeNS(ns, attrName, attr)
   }
 }
 
@@ -1001,7 +2460,7 @@ const setStyle = (style, styleValue, element) => {
  * @returns {boolean} true if the value is an object that can be used as attributes
  */
 export function isAttrs (val) {
-  return val && typeof val === 'object' && val.nodeType === undefined && !Array.isArray(val) && typeof val.then !== 'function'
+  return typeof val === 'object' && val !== null && val.nodeType === undefined && !Array.isArray(val) && typeof val.then !== 'function'
 }
 
 /**
@@ -1035,7 +2494,7 @@ export function styled (style, tag, children) {
   } else {
     children.unshift({ style })
   }
-  return h(tag, ...children)
+  return createElement(tag, children)
 }
 
 const stringifyStyle = style =>
@@ -1117,6 +2576,8 @@ const TPL_ATTR = 1 // plain attribute: element.setAttribute for primitives, setA
 const TPL_ATTR_FULL = 2 // value, boolean, style or namespaced attribute: always the full setAttribute rules
 const TPL_EVENT = 3 // on* attribute: addEventListener with the event name stripped at compile time
 const TPL_STYLE = 4 // style property
+const TPL_EVENT_DELEGATED = 5 // on* attribute of a delegated type: event holds the expando key the handler is stored under
+const TPL_ONLY = 6 // sole child placeholder of an element: dropped from the template, the parent is filled
 
 // Ops for the per-clone walk that locates bound nodes. The low two bits are the op,
 // the rest is a slot in the refs array. Captured slots serve both as binding targets
@@ -1130,12 +2591,19 @@ function compileTemplateBinding (b, ref) {
   const name = b.attr
   if (b.type === 'node') {
     return { kind: TPL_NODE, ref, prop: b.prop, name: null, event: null }
+  } else if (b.type === 'only') {
+    return { kind: TPL_ONLY, ref, prop: b.prop, name: null, event: null }
   } else if (b.type === 'style') {
     return { kind: TPL_STYLE, ref, prop: b.prop, name, event: null }
-  } else if (name === 'value' || name === 'style' || booleanAttributes[name] || hasNs(name) > -1) {
+  } else if (name === 'value' || name === 'style' || booleanAttributes.has(name) || name.lastIndexOf(':') > -1) {
     return { kind: TPL_ATTR_FULL, ref, prop: b.prop, name, event: null }
   } else if (name.startsWith('on')) {
-    return { kind: TPL_EVENT, ref, prop: b.prop, name, event: name.substring(2) }
+    // Delegation is decided when the template is compiled, so a delegated
+    // handler costs one property store per instance.
+    const key = delegatedAttrs.get(name)
+    return key !== undefined
+      ? { kind: TPL_EVENT_DELEGATED, ref, prop: b.prop, name, event: key }
+      : { kind: TPL_EVENT, ref, prop: b.prop, name, event: name.substring(2) }
   } else {
     return { kind: TPL_ATTR, ref, prop: b.prop, name, event: null }
   }
@@ -1150,6 +2618,14 @@ function fillTemplateText (target, val) {
     if (val.isBindGetter) {
       const elCtx = val.elCtx
       const current = elCtx.current
+      // A primitive render that no one has asked for a node yet: the placeholder
+      // becomes its node. Nothing can share it, so no nested-bind check is needed.
+      if (current === null) {
+        target.textContent = elCtx.text
+        elCtx.text = null
+        elCtx.current = target
+        return
+      }
       // Adopt only when nobody else holds this text node: it must be detached and the
       // render that produced it must not have created nested bindings (a nested bindAs
       // shares the same node through its own elCtx, which must keep pointing at the
@@ -1170,6 +2646,45 @@ function fillTemplateText (target, val) {
   }
 }
 
+// Fill an element whose only child was a placeholder (TPL_ONLY). The placeholder is not in the
+// clone: a non-empty primitive is written with textContent, which creates the text node natively,
+// and a pending bindAs text adopts the node textContent created. Empty text, and anything that
+// is or renders to a node, is appended as a node, which is what the placeholder would have become.
+function fillOnlyChild (parent, val) {
+  if (typeof val === 'function') {
+    if (val.isBindGetter) {
+      const elCtx = val.elCtx
+      if (elCtx.current === null) {
+        const text = elCtx.text
+        elCtx.text = null
+        if (text !== '') {
+          parent.textContent = text
+          elCtx.current = parent.firstChild
+        } else {
+          elCtx.current = parent.appendChild(document.createTextNode(''))
+        }
+        return
+      }
+      parent.appendChild(renderNode(val))
+    } else {
+      fillOnlyChild(parent, val())
+    }
+  } else if (val === null || typeof val !== 'object') {
+    const text = typeof val === 'string' ? val : val + ''
+    if (text !== '') {
+      parent.textContent = text
+    } else {
+      parent.appendChild(document.createTextNode(''))
+    }
+  } else {
+    parent.appendChild(renderNode(val))
+  }
+}
+
+// An empty attribute value means no attribute (see h). A fresh clone never has a bound
+// attribute, so an empty initial value writes nothing instead of removing nothing.
+const isEmptyAttr = val => val === '' || val === null || val === undefined
+
 /**
  * Create a compiled template function. The returned function takes a single object that contains the properties
  * defined in the template.
@@ -1182,7 +2697,8 @@ function fillTemplateText (target, val) {
  * Child placeholders are empty text nodes in the template. A primitive context value is written into the text node
  * in place. A bindAs/bindSelect getter whose current node is a text node adopts the placeholder as its live node,
  * so state changes keep updating the clone. A function value is evaluated like renderNode does. Nodes, arrays and
- * promises replace the placeholder with their rendered node.
+ * promises replace the placeholder with their rendered node. As with h(), an attribute value of '', null or undefined
+ * (including the initial value of a bound attribute) means no attribute.
  *
  * The locations of all placeholders are compiled once into a single firstChild/nextSibling walk over the clone,
  * which stops at the last bound node, so instantiation does not depend on the size of the unbound parts of the tree.
@@ -1215,6 +2731,15 @@ export function fntemplate (templateFn) {
   const counts = new Map()
   const boundNodes = []
   const count = node => {
+    // A child placeholder that is the only child of an element is dropped from the template and its
+    // binding moves to the element (TPL_ONLY), which saves cloning, walking to and replacing it.
+    const only = node.firstChild
+    if (node.nodeType === 1 && only !== null && only.nodeType === 3 && only.nextSibling === null && only._tpl_bind) {
+      if (!node._tpl_bind) node._tpl_bind = []
+      for (const b of only._tpl_bind) node._tpl_bind.push({ prop: b.prop, type: 'only', attr: null })
+      delete only._tpl_bind
+      node.removeChild(only)
+    }
     let n = 0
     if (node._tpl_bind) {
       n = 1
@@ -1272,59 +2797,107 @@ export function fntemplate (templateFn) {
   visit(root, 0)
   for (const node of boundNodes) delete node._tpl_bind
 
-  const nOps = ops.length
   const nBindings = bindings.length
+  // The refs of an instantiation only live until its bindings are filled, so one array is reused.
+  // Filling a binding can run user code that instantiates this same template; that inner
+  // instantiation sees busy and takes a fresh array. An exception leaves busy set, which only
+  // means later instantiations allocate.
+  const scratch = new Array(nRefs).fill(null)
+  let busy = false
 
-  return (context) => {
+  const instantiate = (context) => {
     const clone = root.cloneNode(true)
     if (nBindings === 0) return clone
-    const refs = new Array(nRefs)
-    let cur = clone
-    for (let i = 0; i < nOps; i++) {
-      const op = ops[i]
-      switch (op & 3) {
-        case OP_FIRST_CHILD:
-          cur = cur.firstChild
-          break
-        case OP_NEXT_SIBLING:
-          cur = cur.nextSibling
-          break
-        case OP_CAPTURE:
-          refs[op >> 2] = cur
-          break
-        default:
-          cur = refs[op >> 2].nextSibling
-      }
+    let refs = scratch
+    if (busy) {
+      refs = new Array(nRefs)
+    } else {
+      busy = true
     }
-    for (let i = 0; i < nBindings; i++) {
-      const b = bindings[i]
-      const target = refs[b.ref]
-      const val = context[b.prop]
-      switch (b.kind) {
-        case TPL_NODE:
-          fillTemplateText(target, val)
-          break
-        case TPL_ATTR:
-          if (typeof val === 'function') {
-            setAttribute(b.name, val, target)
-          } else {
-            target.setAttribute(b.name, val)
-          }
-          break
-        case TPL_EVENT:
-          if (typeof val === 'function' && !val.isBoundAttribute) {
-            target.addEventListener(b.event, val)
-          } else {
-            setAttribute(b.name, val, target)
-          }
-          break
-        case TPL_STYLE:
-          setStyle(b.name, val, target)
-          break
-        default:
-          setAttribute(b.name, val, target)
-      }
+    fillClone(clone, context, refs)
+    if (refs === scratch) {
+      // Do not keep the last instance's nodes alive through the scratch array.
+      for (let i = 0; i < nRefs; i++) scratch[i] = null
+      busy = false
     }
     return clone
+  }
+  // The compiled form, read by bindRows to clone, walk and fill rows itself.
+  instantiate._fnTemplate = { root, ops, bindings, nRefs }
+  return instantiate
+
+  function fillClone (clone, context, refs) {
+    walkTemplate(ops, clone, refs)
+    for (let i = 0; i < nBindings; i++) {
+      const b = bindings[i]
+      fillBinding(b, refs[b.ref], context[b.prop])
+    }
+  }
+}
+
+// Run a compiled op list over a clone (or a live instance with the same
+// structure), storing the captured nodes in refs.
+function walkTemplate (ops, clone, refs) {
+  let cur = clone
+  for (let i = 0; i < ops.length; i++) {
+    const op = ops[i]
+    switch (op & 3) {
+      case OP_FIRST_CHILD:
+        cur = cur.firstChild
+        break
+      case OP_NEXT_SIBLING:
+        cur = cur.nextSibling
+        break
+      case OP_CAPTURE:
+        refs[op >> 2] = cur
+        break
+      default:
+        cur = refs[op >> 2].nextSibling
+    }
+  }
+}
+
+// Fill one compiled template binding of a fresh clone with its context value.
+// Shared by fntemplate instances and bindRows mounts.
+function fillBinding (b, target, val) {
+  switch (b.kind) {
+    case TPL_NODE:
+      fillTemplateText(target, val)
+      break
+    case TPL_ONLY:
+      fillOnlyChild(target, val)
+      break
+    case TPL_ATTR:
+      if (typeof val === 'function') {
+        if (val.isBoundAttribute) {
+          val.init(b.name, target)
+          const initial = val()
+          if (!isEmptyAttr(initial)) target.setAttribute(b.name, initial)
+        } else {
+          setAttribute(b.name, val, target)
+        }
+      } else if (!isEmptyAttr(val)) {
+        target.setAttribute(b.name, val)
+      }
+      break
+    case TPL_EVENT:
+      if (typeof val === 'function' && !val.isBoundAttribute) {
+        target.addEventListener(b.event, val)
+      } else {
+        setAttribute(b.name, val, target)
+      }
+      break
+    case TPL_EVENT_DELEGATED:
+      if (typeof val === 'function' && !val.isBoundAttribute) {
+        target[b.event] = val
+      } else {
+        setAttribute(b.name, val, target)
+      }
+      break
+    case TPL_STYLE:
+      setStyle(b.name, val, target)
+      break
+    default:
+      setAttribute(b.name, val, target)
   }
 }

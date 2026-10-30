@@ -30,6 +30,7 @@
 - [pathState](fnroute.md#pathstate-1)
 - [route](fnroute.md#route)
 - [routeSwitch](fnroute.md#routeswitch)
+- [scrollToHash](fnroute.md#scrolltohash)
 - [setRootPath](fnroute.md#setrootpath)
 
 ## Type Aliases
@@ -40,7 +41,7 @@
 
 #### Defined in
 
-[fnroute.mjs:188](https://github.com/SRFNStack/fntags/blob/55fec87/src/fnroute.mjs#L188)
+[fnroute.mjs:237](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fnroute.mjs#L237)
 
 ___
 
@@ -58,7 +59,7 @@ ___
 
 #### Defined in
 
-[fnroute.mjs:199](https://github.com/SRFNStack/fntags/blob/55fec87/src/fnroute.mjs#L199)
+[fnroute.mjs:248](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fnroute.mjs#L248)
 
 ___
 
@@ -68,7 +69,7 @@ ___
 
 #### Defined in
 
-[fnroute.mjs:218](https://github.com/SRFNStack/fntags/blob/55fec87/src/fnroute.mjs#L218)
+[fnroute.mjs:267](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fnroute.mjs#L267)
 
 ## Variables
 
@@ -80,7 +81,7 @@ After the route is changed
 
 #### Defined in
 
-[fnroute.mjs:229](https://github.com/SRFNStack/fntags/blob/55fec87/src/fnroute.mjs#L229)
+[fnroute.mjs:278](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fnroute.mjs#L278)
 
 ___
 
@@ -92,7 +93,7 @@ Before the route is changed
 
 #### Defined in
 
-[fnroute.mjs:224](https://github.com/SRFNStack/fntags/blob/55fec87/src/fnroute.mjs#L224)
+[fnroute.mjs:273](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fnroute.mjs#L273)
 
 ___
 
@@ -104,7 +105,7 @@ After the route is changed and the route element is rendered
 
 #### Defined in
 
-[fnroute.mjs:234](https://github.com/SRFNStack/fntags/blob/55fec87/src/fnroute.mjs#L234)
+[fnroute.mjs:283](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fnroute.mjs#L283)
 
 ## Functions
 
@@ -128,7 +129,7 @@ An anchor element that will navigate to the specified route when clicked
 
 #### Defined in
 
-[fnroute.mjs:108](https://github.com/SRFNStack/fntags/blob/55fec87/src/fnroute.mjs#L108)
+[fnroute.mjs:108](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fnroute.mjs#L108)
 
 ___
 
@@ -136,14 +137,18 @@ ___
 
 ▸ **goTo**(`route`, `context?`, `replace?`, `silent?`): `void`
 
-A function to navigate to the specified route
+A function to navigate to the specified route.
+
+Navigating to the current path with only a different hash or query (for example from /docs to /docs#faq)
+and no new context is not a route change: the history entry is updated and the hash target is scrolled
+into view, but the route is not re-rendered and no route events are emitted.
 
 #### Parameters
 
 | Name | Type | Default value | Description |
 | :------ | :------ | :------ | :------ |
 | `route` | `string` | `undefined` | The route to navigate to |
-| `context` | `any` | `{}` | Data related to the route change |
+| `context?` | `any` | `undefined` | Data related to the route change |
 | `replace` | `boolean` | `false` | Whether to replace the state or push it. pushState is used by default. |
 | `silent` | `boolean` | `false` | Prevent route change events from being emitted for this route change |
 
@@ -153,7 +158,7 @@ A function to navigate to the specified route
 
 #### Defined in
 
-[fnroute.mjs:138](https://github.com/SRFNStack/fntags/blob/55fec87/src/fnroute.mjs#L138)
+[fnroute.mjs:142](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fnroute.mjs#L142)
 
 ___
 
@@ -184,7 +189,7 @@ a function to stop listening with the passed handler.
 
 #### Defined in
 
-[fnroute.mjs:252](https://github.com/SRFNStack/fntags/blob/55fec87/src/fnroute.mjs#L252)
+[fnroute.mjs:301](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fnroute.mjs#L301)
 
 ___
 
@@ -206,7 +211,7 @@ The path parameters of the current route
 
 #### Defined in
 
-[fntags.d.mts:216](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.d.mts#L216)
+[fntags.d.mts:314](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.d.mts#L314)
 
 ___
 
@@ -228,7 +233,7 @@ The current path state
 
 #### Defined in
 
-[fntags.d.mts:216](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.d.mts#L216)
+[fntags.d.mts:314](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.d.mts#L314)
 
 ___
 
@@ -273,7 +278,7 @@ A div element that will only be displayed if the current route starts with the p
 
 #### Defined in
 
-[fnroute.mjs:34](https://github.com/SRFNStack/fntags/blob/55fec87/src/fnroute.mjs#L34)
+[fnroute.mjs:34](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fnroute.mjs#L34)
 
 ___
 
@@ -296,7 +301,32 @@ The primary purpose of this element is to provide catchall routes for not found 
 
 #### Defined in
 
-[fnroute.mjs:60](https://github.com/SRFNStack/fntags/blob/55fec87/src/fnroute.mjs#L60)
+[fnroute.mjs:60](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fnroute.mjs#L60)
+
+___
+
+### scrollToHash
+
+▸ **scrollToHash**(`hash`, `timeout?`): `void`
+
+Scroll the element whose id matches the hash into view. If the element does not exist yet, for example because
+the route's content is a promise that has not resolved, wait for it to be added to the document and scroll then.
+With no hash, scroll to the top of the page.
+
+#### Parameters
+
+| Name | Type | Default value | Description |
+| :------ | :------ | :------ | :------ |
+| `hash` | `string` | `undefined` | The hash to scroll to, with or without the leading # |
+| `timeout?` | `number` | `5000` | How long to wait for the element to appear, in milliseconds |
+
+#### Returns
+
+`void`
+
+#### Defined in
+
+[fnroute.mjs:198](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fnroute.mjs#L198)
 
 ___
 
@@ -318,4 +348,4 @@ Set the root path of the app. This is necessary to make deep linking work in cas
 
 #### Defined in
 
-[fnroute.mjs:269](https://github.com/SRFNStack/fntags/blob/55fec87/src/fnroute.mjs#L269)
+[fnroute.mjs:318](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fnroute.mjs#L318)

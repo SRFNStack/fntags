@@ -6,6 +6,7 @@
 
 ### Interfaces
 
+- [BindRowsOptions](../interfaces/fntags.BindRowsOptions.md)
 - [FnStateObj](../interfaces/fntags.FnStateObj.md)
 
 ### Type Aliases
@@ -14,6 +15,7 @@
 
 ### Functions
 
+- [delegateEvents](fntags.md#delegateevents)
 - [fnstate](fntags.md#fnstate-1)
 - [fntemplate](fntags.md#fntemplate)
 - [getAttrs](fntags.md#getattrs)
@@ -42,9 +44,53 @@ A container for a state value that can be bound to.
 
 #### Defined in
 
-[fntags.mjs:134](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L134)
+[fntags.mjs:240](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.mjs#L240)
 
 ## Functions
+
+### delegateEvents
+
+▸ **delegateEvents**(`types`): `void`
+
+Opt in to event delegation for the given event types. After this call, an `on<type>` handler on an element
+created by h(), or by an fntemplate compiled after this call, is stored on the element as a property
+(`element.__fnon_<type>`) instead of being added with addEventListener, and one listener per type is added to
+`document`. This saves a listener, and usually a closure, per element, which adds up in long lists.
+
+Semantics and caveats:
+- Only elements created after the call are delegated. Elements that already exist keep their listeners, and
+  templates compiled before the call keep using addEventListener for every instance.
+- Delegated handlers run when the event bubbles up to `document`, after every native listener on the target
+  and its ancestors has run. Calling stopPropagation() in a native listener therefore prevents delegated
+  handlers from running, and a delegated handler cannot stop a native listener on an ancestor.
+- Among delegated handlers the order is innermost first, like native bubbling: the walk follows the event's
+  composed path from the target up to `document`. stopPropagation() (or stopImmediatePropagation()) in a
+  delegated handler stops the walk. Removing an element during dispatch does not shorten the walk, because
+  the path is fixed when the event is dispatched, as it is for native listeners.
+- Inside a delegated handler `this` and `e.currentTarget` are the element the handler belongs to.
+- Elements must be connected to the document (directly or through open shadow roots) for handlers to run.
+- Events that do not bubble (focus, blur, mouseenter, mouseleave, load, scroll, ...) are never delegated:
+  they are skipped with a dev-mode warning and keep using addEventListener.
+- Delegation cannot be turned off again for a type.
+
+Any `on<type>` attribute, delegated or not, also accepts `[fn, arg]`, which calls `fn.call(element, arg, event)`,
+so every row of a list can share one handler function instead of allocating a closure per row.
+
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `types` | `string` \| `string`[] | the event types to delegate, e.g. ['click', 'input'] |
+
+#### Returns
+
+`void`
+
+#### Defined in
+
+[fntags.mjs:2326](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.mjs#L2326)
+
+___
 
 ### fnstate
 
@@ -76,7 +122,7 @@ or the changes won't be reflected correctly and binding updates won't be trigger
 
 #### Defined in
 
-[fntags.mjs:148](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L148)
+[fntags.mjs:254](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.mjs#L254)
 
 ___
 
@@ -87,9 +133,19 @@ ___
 Create a compiled template function. The returned function takes a single object that contains the properties
 defined in the template.
 
-This allows fast rendering by pre-creating a dom element with the entire template structure then cloning and populating
-the clone with data from the provided context. This avoids the work of having to re-execute the tag functions
-one by one and can speed up situations where a similar element is created many times.
+The template function receives a context function. Calling `ctx('prop')` returns a placeholder that can be used
+as a child, as an attribute value, or as a style value. The template is rendered once to a dom tree; each
+instantiation clones that tree and fills the placeholders from the context object, which avoids re-executing
+the tag functions and can speed up situations where a similar element is created many times.
+
+Child placeholders are empty text nodes in the template. A primitive context value is written into the text node
+in place. A bindAs/bindSelect getter whose current node is a text node adopts the placeholder as its live node,
+so state changes keep updating the clone. A function value is evaluated like renderNode does. Nodes, arrays and
+promises replace the placeholder with their rendered node. As with h(), an attribute value of '', null or undefined
+(including the initial value of a bound attribute) means no attribute.
+
+The locations of all placeholders are compiled once into a single firstChild/nextSibling walk over the clone,
+which stops at the last bound node, so instantiation does not depend on the size of the unbound parts of the tree.
 
 You cannot bind state to the initial template. If you attempt to, the state will be read, but the elements will
 not be updated when the state changes because they will not be bound to the cloned element.
@@ -121,7 +177,7 @@ A function that takes a context object and returns a rendered node.
 
 #### Defined in
 
-[fntags.mjs:1103](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L1103)
+[fntags.mjs:2714](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.mjs#L2714)
 
 ___
 
@@ -145,7 +201,7 @@ the attr object or an empty object
 
 #### Defined in
 
-[fntags.mjs:986](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L986)
+[fntags.mjs:2471](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.mjs#L2471)
 
 ___
 
@@ -160,9 +216,16 @@ The attribute names are the standard attribute names used in html, and should al
 
 Any attribute starting with 'on' that is a function is added as an event listener with the 'on' removed.
 i.e. { onclick: fn } gets added to the element as element.addEventListener('click', fn)
+An event attribute can also be an array [fn, arg], which calls fn.call(element, arg, event).
+For event types passed to delegateEvents, the handler is stored on the element and run by a single
+listener on document instead (see delegateEvents for how ordering differs).
 
 The style attribute can be an object and the properties of the object will be added as style properties to the element.
 i.e. { style: { color: blue } } becomes element.style.color = blue
+
+An attribute value of null, undefined or '' means no attribute: it is removed if present and never written,
+so { class: '' } produces an element without a class attribute. The value attribute and boolean attributes
+(disabled, checked, ...) are exempt and keep their property semantics.
 
 The rest of the arguments will be considered children of this element and appended to it in the same order as passed.
 
@@ -187,7 +250,7 @@ an html element
 
 #### Defined in
 
-[fntags.mjs:51](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L51)
+[fntags.mjs:89](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.mjs#L89)
 
 ___
 
@@ -214,7 +277,7 @@ The container element
 
 #### Defined in
 
-[fntags.mjs:1076](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L1076)
+[fntags.mjs:2561](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.mjs#L2561)
 
 ___
 
@@ -238,7 +301,7 @@ true if the value is an object that can be used as attributes
 
 #### Defined in
 
-[fntags.mjs:977](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L977)
+[fntags.mjs:2462](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.mjs#L2462)
 
 ___
 
@@ -265,7 +328,7 @@ A stable proxy function
 
 #### Defined in
 
-[fntags.mjs:1029](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L1029)
+[fntags.mjs:2514](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.mjs#L2514)
 
 ___
 
@@ -293,7 +356,7 @@ The state instance from the registry
 
 #### Defined in
 
-[fntags.mjs:1054](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L1054)
+[fntags.mjs:2539](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.mjs#L2539)
 
 ___
 
@@ -301,7 +364,8 @@ ___
 
 ▸ **renderNode**(`node`): `Node`
 
-Convert non objects (objects are assumed to be nodes) to text nodes and allow promises to resolve to nodes
+Convert non objects (objects are assumed to be nodes) to text nodes and allow promises to resolve to nodes.
+Arrays are flattened at any depth into a DocumentFragment.
 
 #### Parameters
 
@@ -317,7 +381,7 @@ The rendered node
 
 #### Defined in
 
-[fntags.mjs:866](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L866)
+[fntags.mjs:2198](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.mjs#L2198)
 
 ___
 
@@ -341,7 +405,7 @@ when bindAs replaces a subtree containing the focused element.
 
 #### Defined in
 
-[fntags.mjs:21](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L21)
+[fntags.mjs:40](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.mjs#L40)
 
 ___
 
@@ -374,4 +438,4 @@ The styled element
 
 #### Defined in
 
-[fntags.mjs:1001](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L1001)
+[fntags.mjs:2486](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.mjs#L2486)

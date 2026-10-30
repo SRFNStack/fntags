@@ -1,5 +1,5 @@
-import { fnstate } from './lib/fntags.mjs'
-import { br, button, code, div, input, span, h3, p, strong, ul, li, flexRow } from './lib/fnelements.mjs'
+import { fnstate, fntemplate } from './lib/fntags.mjs'
+import { br, button, code, div, input, span, h3, p, strong, ul, li, flexRow, table, tbody, tr, td } from './lib/fnelements.mjs'
 import { secondaryColor } from './constants.js'
 import prismCode from './prismCode.js'
 import contentSection from './contentSection.js'
@@ -15,7 +15,7 @@ export default div(
     'Creating and Using State',
     p('Create a state container by calling ', code('fnstate(initialValue)'), '. It returns a function that acts as a getter and setter.'),
     prismCode(
-`import { fnstate } from './lib/fntags.mjs'
+`import { fnstate, fntemplate } from './lib/fntags.mjs'
 
 const count = fnstate(0)
 
@@ -244,32 +244,75 @@ config.setPath('theme.dark', true)`,
 
   contentSection(
     'Binding Arrays (Lists)',
-    p('Use ', code('bindChildren'), ' to efficiently render lists. You must provide a key mapping function to help fntags track items.'),
+    p('fntags has two ways to render an array: ', code('bindChildren'), ' and ', code('bindRows'), '. Both need a key mapping function on the state so fntags can track items across updates, and both reuse, move and remove existing rows instead of rebuilding the list. The difference is who owns an item once it is on the page.'),
+    p(code('bindChildren'), ' gives every item its own state. The item builder receives that state and builds a small component with it: the row can change its own item (', code('itemState.assign({ done: true })'), ') and only that row\'s bindings update, it can keep local state such as an edit mode, hold inputs, bind to other states, and render a different structure for different items.'),
+    p(code('bindRows'), ' treats the array as the single source of truth and each row as a view of one item. Every row is stamped from the same ', code('fntemplate'), ' and filled from ', code('values(item, selected)'), '. A row never changes its own item: its handlers receive the item and update the array state, and the change flows back down to the rows whose item changed. Since rows have no state of their own, there is nothing per row to subscribe to or clean up.'),
+    h3('Which one to use'),
+    p('Use ', code('bindChildren'), ' when:'),
+    ul(
+      li('a row edits its own item in place, like a todo checkbox or an inline rename'),
+      li('a row has local state that is not part of the data, like expanded, editing or a form draft'),
+      li('a row contains inputs the user types into'),
+      li('a row binds to other states (the current user, a theme, a filter) or is built from components'),
+      li('rows have different structures for different kinds of items')
+    ),
+    p('Use ', code('bindRows'), ' when:'),
+    ul(
+      li('each row displays its item: tables, logs, search results, feeds, grids'),
+      li('the data arrives or changes as a whole array (fetched pages, server pushes, sorting, filtering) and items are replaced rather than mutated'),
+      li('the only interactions in a row are selecting it or actions that change the array, like remove, move or open'),
+      li('the list is long or replaced often, so the memory and setup cost of a state per row adds up')
+    ),
+    p('A rule of thumb: if you would call a row a component, use ', code('bindChildren'), '. If you would call it a line of data, use ', code('bindRows'), '. They mix well, for example a ', code('bindRows'), ' table whose row click selects an item that a separate detail panel renders with ordinary bindings.')
+  ),
+
+  contentSection(
+    'bindChildren',
+    p('The item builder is called once per item with that item\'s state. Bind to it like any other state. Setting the item state (', code('itemState(newValue)'), ', ', code('assign'), ' or ', code('setPath'), ') updates that row\'s bindings and writes the new value back into the array, without re-rendering the rest of the list.'),
     prismCode(
 `const todos = fnstate(
-    [{id: 1, text: 'Buy milk'}],
+    [{id: 1, text: 'Buy milk', done: false}],
     item => item.id // Key mapper
 )
 
 ul(
     todos.bindChildren(
         div(), // Parent element
-        // Item renderer
-        (itemState) => li(
-            itemState.bindProp('text')
+        // Item builder, called once per item
+        (itemState) => li({
+            // The row updates its own item
+            onclick: () =>
+                itemState.assign({ done: !itemState().done }),
+            style: {
+                cursor: 'pointer',
+                textDecoration: itemState.bindStyle(
+                    t => t.done ? 'line-through' : 'none'
+                )
+            }
+        },
+        itemState.bindProp('text')
         )
     )
 )`,
 (function () {
-  const todos = fnstate([{ id: 1, text: 'Buy milk' }], item => item.id)
+  const todos = fnstate([{ id: 1, text: 'Buy milk', done: false }], item => item.id)
   let nextId = 2
   const chores = ['Walk Dog', 'Feed Cat', 'Wash Car', 'Do Laundry', 'Write Code', 'Fix Bug']
   return div(
-    button({ onclick: () => todos([...todos(), { id: nextId++, text: chores[Math.floor(Math.random() * chores.length)] }]) }, 'Add Random Chore'),
+    button({ onclick: () => todos([...todos(), { id: nextId++, text: chores[Math.floor(Math.random() * chores.length)], done: false }]) }, 'Add Random Chore'),
+    p('Click a chore to toggle it.'),
     ul(
       todos.bindChildren(
         div(),
-        (itemState) => li(itemState.bindProp('text'))
+        (itemState) => li({
+          onclick: () => itemState.assign({ done: !itemState().done }),
+          style: {
+            cursor: 'pointer',
+            textDecoration: itemState.bindStyle(t => t.done ? 'line-through' : 'none')
+          }
+        },
+        itemState.bindProp('text')
+        )
       )
     )
   )
@@ -278,42 +321,89 @@ ul(
   ),
 
   contentSection(
-    'Fast Lists with bindRows',
-    p('For long lists whose rows are a pure function of the item and the current selection, ', code('bindRows'), ' renders each row from an ', code('fntemplate'), ' without creating a state, a subscription or a closure per row. Each row keeps a small record (its key, item, root node and the last values it wrote), so creating, swapping, removing and clearing rows costs close to hand-written DOM code.'),
-    p(code('values(item, selected)'), ' maps an item to the template\'s slots. It runs when a row is mounted and again only when the item\'s reference changes, or when the row gains or loses selection through ', code('select(key)'), '. Only the slots whose value changed are written. Slots named in ', code('handlers'), ' are event slots: every row shares one function per name, called as ', code('handler(event, item)'), ' with the row\'s current item. The template must have a single root element and the state needs a ', code('mapKey'), ', exactly as for ', code('bindChildren'), '.'),
-    p('Items are compared by reference, so update them immutably: replace the item in a new array instead of mutating it, or the row will not change.'),
+    'bindRows',
+    p(code('bindRows(parent, template, { values, handlers })'), ' renders each item from an ', code('fntemplate'), '. The template must have a single root element.'),
+    p(code('values(item, selected)'), ' maps an item, and the key currently selected with ', code('select(key)'), ', to the template\'s slots. It runs when a row is mounted, then again only when that item\'s reference changes or the row gains or loses selection, and only the slots whose value changed are written to the DOM. If ', code('values'), ' is omitted, the item itself is used as the slot values.'),
+    p('Slots named in ', code('handlers'), ' are event slots. Every row shares one function per name, called as ', code('handler(event, item)'), ' with the row\'s current item, so handlers work on the item rather than on the row.'),
+    p('Items are compared by reference, so update them immutably: put a new object in a new array. Mutating an item and setting the same array again leaves its row unchanged.'),
     prismCode(
-`const data = fnstate([], d => d.id)
+`const people = fnstate([
+    { id: 1, name: 'Ada', score: 3 },
+    { id: 2, name: 'Grace', score: 5 }
+], p => p.id)
 
 const row = fntemplate(ctx =>
-  tr({ class: ctx('cls'), onclick: ctx('select') },
-    td(ctx('id')),
-    td(a(ctx('label'))),
-    td(button({ onclick: ctx('remove') }, 'x'))
-  )
+    tr({ class: ctx('cls'), onclick: ctx('select') },
+        td(ctx('name')),
+        td(ctx('score')),
+        td(
+            button({ onclick: ctx('bump') }, '+1'),
+            button({ onclick: ctx('remove') }, 'x')
+        )
+    )
 )
 
 table(
-  data.bindRows(tbody(), row, {
-    values: (item, selected) => ({
-      id: item.id,
-      label: item.label,
-      cls: selected === item.id ? 'danger' : ''
-    }),
-    handlers: {
-      select: (e, item) => data.select(item.id),
-      remove: (e, item) => {
-        e.stopPropagation()
-        data(data().filter(d => d.id !== item.id))
-      }
-    }
-  })
-)
-
-// Update immutably: a new object for the changed item
-data(data().map(d => d.id === 3 ? { ...d, label: 'renamed' } : d))`
+    people.bindRows(tbody(), row, {
+        values: (person, selected) => ({
+            name: person.name,
+            score: person.score,
+            cls: selected === person.id ? 'selected' : ''
+        }),
+        handlers: {
+            select: (e, person) => people.select(person.id),
+            // Replace the item, don't mutate it
+            bump: (e, person) => people(people().map(
+                p => p === person ? { ...p, score: p.score + 1 } : p
+            )),
+            remove: (e, person) => {
+                e.stopPropagation()
+                people(people().filter(p => p !== person))
+            }
+        }
+    })
+)`,
+(function () {
+  const people = fnstate([
+    { id: 1, name: 'Ada', score: 3 },
+    { id: 2, name: 'Grace', score: 5 }
+  ], p => p.id)
+  const names = ['Alan', 'Barbara', 'Edsger', 'Frances', 'Ken', 'Margaret', 'Radia']
+  let nextId = 3
+  const row = fntemplate(ctx =>
+    tr({ style: ctx('style'), onclick: ctx('select') },
+      td({ style: 'padding: 2px 12px 2px 0; cursor: pointer;' }, ctx('name')),
+      td({ style: 'padding: 2px 12px 2px 0;' }, ctx('score')),
+      td(
+        button({ onclick: ctx('bump') }, '+1'),
+        button({ onclick: ctx('remove') }, 'x')
+      )
+    )
+  )
+  return div(
+    button({ onclick: () => people([...people(), { id: nextId++, name: names[Math.floor(Math.random() * names.length)], score: 0 }]) }, 'Add Person'),
+    button({ onclick: () => people([...people()].sort((a, b) => b.score - a.score)) }, 'Sort by Score'),
+    table(
+      people.bindRows(tbody(), row, {
+        values: (person, selected) => ({
+          name: person.name,
+          score: person.score,
+          style: selected === person.id ? `color: ${secondaryColor}; font-weight: bold;` : ''
+        }),
+        handlers: {
+          select: (e, person) => people.select(person.id),
+          bump: (e, person) => people(people().map(p => p === person ? { ...p, score: p.score + 1 } : p)),
+          remove: (e, person) => {
+            e.stopPropagation()
+            people(people().filter(p => p !== person))
+          }
+        }
+      })
+    )
+  )
+})()
     ),
-    p('Choose ', code('bindRows'), ' when a row only displays its item and the selection. Choose ', code('bindChildren'), ' when rows have their own state, nested reactivity, or bind to other states: its item builder receives a per-item state and can use every binding. As an escape hatch, ', code('values'), ' may return a bind getter (', code('bindAs'), ', ', code('bindAttr'), ', ', code('bindStyle'), ') or a node for a slot; bindings created there are cleaned up when ', code('values'), ' runs again or the row is removed, but each one costs a subscription per row, which is what ', code('bindRows'), ' otherwise avoids.')
+    p('As an escape hatch, ', code('values'), ' may return a bind getter (', code('bindAs'), ', ', code('bindAttr'), ', ', code('bindStyle'), ') or a node for a slot. Bindings created there are cleaned up when ', code('values'), ' runs again or the row is removed. Each one costs a subscription per row, which is what ', code('bindRows'), ' otherwise avoids, so if most rows need one, ', code('bindChildren'), ' is the better fit.')
   ),
 
   contentSection(

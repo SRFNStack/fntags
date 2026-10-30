@@ -3,6 +3,11 @@ import contentSection from './contentSection.js'
 
 export default div(
     contentSection('Module: fntags',
+        h3(code('delegateEvents(types)')),
+        p("Opt in to event delegation for the given event types. After this call, an `on<type>` handler on an element\ncreated by h(), or by an fntemplate compiled after this call, is stored on the element as a property\n(`element.__fnon_<type>`) instead of being added with addEventListener, and one listener per type is added to\n`document`. This saves a listener, and usually a closure, per element, which adds up in long lists.\n\nSemantics and caveats:\n- Only elements created after the call are delegated. Elements that already exist keep their listeners, and\n  templates compiled before the call keep using addEventListener for every instance.\n- Delegated handlers run when the event bubbles up to `document`, after every native listener on the target\n  and its ancestors has run. Calling stopPropagation() in a native listener therefore prevents delegated\n  handlers from running, and a delegated handler cannot stop a native listener on an ancestor.\n- Among delegated handlers the order is innermost first, like native bubbling: the walk follows the event's\n  composed path from the target up to `document`. stopPropagation() (or stopImmediatePropagation()) in a\n  delegated handler stops the walk. Removing an element during dispatch does not shorten the walk, because\n  the path is fixed when the event is dispatched, as it is for native listeners.\n- Inside a delegated handler `this` and `e.currentTarget` are the element the handler belongs to.\n- Elements must be connected to the document (directly or through open shadow roots) for handlers to run.\n- Events that do not bubble (focus, blur, mouseenter, mouseleave, load, scroll, ...) are never delegated:\n  they are skipped with a dev-mode warning and keep using addEventListener.\n- Delegation cannot be turned off again for a type.\n\nAny `on<type>` attribute, delegated or not, also accepts `[fn, arg]`, which calls `fn.call(element, arg, event)`,\nso every row of a list can share one handler function instead of allocating a closure per row."),
+        ul(
+            li(strong('types'), ': string | string[]', " - the event types to delegate, e.g. ['click', 'input']"),
+        ),
         h3(code('fnstate(initialValue, mapKey)')),
         p("Create a state object that can be bound to."),
         ul(
@@ -10,7 +15,7 @@ export default div(
             li(strong('mapKey'), ': object', " - A map function to extract a key from an element in the array. Receives the array value to extract the key from.\nA key can be any unique value."),
         ),
         h3(code('fntemplate(templateFn)')),
-        p("Create a compiled template function. The returned function takes a single object that contains the properties\ndefined in the template.\n\nThis allows fast rendering by pre-creating a dom element with the entire template structure then cloning and populating\nthe clone with data from the provided context. This avoids the work of having to re-execute the tag functions\none by one and can speed up situations where a similar element is created many times.\n\nYou cannot bind state to the initial template. If you attempt to, the state will be read, but the elements will\nnot be updated when the state changes because they will not be bound to the cloned element.\nAll state bindings must be passed in the context to the compiled template to work correctly."),
+        p("Create a compiled template function. The returned function takes a single object that contains the properties\ndefined in the template.\n\nThe template function receives a context function. Calling `ctx('prop')` returns a placeholder that can be used\nas a child, as an attribute value, or as a style value. The template is rendered once to a dom tree; each\ninstantiation clones that tree and fills the placeholders from the context object, which avoids re-executing\nthe tag functions and can speed up situations where a similar element is created many times.\n\nChild placeholders are empty text nodes in the template. A primitive context value is written into the text node\nin place. A bindAs/bindSelect getter whose current node is a text node adopts the placeholder as its live node,\nso state changes keep updating the clone. A function value is evaluated like renderNode does. Nodes, arrays and\npromises replace the placeholder with their rendered node. As with h(), an attribute value of '', null or undefined\n(including the initial value of a bound attribute) means no attribute.\n\nThe locations of all placeholders are compiled once into a single firstChild/nextSibling walk over the clone,\nwhich stops at the last bound node, so instantiation does not depend on the size of the unbound parts of the tree.\n\nYou cannot bind state to the initial template. If you attempt to, the state will be read, but the elements will\nnot be updated when the state changes because they will not be bound to the cloned element.\nAll state bindings must be passed in the context to the compiled template to work correctly."),
         ul(
             li(strong('templateFn'), ': object', " - A function that returns a html node."),
         ),
@@ -20,7 +25,7 @@ export default div(
             li(strong('children'), ': any', ""),
         ),
         h3(code('h(tag, ...children)')),
-        p("A function to create dom elements with the given attributes and children.\n\nThe first element of the children array can be an object containing element attributes.\nThe attribute names are the standard attribute names used in html, and should all be lower case as usual.\n\nAny attribute starting with 'on' that is a function is added as an event listener with the 'on' removed.\ni.e. { onclick: fn } gets added to the element as element.addEventListener('click', fn)\n\nThe style attribute can be an object and the properties of the object will be added as style properties to the element.\ni.e. { style: { color: blue } } becomes element.style.color = blue\n\nThe rest of the arguments will be considered children of this element and appended to it in the same order as passed."),
+        p("A function to create dom elements with the given attributes and children.\n\nThe first element of the children array can be an object containing element attributes.\nThe attribute names are the standard attribute names used in html, and should all be lower case as usual.\n\nAny attribute starting with 'on' that is a function is added as an event listener with the 'on' removed.\ni.e. { onclick: fn } gets added to the element as element.addEventListener('click', fn)\nAn event attribute can also be an array [fn, arg], which calls fn.call(element, arg, event).\nFor event types passed to delegateEvents, the handler is stored on the element and run by a single\nlistener on document instead (see delegateEvents for how ordering differs).\n\nThe style attribute can be an object and the properties of the object will be added as style properties to the element.\ni.e. { style: { color: blue } } becomes element.style.color = blue\n\nAn attribute value of null, undefined or '' means no attribute: it is removed if present and never written,\nso { class: '' } produces an element without a class attribute. The value attribute and boolean attributes\n(disabled, checked, ...) are exempt and keep their property semantics.\n\nThe rest of the arguments will be considered children of this element and appended to it in the same order as passed."),
         ul(
             li(strong('tag'), ': string', " - html tag to use when created the element"),
             li(strong('children'), ': any[]', " - optional attributes object and children for the element"),
@@ -50,7 +55,7 @@ export default div(
             li(strong('mapKey'), ': object', " - Optional key function, used only when creating a new state"),
         ),
         h3(code('renderNode(node)')),
-        p("Convert non objects (objects are assumed to be nodes) to text nodes and allow promises to resolve to nodes"),
+        p("Convert non objects (objects are assumed to be nodes) to text nodes and allow promises to resolve to nodes.\nArrays are flattened at any depth into a DocumentFragment."),
         ul(
             li(strong('node'), ': any', " - The node to render"),
         ),
@@ -80,7 +85,7 @@ export default div(
             li(strong('children'), ': any[]', " - The attributes of the anchor element and any children"),
         ),
         h3(code('goTo(route, context, replace, silent)')),
-        p("A function to navigate to the specified route"),
+        p("A function to navigate to the specified route.\n\nNavigating to the current path with only a different hash or query (for example from /docs to /docs#faq)\nand no new context is not a route change: the history entry is updated and the hash target is scrolled\ninto view, but the route is not re-rendered and no route events are emitted."),
         ul(
             li(strong('route'), ': string', " - The route to navigate to"),
             li(strong('context'), ': any', " - Data related to the route change"),
@@ -112,6 +117,12 @@ export default div(
         p("An element that only renders the first route that matches and updates when the route is changed\nThe primary purpose of this element is to provide catchall routes for not found pages and path variables"),
         ul(
             li(strong('children'), ': any[]', ""),
+        ),
+        h3(code('scrollToHash(hash, timeout)')),
+        p("Scroll the element whose id matches the hash into view. If the element does not exist yet, for example because\nthe route's content is a promise that has not resolved, wait for it to be added to the document and scroll then.\nWith no hash, scroll to the top of the page."),
+        ul(
+            li(strong('hash'), ': string', " - The hash to scroll to, with or without the leading #"),
+            li(strong('timeout'), ': number', " - How long to wait for the element to appear, in milliseconds"),
         ),
         h3(code('setRootPath(rootPath)')),
         p("Set the root path of the app. This is necessary to make deep linking work in cases where the same html file is served from all paths."),

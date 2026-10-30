@@ -21,6 +21,7 @@ A container for a state value that can be bound to.
 - [bindAttr](fntags.FnStateObj.md#bindattr)
 - [bindChildren](fntags.FnStateObj.md#bindchildren)
 - [bindProp](fntags.FnStateObj.md#bindprop)
+- [bindRows](fntags.FnStateObj.md#bindrows)
 - [bindSelect](fntags.FnStateObj.md#bindselect)
 - [bindSelectAttr](fntags.FnStateObj.md#bindselectattr)
 - [bindStyle](fntags.FnStateObj.md#bindstyle)
@@ -56,7 +57,7 @@ a state change and is a shortcut for `mystate(Object.assign(mystate(), update))`
 
 #### Defined in
 
-[fntags.mjs:122](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L122)
+[fntags.mjs:220](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.mjs#L220)
 
 ___
 
@@ -70,7 +71,7 @@ ___
 
 Bind this state to the given element function. This causes the element to be replaced when the state changes.
 If called with no parameters, the state's value will be rendered as an element.
-Do not wrap form inputs (input, textarea, select) in bindAs — it replaces the element on every update and the focused input will lose focus mid-keystroke. Bind the `value` attribute with bindAttr instead.
+Do not wrap form inputs (input, textarea, select) in bindAs: it replaces the element on every update and the focused input will lose focus mid-keystroke. Bind the `value` attribute with bindAttr instead.
 
 ##### Parameters
 
@@ -84,7 +85,7 @@ Do not wrap form inputs (input, textarea, select) in bindAs — it replaces the 
 
 #### Defined in
 
-[fntags.mjs:105](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L105)
+[fntags.mjs:197](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.mjs#L197)
 
 ___
 
@@ -111,7 +112,7 @@ Prefer this over bindAs for form inputs: binding the `value` attribute updates t
 
 #### Defined in
 
-[fntags.mjs:113](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L113)
+[fntags.mjs:211](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.mjs#L211)
 
 ___
 
@@ -140,7 +141,7 @@ If the current value is not an array, this will behave the same as bindAs.
 
 #### Defined in
 
-[fntags.mjs:108](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L108)
+[fntags.mjs:200](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.mjs#L200)
 
 ___
 
@@ -167,7 +168,40 @@ Shortcut for `mystate.bindAs((current)=> current[prop])`
 
 #### Defined in
 
-[fntags.mjs:111](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L111)
+[fntags.mjs:209](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.mjs#L209)
+
+___
+
+### bindRows
+
+• **bindRows**: (`parent`: `Node` \| () => `any`, `template`: (`context`: `any`) => `Node`, `options?`: [`BindRowsOptions`](fntags.BindRowsOptions.md)) => `Node`
+
+#### Type declaration
+
+▸ (`parent`, `template`, `options?`): `Node`
+
+Bind the values of this state
+to rows stamped from an fntemplate whose template has a single root element. `values(item, selected)` maps an item to the template's slots and
+runs at mount, then only when the item's reference changes or the row gains or loses selection; only changed slots are written. Slots named in
+`handlers` are event slots, called as handler(event, item) with the row's current item through one shared function per name.
+Rows keep no per-row state or subscriptions, so use this for rows that are a pure function of item and selection, and bindChildren for rows
+with their own state or nested reactivity. Items are compared by reference: update them immutably.
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `parent` | `Node` \| () => `any` |
+| `template` | (`context`: `any`) => `Node` |
+| `options?` | [`BindRowsOptions`](fntags.BindRowsOptions.md) |
+
+##### Returns
+
+`Node`
+
+#### Defined in
+
+[fntags.mjs:203](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.mjs#L203)
 
 ___
 
@@ -193,7 +227,7 @@ Bind selected state to an element
 
 #### Defined in
 
-[fntags.mjs:116](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L116)
+[fntags.mjs:214](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.mjs#L214)
 
 ___
 
@@ -219,7 +253,7 @@ Bind selected state to an attribute
 
 #### Defined in
 
-[fntags.mjs:117](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L117)
+[fntags.mjs:215](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.mjs#L215)
 
 ___
 
@@ -245,7 +279,7 @@ Bind style values to state changes
 
 #### Defined in
 
-[fntags.mjs:115](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L115)
+[fntags.mjs:213](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.mjs#L213)
 
 ___
 
@@ -273,7 +307,7 @@ will not be reflected correctly.
 
 #### Defined in
 
-[fntags.mjs:124](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L124)
+[fntags.mjs:222](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.mjs#L222)
 
 ___
 
@@ -285,7 +319,7 @@ A flag to indicate that this is a fnstate object
 
 #### Defined in
 
-[fntags.mjs:129](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L129)
+[fntags.mjs:227](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.mjs#L227)
 
 ___
 
@@ -313,7 +347,7 @@ This causes the bound select functions to be executed.
 
 #### Defined in
 
-[fntags.mjs:118](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L118)
+[fntags.mjs:216](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.mjs#L216)
 
 ___
 
@@ -333,7 +367,7 @@ Get the currently selected key
 
 #### Defined in
 
-[fntags.mjs:121](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L121)
+[fntags.mjs:219](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.mjs#L219)
 
 ___
 
@@ -361,7 +395,7 @@ Set a value at the given property path
 
 #### Defined in
 
-[fntags.mjs:127](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L127)
+[fntags.mjs:225](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.mjs#L225)
 
 ___
 
@@ -387,4 +421,4 @@ Register a callback that will be executed whenever the state is changed
 
 #### Defined in
 
-[fntags.mjs:128](https://github.com/SRFNStack/fntags/blob/55fec87/src/fntags.mjs#L128)
+[fntags.mjs:226](https://github.com/SRFNStack/fntags/blob/82fe0b3/src/fntags.mjs#L226)
