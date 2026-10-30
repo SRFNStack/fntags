@@ -384,3 +384,151 @@ describe('bindRows', () => {
     expect(texts(tbody)).toEqual(['nine'])
   })
 })
+
+// Rows whose values are all primitives are written into a private copy of the
+// template and cloned. Every row must come out exactly as a fill of a fresh
+// clone (what the template function itself produces) would.
+describe('bindRows write then clone', () => {
+  const wide = fntemplate(ctx =>
+    h('div', { class: ctx('cls'), title: ctx('title'), 'data-x': 'static', 'data-y': ctx('y') },
+      h('span', ctx('only')),
+      'a', ctx('text'), 'b',
+      h('i', { style: { color: ctx('color'), margin: '1px' } }),
+      h('b', { style: { color: ctx('color2'), width: ctx('width') } }, ctx('only2')),
+      h('u', ctx('z'))
+    )
+  )
+
+  const valueSets = [
+    { id: 1, cls: 'a', title: 't', y: 'y', only: 'x', text: 'hello', color: 'red', color2: 'blue', width: '2px', only2: 0 },
+    { id: 2, cls: '', title: 't', y: null, only: '', text: '', color: '', color2: '', width: '', only2: '' },
+    { id: 3, cls: 'c', title: '', y: 'y', only: 12, text: 3.5, color: 'red', color2: null, width: '3px', only2: null },
+    { id: 4, cls: 'c', title: 'u', y: undefined, only: true, text: false, color: 'green', color2: 'red', width: undefined, only2: undefined },
+    { id: 5, cls: null, title: null, y: 'z', only: 'x', text: 'hello', color: null, color2: 'blue', width: '2px', only2: 'w' },
+    { id: 6, cls: 'a', title: 't', y: 'y', only: 'x', text: 'hello', color: 'red', color2: 'blue', width: '2px', only2: 0 },
+    { id: 7, cls: 'a', title: 't', y: 'y', only: 'x', text: 'hello', color: 'red', color2: 'blue', width: '2px', only2: 0 }
+  ]
+
+  const expected = vals => wide(vals).outerHTML
+
+  it('produces the same markup as a fresh fill for text, empty, numbers, null, attributes and styles', () => {
+    const data = fnstate(valueSets, d => d.id)
+    const parent = data.bindRows(h('section'), wide)
+    expect([...parent.children].map(c => c.outerHTML)).toEqual(valueSets.map(expected))
+    // An empty TPL_ONLY slot still holds one empty text node.
+    const second = parent.children[1]
+    expect(second.firstChild.childNodes.length).toBe(1)
+    expect(second.firstChild.firstChild.data).toBe('')
+    expect(second.childNodes.length).toBe(wide(valueSets[1]).childNodes.length)
+  })
+
+  it('mixes rows that are filled after the clone with rows written into the master', () => {
+    const vals = [
+      { id: 1, cls: 'a', text: 'one' },
+      { id: 2, cls: 'b', text: h('em', 'node') },
+      { id: 3, cls: '', text: 'three' },
+      { id: 4, cls: 'd', text: () => 'fn' },
+      { id: 5, cls: 'a', text: 'one' }
+    ]
+    const tpl = fntemplate(ctx => h('p', { class: ctx('cls') }, 'x', ctx('text')))
+    const data = fnstate(vals, d => d.id)
+    const parent = data.bindRows(h('div'), tpl)
+    expect([...parent.children].map(c => c.outerHTML)).toEqual([
+      '<p class="a">xone</p>',
+      '<p class="b">x<em>node</em></p>',
+      '<p>xthree</p>',
+      '<p class="d">xfn</p>',
+      '<p class="a">xone</p>'
+    ])
+  })
+
+  it('leaves the template unchanged for direct use', () => {
+    const tpl = fntemplate(ctx => h('p', { class: ctx('cls') }, h('b', ctx('text')), ctx('more')))
+    const before = tpl({}).outerHTML
+    const data = fnstate([{ id: 1, cls: 'k', text: 'bold', more: 'm' }], d => d.id)
+    const parent = data.bindRows(h('div'), tpl)
+    expect(parent.firstChild.outerHTML).toBe('<p class="k"><b>bold</b>m</p>')
+    expect(tpl({}).outerHTML).toBe(before)
+    expect(tpl({ cls: 'z', text: 't', more: 1 }).outerHTML).toBe('<p class="z"><b>t</b>1</p>')
+    expect(tpl._fnTemplate.root.outerHTML).toBe('<p><b></b></p>')
+  })
+
+  // The same rows through the clone, walk and fill path: a function in the
+  // z slot makes every row ineligible for the master and renders ''.
+  const zfn = () => ''
+  const twin = sets => {
+    const fast = fnstate(sets.map(v => ({ ...v, z: '' })), d => d.id)
+    const slow = fnstate(sets.map(v => ({ ...v, z: zfn })), d => d.id)
+    return { fast, slow, a: fast.bindRows(h('section'), wide), b: slow.bindRows(h('section'), wide) }
+  }
+  const html = parent => [...parent.children].map(c => c.outerHTML)
+
+  it('mounts the same markup as the clone and fill path', () => {
+    const { a, b } = twin(valueSets)
+    expect(html(a)).toEqual(html(b))
+  })
+
+  it('updates after a write then clone mount hit the right nodes', () => {
+    const { fast, slow, a, b } = twin(valueSets.slice(0, 3))
+    const next = [valueSets[3], valueSets[4], valueSets[0]].map((v, i) => ({ ...v, id: i + 1 }))
+    fast(next.map(v => ({ ...v, z: '' })))
+    slow(next.map(v => ({ ...v, z: zfn })))
+    expect(html(a)).toEqual(html(b))
+    expect(a.children[1].outerHTML).toBe(b.children[1].outerHTML)
+    expect(a.children[0].querySelector('span').textContent).toBe('true')
+    // A later mount still starts from a correct master after the updates.
+    fast([...fast(), { ...valueSets[1], id: 9, z: '' }])
+    expect(a.children[3].outerHTML).toBe(expected({ ...valueSets[1], z: '' }))
+  })
+
+  it('keeps the values object for later diffs', () => {
+    const tpl = fntemplate(ctx => h('p', ctx('text')))
+    const data = fnstate([{ id: 1, text: 'a' }], d => d.id)
+    const parent = data.bindRows(h('div'), tpl)
+    const textNode = parent.firstChild.firstChild
+    data([{ id: 1, text: 'a' }])
+    expect(parent.firstChild.firstChild).toBe(textNode)
+    data([{ id: 1, text: 'b' }])
+    expect(parent.firstChild.firstChild).toBe(textNode)
+    expect(textNode.data).toBe('b')
+  })
+
+  it('handlers get the current item on rows mounted from the master', () => {
+    const tpl = fntemplate(ctx => h('li', { class: ctx('cls') }, h('span', ctx('label')), h('button', { onclick: ctx('go'), onmouseover: ctx('hover') }, 'go')))
+    const data = fnstate([{ id: 1, label: 'a' }, { id: 2, label: 'b' }], d => d.id)
+    const seen = []
+    const parent = data.bindRows(h('ul'), tpl, {
+      values: item => ({ label: item.label, cls: item.id === 2 ? 'two' : '' }),
+      handlers: { go: (e, item) => seen.push(item.label), hover: (e, item) => seen.push('h' + item.label) }
+    })
+    document.body.append(parent)
+    data([{ id: 1, label: 'a2' }, data()[1]])
+    click(parent.children[0].querySelector('button'))
+    click(parent.children[1].querySelector('button'))
+    parent.children[1].querySelector('button').dispatchEvent(new MouseEvent('mouseover', { bubbles: true }))
+    expect(seen).toEqual(['a2', 'b', 'hb'])
+    expect(parent.children[1].outerHTML).toBe('<li class="two"><span>b</span><button>go</button></li>')
+  })
+
+  it('finds handler nodes from either end of their siblings', () => {
+    const tpl = fntemplate(ctx => h('div',
+      h('a', { onclick: ctx('first') }, 'f'),
+      h('span', ctx('t')),
+      'text',
+      h('i', h('b', ctx('u')), h('u', { onmouseover: ctx('deep') })),
+      h('em')
+    ))
+    const data = fnstate([{ id: 1, t: 'x', u: 'y' }, { id: 2, t: '', u: 'z' }], d => d.id)
+    const seen = []
+    const parent = data.bindRows(h('section'), tpl, {
+      handlers: { first: (e, item) => seen.push('f' + item.id), deep: (e, item) => seen.push('d' + item.id) }
+    })
+    document.body.append(parent)
+    for (const el of parent.children) {
+      click(el.querySelector('a'))
+      el.querySelector('u').dispatchEvent(new MouseEvent('mouseover', { bubbles: true }))
+    }
+    expect(seen).toEqual(['f1', 'd1', 'f2', 'd2'])
+    expect(parent.children[1].outerHTML).toBe('<div><a>f</a><span></span>text<i><b>z</b><u></u></i><em></em></div>')
+  })
+})
