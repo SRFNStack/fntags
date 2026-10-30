@@ -15,7 +15,7 @@ fntags allows you to build complex, interactive web apps using standard JavaScri
 ## Why fntags?
 
 - **No Build Step**: Import the framework directly from a CDN or your file system. No Webpack, no Babel, no headaches.
-- **Granular State**: Bind only what needs to change—text, attributes, or styles—for high-performance updates.
+- **Granular State**: Bind only what needs to change (text, attributes, or styles) for high-performance updates.
 - **Standards Based**: Just standard ES6 JavaScript and HTML5. Zero magic syntax to learn.
 - **Effortless Debugging**: In fntags, there is no black box. Errors produce clean stack traces that point exactly to your source code.
 - **TypeScript Support**: Includes TypeScript definitions out of the box. No need to install separate `@types` packages.

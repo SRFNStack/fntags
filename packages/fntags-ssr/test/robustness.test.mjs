@@ -117,7 +117,7 @@ describe('renderToString robustness', () => {
   })
 
   it('concurrent renderToString calls produce isolated results', async () => {
-    // Launch multiple renders concurrently — they should queue via mutex
+    // Launch multiple renders concurrently: they should queue via mutex
     const renders = await Promise.all([
       renderToString({
         url: '/',
@@ -294,7 +294,7 @@ describe('renderToString robustness', () => {
   })
 
   it('does not fetch external resources during render', async () => {
-    // Start a timer — if happy-dom tried to fetch these URLs, the render
+    // Start a timer: if happy-dom tried to fetch these URLs, the render
     // would either hang waiting for a connection or take noticeably longer.
     // More importantly, we verify the elements serialize correctly without loading.
     const start = Date.now()
@@ -314,7 +314,7 @@ describe('renderToString robustness', () => {
     const elapsed = Date.now() - start
 
     // The render should complete almost instantly (no network wait)
-    // 198.51.100.1 is TEST-NET-2 (RFC 5737) — guaranteed unroutable, so any
+    // 198.51.100.1 is TEST-NET-2 (RFC 5737): guaranteed unroutable, so any
     // real connection attempt would hang until timeout, not complete in < 2s.
     expect(elapsed).toBeLessThan(2000)
     expect(html).toContain('rendered')

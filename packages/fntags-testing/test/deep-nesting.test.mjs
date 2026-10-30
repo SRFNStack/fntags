@@ -5,7 +5,7 @@ import { render, waitFor } from '../src/index.mjs'
 // Helper: flush microtasks so bindAs replaceWith() calls complete
 const flush = () => new Promise(resolve => setTimeout(resolve, 0))
 
-describe('deeply nested bindAs (3+ levels) — subscription cleanup', () => {
+describe('deeply nested bindAs (3+ levels): subscription cleanup', () => {
   it('3-level bindAs: re-rendering outer cleans up middle and inner subscriptions', async () => {
     const outer = fnstate('A')
     const middle = fnstate('X')
@@ -26,7 +26,7 @@ describe('deeply nested bindAs (3+ levels) — subscription cleanup', () => {
     expect(middle._ctx.observers.length).toBe(1)
     expect(inner._ctx.observers.length).toBe(1)
 
-    // Re-render outer — should tear down middle's and inner's subscriptions, then recreate
+    // Re-render outer: should tear down middle's and inner's subscriptions, then recreate
     outer('B')
     await flush()
 
@@ -206,7 +206,7 @@ describe('deeply nested bindAs (3+ levels) — subscription cleanup', () => {
     expect(childA._ctx.observers.length).toBe(1)
     expect(childB._ctx.observers.length).toBe(1)
 
-    // Re-render parent — both child subscriptions should be cleaned up and recreated
+    // Re-render parent: both child subscriptions should be cleaned up and recreated
     for (let i = 0; i < 10; i++) {
       parent(`P${i}`)
       await flush()
@@ -216,7 +216,7 @@ describe('deeply nested bindAs (3+ levels) — subscription cleanup', () => {
   })
 })
 
-describe('deeply nested bindChildren — subscription cleanup', () => {
+describe('deeply nested bindChildren: subscription cleanup', () => {
   it('bindChildren with bindAs per item: removing items cleans up subscriptions', async () => {
     const items = fnstate([{ id: 1 }, { id: 2 }, { id: 3 }], o => o.id)
     const shared = fnstate('red')
@@ -359,7 +359,7 @@ describe('deeply nested bindChildren — subscription cleanup', () => {
   })
 })
 
-describe('mixed deep nesting — bindAs + bindAttr + bindStyle + bindChildren', () => {
+describe('mixed deep nesting: bindAs + bindAttr + bindStyle + bindChildren', () => {
   it('complex component: no leaks after many state transitions', async () => {
     const view = fnstate('list')
     const items = fnstate([{ id: 1, text: 'a' }, { id: 2, text: 'b' }], o => o.id)
@@ -389,13 +389,13 @@ describe('mixed deep nesting — bindAs + bindAttr + bindStyle + bindChildren', 
     expect(highlight._ctx.observers.length).toBe(2)
     expect(fontSize._ctx.observers.length).toBe(2)
 
-    // Switch to detail view — all item subscriptions should be cleaned up
+    // Switch to detail view: all item subscriptions should be cleaned up
     view('detail')
     await flush()
     expect(highlight._ctx.observers.length).toBe(0)
     expect(fontSize._ctx.observers.length).toBe(0)
 
-    // Switch back to list view — subscriptions recreated
+    // Switch back to list view: subscriptions recreated
     view('list')
     await flush()
     expect(highlight._ctx.observers.length).toBe(2)
@@ -413,7 +413,7 @@ describe('mixed deep nesting — bindAs + bindAttr + bindStyle + bindChildren', 
   })
 })
 
-describe('nested bindAs — stale node reference regression', () => {
+describe('nested bindAs: stale node reference regression', () => {
   it('outer bindAs can still swap after inner bindAs swaps its node', async () => {
     const outer = fnstate(true)
     const inner = fnstate('step-1')
@@ -554,7 +554,7 @@ describe('nested bindAs — stale node reference regression', () => {
       outer.bindAs(show => show ? savedInner : h('span', 'off'))
     ))
 
-    // Toggle outer many times — each show=true path re-evaluates savedInner
+    // Toggle outer many times: each show=true path re-evaluates savedInner
     // against the same child elCtx. Without the dedup guard, parentRefs would
     // grow by one entry each cycle.
     for (let i = 0; i < 10; i++) {

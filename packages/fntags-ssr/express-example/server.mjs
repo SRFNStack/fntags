@@ -8,7 +8,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
 
 // Serve only the specific fntags source files the browser needs.
-// Do NOT serve all of node_modules — that exposes every dependency's source.
+// Do NOT serve all of node_modules: that exposes every dependency's source.
 app.use('/lib/ext/@srfnstack/fntags', express.static(
   path.join(__dirname, 'node_modules/@srfnstack/fntags')
 ))

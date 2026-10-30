@@ -350,7 +350,7 @@ export function doLogin() {
 }`
 
       const result = transform(code)
-      // clearAuth and doLogin don't contain fnstate — must not be wrapped
+      // clearAuth and doLogin don't contain fnstate: must not be wrapped
       expect(result.code).not.toContain('registeredComponent')
       // They should remain as normal hoisted function declarations
       expect(result.code).toContain('export async function clearAuth()')
@@ -366,9 +366,9 @@ export function Counter() {
 }`
 
       const result = transform(code)
-      // Counter has fnstate — should be wrapped
+      // Counter has fnstate: should be wrapped
       expect(result.code).toContain("registeredComponent('src/counter#Counter',")
-      // helper does not — should stay as a normal export
+      // helper does not: should stay as a normal export
       expect(result.code).toContain('export function helper()')
     })
   })

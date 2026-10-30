@@ -6,7 +6,7 @@ export default div(
   contentSection(
     'Testing',
     p(b('@srfnstack/fntags-testing'), ' is a lightweight testing library for fntags, built on ', a({ href: 'https://testing-library.com/docs/dom-testing-library/intro' }, '@testing-library/dom'), '.'),
-    p('Since fntags components are plain functions that return real DOM elements, testing them is straightforward. There\'s no virtual DOM to mock, no component lifecycle to simulate. You render your component, query the DOM, fire events, and assert results — just like you would in a browser.'),
+    p('Since fntags components are plain functions that return real DOM elements, testing them is straightforward. There\'s no virtual DOM to mock, no component lifecycle to simulate. You render your component, query the DOM, fire events, and assert results, just like you would in a browser.'),
     p('The library provides a ', code('render()'), ' function to mount your components and re-exports the full ', code('@testing-library/dom'), ' API for queries, events, and async utilities.')
   ),
 
@@ -50,7 +50,7 @@ it('renders a plain element', () => {
   expect(container.textContent).toContain('hello')
 })`
     ),
-    p('You can pass a component function directly — ', code('render()'), ' will call it for you:'),
+    p('You can pass a component function directly and ', code('render()'), ' will call it for you:'),
     prismCode(
 `import { h, fnstate } from '@srfnstack/fntags'
 
@@ -63,9 +63,9 @@ it('renders a component function', () => {
     ),
     p('The returned object also includes:'),
     div({ style: 'padding-left: 20px' },
-      p(code('container'), ' — the wrapper DOM element containing your rendered content'),
-      p(code('unmount()'), ' — removes the rendered content and cleans up the container'),
-      p(code('debug()'), ' — prints a formatted snapshot of the DOM to the console (useful for debugging)'),
+      p(code('container'), ': the wrapper DOM element containing your rendered content'),
+      p(code('unmount()'), ': removes the rendered content and cleans up the container'),
+      p(code('debug()'), ': prints a formatted snapshot of the DOM to the console (useful for debugging)'),
       p('All ', code('@testing-library/dom'), ' query functions (', code('getByText'), ', ', code('getByRole'), ', etc.) scoped to the container')
     )
   ),
@@ -132,7 +132,7 @@ it('handles input events', () => {
   contentSection(
     'Testing State Changes',
     p('fntags has two kinds of reactive updates, and they behave differently in tests:'),
-    p(b('Synchronous'), ' — ', code('bindAttr'), ' and ', code('bindStyle'), ' update the DOM immediately when state changes. You can assert right after setting state.'),
+    p(b('Synchronous'), ': ', code('bindAttr'), ' and ', code('bindStyle'), ' update the DOM immediately when state changes. You can assert right after setting state.'),
     prismCode(
 `import { h, fnstate } from '@srfnstack/fntags'
 import { render } from '@srfnstack/fntags-testing'
@@ -143,11 +143,11 @@ it('bindAttr updates synchronously', () => {
   expect(container.firstChild.className).toBe('red')
 
   color('blue')
-  // No waiting needed — DOM is already updated
+  // No waiting needed: DOM is already updated
   expect(container.firstChild.className).toBe('blue')
 })`
     ),
-    p(b('Asynchronous'), ' — ', code('bindAs'), ' re-renders via microtask (using ', code('Promise'), '). Use ', code('waitFor()'), ' to wait for the DOM to update.'),
+    p(b('Asynchronous'), ': ', code('bindAs'), ' re-renders via microtask (using ', code('Promise'), '). Use ', code('waitFor()'), ' to wait for the DOM to update.'),
     prismCode(
 `import { h, fnstate } from '@srfnstack/fntags'
 import { render, screen, waitFor } from '@srfnstack/fntags-testing'

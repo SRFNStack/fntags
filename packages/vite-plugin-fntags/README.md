@@ -1,6 +1,6 @@
 # vite-plugin-fntags
 
-Hot module reloading for [fntags](https://github.com/SRFNStack/fntags). Edit your components, save, and see changes instantly — without losing state.
+Hot module reloading for [fntags](https://github.com/SRFNStack/fntags). Edit your components, save, and see changes instantly, without losing state.
 
 ## Quick Start
 
@@ -45,21 +45,21 @@ During development, the plugin does two things:
 1. **Rewrites `fnstate()` calls** so state instances survive module reloads
 2. **Injects HMR accept calls** so Vite hot-updates modules instead of full-reloading
 
-Production builds are not affected — the plugin only runs during `vite dev`.
+Production builds are not affected: the plugin only runs during `vite dev`.
 
 ## How It Works
 
-This section explains the HMR implementation in depth — useful if you're building a framework and want to understand how to add HMR support.
+This section explains the HMR implementation in depth, useful if you're building a framework and want to understand how to add HMR support.
 
 ### The Problem
 
 When Vite hot-replaces a module, it re-executes the module's top-level code. For a framework with reactive state, this means every `const count = fnstate(0)` creates a **new** state instance, resetting its value to `0`. Meanwhile, the DOM still references the **old** state. You end up with the new module's code creating new DOM with fresh state, while the old DOM (still on screen) is bound to the old, now-orphaned state.
 
 You need to solve two problems:
-1. **Preserve state identity** — the same `fnstate` call in the re-executed module must return the same state object as before
-2. **Re-render the DOM** — the new code must produce new DOM bound to the preserved state, and that new DOM must replace the old DOM on screen
+1. **Preserve state identity**: the same `fnstate` call in the re-executed module must return the same state object as before
+2. **Re-render the DOM**: the new code must produce new DOM bound to the preserved state, and that new DOM must replace the old DOM on screen
 
-### Solution Part 1 — State Registry
+### Solution Part 1: State Registry
 
 The simplest approach is a global registry that maps stable IDs to state instances:
 
@@ -70,19 +70,19 @@ export function registeredState (id, initialValue, mapKey) {
   }
   const registry = globalThis.__fntags_registry
   if (registry.has(id)) {
-    return registry.get(id)    // Return existing state — value is preserved
+    return registry.get(id)    // Return existing state: value is preserved
   }
   const state = fnstate(initialValue, mapKey)
-  registry.set(id, state)      // First time — create and store
+  registry.set(id, state)      // First time: create and store
   return state
 }
 ```
 
-The registry lives on `globalThis`, which survives module reloads (Vite re-executes modules but doesn't wipe the global scope). Each state gets an ID based on its file path, enclosing function scope, and variable name — e.g. `'src/counter:Counter:count'`. When the module re-executes after HMR, `registeredState` finds the existing state in the registry and returns it. The `initialValue` argument is ignored — the state keeps whatever value the user set during the session.
+The registry lives on `globalThis`, which survives module reloads (Vite re-executes modules but doesn't wipe the global scope). Each state gets an ID based on its file path, enclosing function scope, and variable name, e.g. `'src/counter:Counter:count'`. When the module re-executes after HMR, `registeredState` finds the existing state in the registry and returns it. The `initialValue` argument is ignored, the state keeps whatever value the user set during the session.
 
-This is the entire persistence mechanism. No serialization, no diffing, no proxies — just a Map keyed by stable IDs.
+This is the entire persistence mechanism. No serialization, no diffing, no proxies, just a Map keyed by stable IDs.
 
-### Solution Part 2 — Code Transform
+### Solution Part 2: Code Transform
 
 Asking users to manually call `registeredState('src/counter:count', 0)` everywhere would be awful DX. Instead, the Vite plugin's `transform` hook rewrites the code automatically:
 
@@ -115,13 +115,13 @@ function App() {
 }
 ```
 
-Scope-aware IDs are important because `fnstate` is typically called inside component functions (like React hooks). Without scope tracking, two components in the same file declaring `const count = fnstate(0)` would collide on the same registry key. The scope chain ensures each call site gets a unique, stable ID — stable across reordering components and inserting lines.
+Scope-aware IDs are important because `fnstate` is typically called inside component functions (like React hooks). Without scope tracking, two components in the same file declaring `const count = fnstate(0)` would collide on the same registry key. The scope chain ensures each call site gets a unique, stable ID, stable across reordering components and inserting lines.
 
 The plugin uses `magic-string` for source modifications, which preserves sourcemap accuracy. It also patches the import statement, appending `registeredState` to the existing fntags import.
 
 Files that don't contain `fnstate(` are skipped entirely (a quick regex pre-check returns `null` before parsing).
 
-### Solution Part 3 — HMR Accept
+### Solution Part 3: HMR Accept
 
 Vite needs to know that a module can handle its own updates. The plugin appends this to every transformed file:
 
@@ -131,7 +131,7 @@ if (import.meta.hot) { import.meta.hot.accept(); }
 
 This tells Vite: "when this file changes, re-execute it in place." Since the state is preserved via the registry, re-execution just rebinds the new functions to the existing state instances. The `import.meta.hot` guard ensures this code is tree-shaken in production builds.
 
-### Solution Part 4 — Re-rendering
+### Solution Part 4: Re-rendering
 
 State is preserved, but the DOM still shows the old render. The entry point uses `hmrRoot`:
 
@@ -148,7 +148,7 @@ export function hmrRoot (container, appFn) {
 }
 ```
 
-`hmrRoot` registers a global rerender callback. The plugin's injected accept handler calls it automatically — no manual HMR wiring needed in the entry file:
+`hmrRoot` registers a global rerender callback. The plugin's injected accept handler calls it automatically, so no manual HMR wiring needed in the entry file:
 
 ```javascript
 hmrRoot(document.getElementById('app'), App)
@@ -156,7 +156,7 @@ hmrRoot(document.getElementById('app'), App)
 
 When you save a file:
 1. Vite detects the change and sends the updated module to the browser
-2. The module re-executes — `registeredState` returns the existing state objects
+2. The module re-executes and `registeredState` returns the existing state objects
 3. The plugin's injected accept callback calls `globalThis.__fntags_hmr_rerender()`
 4. The rerender clears the container and calls the `App` function again
 5. The new `App` code runs, producing DOM bound to the preserved state
@@ -197,7 +197,7 @@ import { App } from './src/app.js'
 hmrRoot(document.getElementById('app'), App)
 ```
 
-Click the `+` button a few times to set count to 5. Now edit `counter.js` — change the button text from `-` to `minus`. Save. The counter still reads 5, but the button now says "minus". State preserved, new code applied.
+Click the `+` button a few times to set count to 5. Now edit `counter.js`: change the button text from `-` to `minus`. Save. The counter still reads 5, but the button now says "minus". State preserved, new code applied.
 
 Behind the scenes, the plugin transformed `counter.js` to:
 
@@ -219,7 +219,7 @@ The state ID includes `Counter` because `fnstate` is called inside the `Counter`
 
 ## Limitations
 
-- **Only variable declarations are rewritten.** `const count = fnstate(0)` is rewritten. `someArray.push(fnstate(0))` is not — anonymous state has no variable name to derive an ID from, so it resets on reload.
+- **Only variable declarations are rewritten.** `const count = fnstate(0)` is rewritten. `someArray.push(fnstate(0))` is not: anonymous state has no variable name to derive an ID from, so it resets on reload.
 - **State shape changes require a full reload.** If you change `fnstate(0)` to `fnstate({ count: 0 })`, the registry still returns the old numeric value. Press Ctrl+R / Cmd+R when you change state shape.
 - **Top-level non-function exports don't update.** Only exported functions are wrapped for HMR. A top-level `export const foo = myState.bindAs((st) => div(st))` won't reflect changes on reload because the bound element is created once and the old value persists in importers. Move it inside a component function instead, where it will be re-created on each render.
 - **Dev only.** The plugin sets `apply: 'serve'`, so production builds use normal `fnstate` with zero overhead. `registeredState` is still available as an export but is not used unless explicitly called.

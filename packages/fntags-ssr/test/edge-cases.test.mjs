@@ -175,7 +175,7 @@ describe('renderToString edge cases', () => {
   it('accepts a pre-built element as appFn (non-function)', async () => {
     // renderToString supports passing an element directly instead of a factory.
     // Since the element must be created inside the happy-dom env, we use an
-    // async factory that returns an element — but the code path for non-function
+    // async factory that returns an element: but the code path for non-function
     // is `typeof appFn === 'function' ? await appFn() : appFn`. We test the
     // non-function branch by wrapping in an immediately-resolved value.
     const { html } = await renderToString({

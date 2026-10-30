@@ -29,7 +29,7 @@ describe('renderToStream advanced', () => {
     await expect(reader.read()).rejects.toThrow('stream app broke')
   })
 
-  it('recovers after stream error — subsequent renders work', async () => {
+  it('recovers after stream error: subsequent renders work', async () => {
     // First: a broken stream
     const broken = renderToStream({
       url: '/',

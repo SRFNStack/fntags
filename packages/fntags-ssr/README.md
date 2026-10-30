@@ -2,7 +2,7 @@
 
 Server-side rendering and client-side hydration for [fntags](https://github.com/SRFNStack/fntags).
 
-Render your fntags components to HTML on the server for fast first paint, then hydrate on the client to attach event listeners and resume interactivity. No changes to the core framework required — SSR works through the existing public API.
+Render your fntags components to HTML on the server for fast first paint, then hydrate on the client to attach event listeners and resume interactivity. No changes to the core framework required: SSR works through the existing public API.
 
 ## How It Works
 
@@ -14,7 +14,7 @@ fntags components are plain functions that create real DOM elements. On the serv
 npm install @srfnstack/fntags-ssr
 ```
 
-`happy-dom` is included as a dependency (server-side only — it is not bundled into client code).
+`happy-dom` is included as a dependency (server-side only, not bundled into client code).
 
 ## Server API
 
@@ -48,8 +48,8 @@ const { html, state } = await renderToString({
 
 **Returns:** `Promise<{ html: string, state: Record<string, any> }>`
 
-- `html` — the rendered HTML string (the inner content, not a full document)
-- `state` — a snapshot of all `registeredState` values, ready to embed in the page
+- `html`: the rendered HTML string (the inner content, not a full document)
+- `state`: a snapshot of all `registeredState` values, ready to embed in the page
 
 ### `renderToStream(options)`
 
@@ -91,7 +91,7 @@ hydrate(document.getElementById('app'), () => App())
 
 ### Browser Module Resolution
 
-The client script uses bare specifiers like `@srfnstack/fntags` and `@srfnstack/fntags-ssr/hydrate`. Browsers don't natively resolve these — you need either a bundler or an [import map](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap). For no-build setups, add an import map to your HTML **before** any `<script type="module">` tags:
+The client script uses bare specifiers like `@srfnstack/fntags` and `@srfnstack/fntags-ssr/hydrate`. Browsers don't natively resolve these, so you need either a bundler or an [import map](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap). For no-build setups, add an import map to your HTML **before** any `<script type="module">` tags:
 
 ```html
 <script type="importmap">
@@ -119,7 +119,7 @@ How you serve these depends on your server. Any static file server or middleware
 
 ## State Serialization
 
-SSR automatically serializes all states created with `registeredState(id, value)` — the same API used for HMR state preservation. Use `registeredState` instead of `fnstate` for any state that should survive the server-to-client handoff:
+SSR automatically serializes all states created with `registeredState(id, value)`: the same API used for HMR state preservation. Use `registeredState` instead of `fnstate` for any state that should survive the server-to-client handoff:
 
 ```javascript
 import { registeredState } from '@srfnstack/fntags'
@@ -150,7 +150,7 @@ const page = `
 `
 ```
 
-States created with plain `fnstate()` are not serialized — they'll initialize with their default values on the client.
+States created with plain `fnstate()` are not serialized: they'll initialize with their default values on the client.
 
 ## Routing
 
@@ -171,8 +171,8 @@ const { html } = await renderToString({
 
 Complete working examples are included:
 
-- [`example/`](./example) — Spliffy
-- [`express-example/`](./express-example) — Express 5
+- [`example/`](./example): Spliffy
+- [`express-example/`](./express-example): Express 5
 
 Both demonstrate server-side rendering, state serialization, client hydration, routing, and import maps.
 

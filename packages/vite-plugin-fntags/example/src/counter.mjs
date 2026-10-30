@@ -12,6 +12,6 @@ export const Counter = () => {
       span({ class: 'count' }, count.bindAs(n => `${n}`)),
       button({ onclick: () => count(count() + 1) }, '+')
     ),
-    div({ class: 'message' }, 'Edit this file and save — the count stays the same.')
+    div({ class: 'message' }, 'Edit this file and save: the count stays the same.')
   )
 }

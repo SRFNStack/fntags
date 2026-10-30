@@ -73,7 +73,7 @@ describe('escapeScriptContent', () => {
     // eslint-disable-next-line no-eval
     expect(eval(correct)).toBe(value)
 
-    // WRONG order: escape first, then JSON.stringify — produces double-escaped output
+    // WRONG order: escape first, then JSON.stringify, which produces double-escaped output
     const wrong = JSON.stringify(escapeScriptContent(value))
     // eval of the wrong output returns the literal \u003c chars, not <
     // eslint-disable-next-line no-eval
@@ -195,7 +195,7 @@ describe('XSS prevention in renderToStream', () => {
     const expr = extractInnerHtmlAssignment(html)
     expect(expr).toBeTruthy()
 
-    // Evaluate the JS expression — it should produce real HTML with < characters,
+    // Evaluate the JS expression: it should produce real HTML with < characters,
     // not mangled \u003c text
     // eslint-disable-next-line no-eval
     const recoveredHtml = eval(expr)
@@ -203,7 +203,7 @@ describe('XSS prevention in renderToStream', () => {
     expect(recoveredHtml).toContain('<span>')
     expect(recoveredHtml).toContain('sync')
     expect(recoveredHtml).toContain('async content')
-    // Must NOT contain literal \u003c — that would mean the escaping was double-applied
+    // Must NOT contain literal \u003c: that would mean the escaping was double-applied
     expect(recoveredHtml).not.toContain('\\u003c')
     expect(recoveredHtml).not.toContain('u003c')
   })

@@ -69,7 +69,7 @@ describe('hydrate advanced', () => {
 
     expect(container.firstChild.className).toBe('on')
 
-    // Mutate — bindAttr is synchronous
+    // Mutate: bindAttr is synchronous
     const active = registeredState('active', 'off')
     active('off')
     expect(container.firstChild.className).toBe('off')
@@ -128,7 +128,7 @@ describe('hydrate advanced', () => {
   })
 
   it('hydrates with no container content gracefully', () => {
-    // Empty container — first SSR render or error case
+    // Empty container: first SSR render or error case
     container.innerHTML = ''
 
     hydrate(container, () => {
@@ -202,7 +202,7 @@ describe('hydrate advanced', () => {
     })
 
     expect(container.textContent).toBe('yes')
-    // Extra keys were registered but not used — no crash
+    // Extra keys were registered but not used: no crash
     expect(registeredState('unused1', '')()).toBe('extra')
   })
 

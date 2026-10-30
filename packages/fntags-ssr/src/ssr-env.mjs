@@ -49,7 +49,7 @@ export function setupEnv (url) {
     url,
     settings: {
       // Disable all resource loading to prevent SSRF.
-      // SSR only needs DOM serialization — it should never fetch external JS, CSS, or iframe content.
+      // SSR only needs DOM serialization: it should never fetch external JS, CSS, or iframe content.
       disableJavaScriptFileLoading: true,
       disableCSSFileLoading: true,
       disableIframePageLoading: true,

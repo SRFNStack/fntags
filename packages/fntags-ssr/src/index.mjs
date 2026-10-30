@@ -16,10 +16,10 @@ import { setupEnv, acquireMutex } from './ssr-env.mjs'
  * double-escaped to \\u003c, which the JS parser reads as a literal backslash + text.
  *
  * @example
- * // Correct — \u003c in JS source is a Unicode escape for <
+ * // Correct: \u003c in JS source is a Unicode escape for <
  * escapeScriptContent(JSON.stringify(state))
  *
- * // WRONG — JSON.stringify escapes \ to \\, breaking the Unicode escape
+ * // WRONG: JSON.stringify escapes \ to \\, breaking the Unicode escape
  * JSON.stringify(escapeScriptContent(value))
  */
 export function escapeScriptContent (str) {

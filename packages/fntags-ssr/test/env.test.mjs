@@ -121,7 +121,7 @@ describe('acquireMutex', () => {
 
     // Second render must complete within a reasonable time (not deadlocked)
     const timeout = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Deadlocked — mutex was not released')), 3000)
+      setTimeout(() => reject(new Error('Deadlocked: mutex was not released')), 3000)
     )
     const render = renderToString({
       url: '/',

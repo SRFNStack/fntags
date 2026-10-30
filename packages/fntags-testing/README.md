@@ -2,7 +2,7 @@
 
 A lightweight testing library for [fntags](https://github.com/SRFNStack/fntags), built on [@testing-library/dom](https://testing-library.com/docs/dom-testing-library/intro).
 
-fntags components are plain functions that return real DOM elements. No virtual DOM, no component wrappers, no special test utilities needed. This library gives you a `render()` function and re-exports the standard @testing-library/dom API — that's it.
+fntags components are plain functions that return real DOM elements. No virtual DOM, no component wrappers, no special test utilities needed. This library gives you a `render()` function and re-exports the standard @testing-library/dom API, that's it.
 
 ## Setup
 
@@ -37,7 +37,7 @@ it('renders elements', () => {
 })
 ```
 
-Pass a component function directly — `render()` calls it for you:
+Pass a component function directly and `render()` calls it for you:
 
 ```javascript
 const Greeting = () => div('Hello, world!')
@@ -64,7 +64,7 @@ it('handles clicks', () => {
 
 ### State Changes
 
-`bindAttr` and `bindStyle` update synchronously. `bindAs` re-renders via microtask — use `waitFor()`:
+`bindAttr` and `bindStyle` update synchronously. `bindAs` re-renders via microtask, so use `waitFor()`:
 
 ```javascript
 import { render, screen, waitFor } from '@srfnstack/fntags-testing'

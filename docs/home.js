@@ -40,7 +40,7 @@ export default () => div({ id: 'Home', class: 'flex-center', style: 'flex-direct
     h2({ style: 'text-align: center; margin-bottom: 30px; border: none;' }, 'Why fntags?'),
     div({ class: 'why-grid' },
       div(strong('No Build Step'), p('Import directly from a CDN or your file system. No Webpack, no Babel, no headaches.')),
-      div(strong('Granular State'), p('Bind only what needs to change—text, attributes, or styles—for high-performance updates.')),
+      div(strong('Granular State'), p('Bind only what needs to change (text, attributes, or styles) for high-performance updates.')),
       div(strong('Standards Based'), p('Just standard ES6 JavaScript and HTML5. Zero magic syntax to learn.')),
       div(strong('Effortless Debugging'), p('Tired of debugging framework internals? In fntags, there is no black box. Errors produce clean stack traces that point exactly to your source code.'))
     )

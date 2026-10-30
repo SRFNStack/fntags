@@ -44,7 +44,7 @@ export default function fntagsHmr () {
       if (!/\.(mjs|js|ts)$/.test(id)) return null
       if (id.includes('node_modules')) return null
 
-      // Don't transform fntags source files — their state is managed internally
+      // Don't transform fntags source files: their state is managed internally
       if (/fntags(\.mjs)?$/.test(id) || /fnroute(\.mjs)?$/.test(id)) return null
 
       if (!/\bfnstate\s*\(/.test(code)) return null
@@ -115,7 +115,7 @@ export default function fntagsHmr () {
 
       // Wrap exported functions that contain fnstate calls with registeredComponent
       // so callers always get the latest version after HMR.
-      // Only functions that directly use fnstate are wrapped — utility functions
+      // Only functions that directly use fnstate are wrapped: utility functions
       // are left alone to preserve hoisting semantics.
       for (const node of ast.body) {
         // export default function name() { ... }
@@ -202,7 +202,7 @@ if (import.meta.hot) {
     if (globalThis.__fntags_hmr_rerender) {
       globalThis.__fntags_hmr_rerender()
     } else {
-      console.warn('[vite-plugin-fntags] HMR update received for ' + ${JSON.stringify(fileId)} + ' but no hmrRoot detected — the DOM was not re-rendered. Use hmrRoot() in your entry file to enable full HMR. See: https://srfnstack.github.io/fntags/vite-plugin')
+      console.warn('[vite-plugin-fntags] HMR update received for ' + ${JSON.stringify(fileId)} + ' but no hmrRoot detected, so the DOM was not re-rendered. Use hmrRoot() in your entry file to enable full HMR. See: https://srfnstack.github.io/fntags/vite-plugin')
     }
   })
 }

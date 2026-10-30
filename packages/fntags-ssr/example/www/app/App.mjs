@@ -1,5 +1,5 @@
 /**
- * Shared application component — used on both server and client.
+ * Shared application component: used on both server and client.
  */
 import { registeredState, div, h1, h2, p, button, ul, li, nav, main, header, footer, input, span, routeSwitch, route, fnlink, pathParameters, setRootPath } from '@srfnstack/fntags'
 
@@ -8,7 +8,7 @@ const HomePage = () =>
   div(
     h2('Welcome'),
     p('This page was server-rendered with fntags SSR and hydrated on the client.'),
-    p('Try clicking the counter button — it works because hydration restored event listeners and reactive bindings.')
+    p('Try clicking the counter button: it works because hydration restored event listeners and reactive bindings.')
   )
 
 const Counter = () => {

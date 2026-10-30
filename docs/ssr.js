@@ -14,7 +14,7 @@ export default div(
     prismCode(
       'npm install @srfnstack/fntags-ssr'
     ),
-    p('This installs both the server-side rendering API and the client-side hydration API. ', a({ href: 'https://github.com/nicolo-ribaudo/happy-dom' }, 'happy-dom'), ' is included as a dependency and is only used on the server — it is never bundled into client code.')
+    p('This installs both the server-side rendering API and the client-side hydration API. ', a({ href: 'https://github.com/nicolo-ribaudo/happy-dom' }, 'happy-dom'), ' is included as a dependency and is only used on the server. It is never bundled into client code.')
   ),
 
   contentSection(
@@ -22,7 +22,7 @@ export default div(
     p('SSR has two sides: the server renders HTML, and the client hydrates it. The key is that both sides use the ', b('same component function'), '.'),
     p('First, write your app component as a normal fntags function:'),
     prismCode(
-`// app.mjs — shared between server and client
+`// app.mjs: shared between server and client
 import { h, registeredState } from '@srfnstack/fntags'
 import { div, h1, p, button, span } from '@srfnstack/fntags/fnelements'
 
@@ -75,7 +75,7 @@ const page = \`<!DOCTYPE html>
     ),
     p('The import map applies to all modules on the page, including internal imports within fntags-ssr. Relative imports within the fntags source resolve naturally as long as the directory structure is preserved when serving.'),
     prismCode(
-`// client.mjs — served as a static file
+`// client.mjs: served as a static file
 import { hydrate } from '@srfnstack/fntags-ssr/hydrate'
 import { App } from './app.mjs'
 
@@ -86,7 +86,7 @@ hydrate(document.getElementById('app'), () => App())`
 
   contentSection(
     'State Serialization',
-    p('SSR automatically serializes and restores any state created with ', code('registeredState'), '. This is the same API used for HMR state preservation — if you\'re already using it, SSR state transfer works with zero changes.'),
+    p('SSR automatically serializes and restores any state created with ', code('registeredState'), '. This is the same API used for HMR state preservation. If you\'re already using it, SSR state transfer works with zero changes.'),
     prismCode(
 `import { registeredState } from '@srfnstack/fntags'
 
@@ -128,7 +128,7 @@ const about = await renderToString({
   }
 })
 
-// Path parameters work too — /user/42 populates pathParameters().id
+// Path parameters work too: /user/42 populates pathParameters().id
 const user = await renderToString({
   url: '/user/42',
   appFn: async () => {
@@ -152,7 +152,7 @@ const user = await renderToString({
 
   contentSection(
     'Async Children',
-    p('fntags supports promises as children — a hidden placeholder is created and replaced when the promise resolves. ', code('renderToString'), ' waits for all promise children to resolve before returning, so the output always contains the final content.'),
+    p('fntags supports promises as children: a hidden placeholder is created and replaced when the promise resolves. ', code('renderToString'), ' waits for all promise children to resolve before returning, so the output always contains the final content.'),
     prismCode(
 `import { h } from '@srfnstack/fntags'
 
@@ -190,7 +190,7 @@ function App () {
       p('3. Add an import map in your HTML that maps the bare specifiers to those URLs'),
       p('4. Place your shared app component where the browser can load it (e.g. in your static files directory)')
     ),
-    p('Any Node.js server can do this — serve the files from ', code('node_modules'), ' and add the import map to your HTML template. The import map only needs entries for bare specifiers; relative imports within the fntags source resolve naturally as long as the directory structure is preserved.'),
+    p('Any Node.js server can do this: serve the files from ', code('node_modules'), ' and add the import map to your HTML template. The import map only needs entries for bare specifiers; relative imports within the fntags source resolve naturally as long as the directory structure is preserved.'),
     p('Complete working examples are available using ', a({ href: 'https://github.com/srfnstack/fntags/tree/master/packages/fntags-ssr/example' }, 'Spliffy'), ' and ', a({ href: 'https://github.com/srfnstack/fntags/tree/master/packages/fntags-ssr/express-example' }, 'Express'), '.')
   ),
 
@@ -216,7 +216,7 @@ const stream = renderToStream({
 
   contentSection(
     'How Hydration Works',
-    p('fntags has no virtual DOM — every element is a real DOM node. Because of this, hydration works by re-executing the component tree and replacing the container content. This is the same approach used by ', code('hmrRoot'), ' for hot module replacement.'),
+    p('fntags has no virtual DOM: every element is a real DOM node. Because of this, hydration works by re-executing the component tree and replacing the container content. This is the same approach used by ', code('hmrRoot'), ' for hot module replacement.'),
     p('The sequence is:'),
     div({ style: 'padding-left: 20px' },
       p('1. ', code('hydrate'), ' reads the state snapshot from ', code('window.__FNTAGS_SSR_STATE__')),
@@ -224,7 +224,7 @@ const stream = renderToStream({
       p('3. It calls your app factory, which creates fresh DOM nodes with event listeners and reactive bindings'),
       p('4. It replaces the container\'s static server HTML with the live DOM tree')
     ),
-    p('Since the same state values produce the same HTML, the replacement is visually seamless — there\'s no flash of different content.')
+    p('Since the same state values produce the same HTML, the replacement is visually seamless: there\'s no flash of different content.')
   ),
 
   contentSection(
@@ -277,7 +277,7 @@ const stream = renderToStream({
   contentSection(
     'Concurrency',
     p(code('renderToString'), ' installs a temporary DOM environment on ', code('globalThis'), ' for the duration of each render. Since globals are shared, a mutex ensures only one render runs at a time. Concurrent calls are queued automatically.'),
-    p('For high-throughput production scenarios, you can run renders in Node.js ', code('worker_threads'), ' — each worker has its own global scope, so renders can execute in parallel without contention.'),
+    p('For high-throughput production scenarios, you can run renders in Node.js ', code('worker_threads'), ': each worker has its own global scope, so renders can execute in parallel without contention.'),
     p('For most applications, the single-threaded approach is sufficient. Server-rendered pages are typically cached behind a CDN, so each unique page is only rendered once.')
   ),
 

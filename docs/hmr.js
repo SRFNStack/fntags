@@ -5,7 +5,7 @@ import prismCode from './prismCode.js'
 export default div(
   contentSection(
     'Vite Plugin',
-    p(b('vite-plugin-fntags'), ' gives you instant feedback when developing fntags apps with ', a({ href: 'https://vite.dev' }, 'Vite'), '. Edit a component, save, and see the change immediately — without losing state or reloading the page.')
+    p(b('vite-plugin-fntags'), ' gives you instant feedback when developing fntags apps with ', a({ href: 'https://vite.dev' }, 'Vite'), '. Edit a component, save, and see the change immediately, without losing state or reloading the page.')
   ),
   contentSection(
     'Install',
@@ -65,8 +65,8 @@ export const App = () => div(h1('My App'), Counter())`
   contentSection(
     'What It Does',
     p('During ', code('vite dev'), ', the plugin does two things:'),
-    p(b('1. Rewrites fnstate calls'), ' — ', code('const count = fnstate(0)'), ' inside a component ', code('Counter'), ' becomes ', code("const count = registeredState('src/counter:Counter:count', 0)"), '. The ', code('registeredState'), ' function stores the state in a global registry so it survives when Vite re-executes the module.'),
-    p(b('2. Injects HMR accept'), ' — appends ', code('import.meta.hot.accept()'), ' to every file that uses ', code('fnstate'), ', telling Vite to hot-update the module instead of doing a full page reload.'),
+    p(b('1. Rewrites fnstate calls'), ': ', code('const count = fnstate(0)'), ' inside a component ', code('Counter'), ' becomes ', code("const count = registeredState('src/counter:Counter:count', 0)"), '. The ', code('registeredState'), ' function stores the state in a global registry so it survives when Vite re-executes the module.'),
+    p(b('2. Injects HMR accept'), ': appends ', code('import.meta.hot.accept()'), ' to every file that uses ', code('fnstate'), ', telling Vite to hot-update the module instead of doing a full page reload.'),
     p('Production builds are not affected. The plugin only runs during ', code('vite dev'), '.')
   ),
   contentSection(
@@ -75,10 +75,10 @@ export const App = () => div(h1('My App'), Counter())`
     h3({ id: 'the-problem', style: 'border-bottom: none; font-size: 18px;' }, 'The Problem'),
     p('When Vite hot-replaces a module, it re-executes the module\'s top-level code. For a reactive framework, this means every ', code('const count = fnstate(0)'), ' creates a ', b('new'), ' state instance, resetting its value to 0. The DOM still references the old state. You need to solve two problems:'),
     ul(
-      li('Preserve state identity — the same ', code('fnstate'), ' call must return the same state object after reload'),
-      li('Re-render the DOM — new code must produce new DOM bound to the preserved state')
+      li('Preserve state identity: the same ', code('fnstate'), ' call must return the same state object after reload'),
+      li('Re-render the DOM: new code must produce new DOM bound to the preserved state')
     ),
-    h3({ id: 'state-registry', style: 'border-bottom: none; font-size: 18px;' }, 'Part 1 — State Registry'),
+    h3({ id: 'state-registry', style: 'border-bottom: none; font-size: 18px;' }, 'Part 1: State Registry'),
     p('The simplest approach is a global registry that maps stable IDs to state instances. The registry lives on ', code('globalThis'), ', which survives module reloads.'),
     prismCode(
 `export function registeredState (id, initialValue, mapKey) {
@@ -87,15 +87,15 @@ export const App = () => div(h1('My App'), Counter())`
   }
   const registry = globalThis.__fntags_registry
   if (registry.has(id)) {
-    return registry.get(id)    // Return existing — value preserved
+    return registry.get(id)    // Return existing: value preserved
   }
   const state = fnstate(initialValue, mapKey)
-  registry.set(id, state)      // First time — create and store
+  registry.set(id, state)      // First time: create and store
   return state
 }`
     ),
-    p('Each state gets an ID based on file path, enclosing function scope, and variable name — e.g. ', code("'src/counter:Counter:count'"), '. When the module re-executes, ', code('registeredState'), ' finds the existing state and returns it. The ', code('initialValue'), ' argument is ignored — the state keeps whatever value the user set.'),
-    h3({ id: 'code-transform', style: 'border-bottom: none; font-size: 18px;' }, 'Part 2 — Code Transform'),
+    p('Each state gets an ID based on file path, enclosing function scope, and variable name, e.g. ', code("'src/counter:Counter:count'"), '. When the module re-executes, ', code('registeredState'), ' finds the existing state and returns it. The ', code('initialValue'), ' argument is ignored, the state keeps whatever value the user set.'),
+    h3({ id: 'code-transform', style: 'border-bottom: none; font-size: 18px;' }, 'Part 2: Code Transform'),
     p('Users shouldn\'t have to call ', code('registeredState'), ' manually. The Vite plugin\'s ', code('transform'), ' hook rewrites the code automatically:'),
     prismCode(
 `// What you write:
@@ -121,9 +121,9 @@ function App() {
   }
 }`
     ),
-    p('Scope-aware IDs matter because ', code('fnstate'), ' is typically called inside component functions. Without scope tracking, two components in the same file declaring ', code('const count = fnstate(0)'), ' would share the same registry key. The scope chain ensures each call site gets a unique, stable ID — stable across reordering components and inserting lines.'),
+    p('Scope-aware IDs matter because ', code('fnstate'), ' is typically called inside component functions. Without scope tracking, two components in the same file declaring ', code('const count = fnstate(0)'), ' would share the same registry key. The scope chain ensures each call site gets a unique, stable ID, stable across reordering components and inserting lines.'),
     p('The plugin uses ', code('magic-string'), ' for source modifications, preserving sourcemap accuracy. It also patches the import, appending ', code('registeredState'), ' to the existing fntags import.'),
-    h3({ id: 'hmr-accept', style: 'border-bottom: none; font-size: 18px;' }, 'Part 3 — HMR Accept'),
+    h3({ id: 'hmr-accept', style: 'border-bottom: none; font-size: 18px;' }, 'Part 3: HMR Accept'),
     p('Vite needs to know a module can handle its own updates. The plugin appends an accept callback to every transformed file:'),
     prismCode(
 `if (import.meta.hot) {
@@ -133,7 +133,7 @@ function App() {
 }`
     ),
     p('This tells Vite: "re-execute this module in place instead of full-reloading." The accept callback then triggers a global re-render registered by ', code('hmrRoot'), '. The ', code('import.meta.hot'), ' guard is tree-shaken in production builds.'),
-    h3({ id: 'rerendering', style: 'border-bottom: none; font-size: 18px;' }, 'Part 4 — Re-rendering'),
+    h3({ id: 'rerendering', style: 'border-bottom: none; font-size: 18px;' }, 'Part 4: Re-rendering'),
     p('State is preserved, but the DOM still shows the old render. The entry point uses ', code('hmrRoot'), ', which registers a global rerender callback:'),
     prismCode(
 `export function hmrRoot (container, appFn) {
@@ -163,7 +163,7 @@ function App() {
   contentSection(
     'Limitations',
     ul(
-      li(b('Only variable declarations are rewritten.'), ' ', code('const count = fnstate(0)'), ' is rewritten. ', code('arr.push(fnstate(0))'), ' is not — anonymous state resets on reload.'),
+      li(b('Only variable declarations are rewritten.'), ' ', code('const count = fnstate(0)'), ' is rewritten. ', code('arr.push(fnstate(0))'), ' is not: anonymous state resets on reload.'),
       li(b('State shape changes need a full reload.'), ' If you change ', code('fnstate(0)'), ' to ', code('fnstate({ count: 0 })'), ', the registry returns the old numeric value. Press Ctrl+R when you change state shape.'),
       li(b('Top-level non-function exports don\'t update.'), ' Only exported functions are wrapped for HMR. A top-level ', code('export const foo = myState.bindAs((st) => div(st))'), ' won\'t reflect changes on reload because the bound element is created once. Move it inside a component function instead.'),
       li(b('Dev only.'), ' The plugin sets ', code("apply: 'serve'"), ', so production builds use normal ', code('fnstate'), ' with zero overhead.')

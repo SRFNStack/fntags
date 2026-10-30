@@ -16,12 +16,12 @@ describe('selectObserver leak detection', () => {
     // Each item registers selectObservers under its key
     expect(Object.keys(items._ctx.selectObservers).length).toBe(3)
 
-    // Remove 2 items — their selectObservers should be deleted
+    // Remove 2 items: their selectObservers should be deleted
     items([{ id: 1 }])
     expect(Object.keys(items._ctx.selectObservers).length).toBe(1)
     expect(items._ctx.selectObservers[1]).toBeDefined()
 
-    // Remove all — all selectObservers cleared
+    // Remove all: all selectObservers cleared
     items([])
     expect(Object.keys(items._ctx.selectObservers).length).toBe(0)
   })
@@ -83,12 +83,12 @@ describe('selectObserver leak detection', () => {
 
     expect(Object.keys(items._ctx.selectObservers).length).toBe(2)
 
-    // Switch view — parent bindAs re-renders, selectObservers should be cleaned
+    // Switch view: parent bindAs re-renders, selectObservers should be cleaned
     view('other')
     await flush()
     expect(Object.keys(items._ctx.selectObservers).length).toBe(0)
 
-    // Switch back — recreated
+    // Switch back: recreated
     view('list')
     await flush()
     expect(Object.keys(items._ctx.selectObservers).length).toBe(2)
@@ -121,7 +121,7 @@ describe('selectObserver leak detection', () => {
     // i=9: 9%2=1 → 'list'
     expect(Object.keys(items._ctx.selectObservers).length).toBe(2)
 
-    // Count total select observers across all keys — should not grow with each toggle
+    // Count total select observers across all keys: should not grow with each toggle
     const totalObservers = Object.values(items._ctx.selectObservers)
       .reduce((sum, entry) => sum + (Array.isArray(entry) ? entry.length : 1), 0)
     // Initial render creates some observers per item, and that count should stay stable
@@ -182,7 +182,7 @@ describe('elementState sync-back subscription leak', () => {
     expect(es1._ctx.observers.length).toBe(2)
     expect(es2._ctx.observers.length).toBe(2)
 
-    // Remove item 2 — its elementState's bindAs driving sub should be cleaned
+    // Remove item 2: its elementState's bindAs driving sub should be cleaned
     items([{ id: 1, v: 'a' }])
     await flush()
 
@@ -242,7 +242,7 @@ describe('rapid state changes during microtask window', () => {
 
     expect(inner._ctx.observers.length).toBe(1)
 
-    // Fire many changes synchronously — each triggers updateReplacer which
+    // Fire many changes synchronously: each triggers updateReplacer which
     // schedules a microtask, but cleanup should still be correct
     outer('B')
     outer('C')
@@ -320,12 +320,12 @@ describe('bindChildren driving subscription cleanup', () => {
     // items has 1 observer: the reconcile/driving subscription from bindChildren
     expect(items._ctx.observers.length).toBe(1)
 
-    // Switch away — the driving subscription should be cleaned up
+    // Switch away: the driving subscription should be cleaned up
     view('empty')
     await flush()
     expect(items._ctx.observers.length).toBe(0)
 
-    // Switch back — recreated
+    // Switch back: recreated
     view('list')
     await flush()
     expect(items._ctx.observers.length).toBe(1)
@@ -355,7 +355,7 @@ describe('bindChildren driving subscription cleanup', () => {
   })
 })
 
-describe('bindAttr inside bindChildren item — value update cleanup', () => {
+describe('bindAttr inside bindChildren item: value update cleanup', () => {
   it('updating an item value does not leak bindAttr subscriptions created in the item builder', async () => {
     const items = fnstate([{ id: 1, text: 'a' }, { id: 2, text: 'b' }], o => o.id)
     const theme = fnstate('light')
@@ -372,7 +372,7 @@ describe('bindAttr inside bindChildren item — value update cleanup', () => {
 
     expect(theme._ctx.observers.length).toBe(2)
 
-    // Update items (same keys, new values) — bindAs inside each item re-renders,
+    // Update items (same keys, new values): bindAs inside each item re-renders,
     // but the bindAttr was created in the item builder (not inside bindAs),
     // so it should NOT be affected by the bindAs re-render
     items([{ id: 1, text: 'aa' }, { id: 2, text: 'bb' }])
@@ -387,7 +387,7 @@ describe('bindAttr inside bindChildren item — value update cleanup', () => {
     expect(theme._ctx.observers.length).toBe(2)
   })
 
-  it('bindAttr INSIDE bindAs inside bindChildren item — re-renders clean up correctly', async () => {
+  it('bindAttr INSIDE bindAs inside bindChildren item: re-renders clean up correctly', async () => {
     const items = fnstate([{ id: 1 }, { id: 2 }], o => o.id)
     const theme = fnstate('light')
 
@@ -409,7 +409,7 @@ describe('bindAttr inside bindChildren item — value update cleanup', () => {
     await flush()
 
     // The item values are identical objects with same shape, but fnstate
-    // doesn't do deep equality — it will notify since !== is true for new objects
+    // doesn't do deep equality: it will notify since !== is true for new objects
     expect(theme._ctx.observers.length).toBe(2)
   })
 })
@@ -522,7 +522,7 @@ describe('bindChildren with bindChildren inside (nested lists)', () => {
     // 5 inner items total, each with a theme.bindAttr
     expect(theme._ctx.observers.length).toBe(5)
 
-    // Remove outer item 'b' — its 3 inner items' subscriptions should clean up
+    // Remove outer item 'b': its 3 inner items' subscriptions should clean up
     outer([{ id: 'a', subs: ['a1', 'a2'] }])
     await flush()
     expect(theme._ctx.observers.length).toBe(2)
@@ -612,7 +612,7 @@ describe('subscribe returns working unsubscribe after cleanup', () => {
 
     expect(inner._ctx.observers.length).toBe(1)
 
-    // Re-render outer — cleanup will call the first unsub via activeRenderCleanups
+    // Re-render outer: cleanup will call the first unsub via activeRenderCleanups
     outer('B')
     await flush()
 
