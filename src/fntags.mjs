@@ -1297,18 +1297,24 @@ function doBindRows (parent, template, options) {
   return parent
 }
 
-// One row of a bindRows list. vals is the object values() returned last (the
-// item itself when values is omitted), read back to diff the next run. scope
-// holds the cleanups registered while values ran and its slots were applied,
-// or null when there were none.
-function Row (key, item, gen) {
-  this.key = key
-  this.item = item
-  this.node = null
-  this.vals = null
-  this.scope = null
-  this.gen = gen
+// One row of a bindRows list. Every record is built by this one constructor
+// with its fields in this order, so all rows share a hidden class. slot is
+// where the row's last slot values start in the list's value store (-1 when
+// the list has none), read back to diff the next run. gen is the reconcile
+// pass that last saw the row, or ROW_DEAD once the row is removed. The
+// cleanups of the few rows that register any live in the list's scopes map,
+// not in a field every row would carry.
+class Row {
+  constructor (key, item, gen) {
+    this.key = key
+    this.item = item
+    this.node = null
+    this.slot = -1
+    this.gen = gen
+  }
 }
+
+const ROW_DEAD = -1
 
 const identityValues = item => item
 
@@ -1323,6 +1329,9 @@ function RowsBinding (ctx, parent, tpl, options) {
   const handlers = options.handlers || {}
   // The compiled bindings values() fills.
   this.valueSlots = []
+  // Per value slot: how many ops of the template walk reach its bound node, so
+  // a re-run walks only as far as the slots that changed.
+  this.slotEnds = []
   // The compiled bindings handlers fill, flattened as binding, listener pairs.
   this.eventSlots = []
   const listeners = new Map()
@@ -1330,6 +1339,7 @@ function RowsBinding (ctx, parent, tpl, options) {
     const fn = Object.prototype.hasOwnProperty.call(handlers, b.prop) ? handlers[b.prop] : undefined
     if (typeof fn !== 'function') {
       this.valueSlots.push(b)
+      this.slotEnds.push(captureEnd(tpl.ops, b.ref))
       continue
     }
     if (b.kind !== TPL_EVENT && b.kind !== TPL_EVENT_DELEGATED) {
@@ -1342,14 +1352,27 @@ function RowsBinding (ctx, parent, tpl, options) {
     }
     this.eventSlots.push(b, listener)
   }
+  // The slot values every mounted row wrote last, valueSlots.length per row
+  // from its slot index, so a row keeps no values object between runs. Freed
+  // ranges are reused. Without a values function the values are the item, and
+  // the item a row had is what the next run diffs against, so there is no store.
+  this.store = this.values === identityValues || this.valueSlots.length === 0 ? null : []
+  // The end of the store's used part: a store sized ahead of a mount can be longer.
+  this.storeTop = 0
+  this.freeSlots = []
   this.rows = new Map()
   // The rows in DOM order, and the buffer the next pass maps values into.
   this.order = []
   this.next = []
   this.gen = 0
-  // Number of rows whose scope is not null, so clearing a list that has no
-  // bindings skips the walk over its rows.
-  this.scoped = 0
+  // Rows whose gen is below floor are gone: clearing every row raises it
+  // instead of marking each record, and removing one row sets its gen to
+  // ROW_DEAD, so a row's liveness is one compare.
+  this.floor = 0
+  // Row to the cleanups registered while its values ran and its slots were
+  // applied, for the rows that registered any. null until one does, so
+  // clearing a list that has no bindings has nothing to run.
+  this.scopes = null
   this.scratch = new Array(tpl.nRefs).fill(null)
   this.busy = false
 }
@@ -1365,7 +1388,7 @@ function rowListener (rows, fn) {
       node = node.parentNode
       if (node === null) return
     }
-    if (rows.rows.get(row.key) !== row) return
+    if (row.gen < rows.floor) return
     return fn.call(this, e, row.item)
   }
 }
@@ -1383,11 +1406,13 @@ RowsBinding.prototype.update = function (newValue, oldValue) {
 
 // Called by doSelect: only the rows that lose and gain selection re-run.
 RowsBinding.prototype.select = function (previous, key) {
+  // The item is the values without a values function, so selection changes nothing.
+  if (this.store === null) return
   const selected = this.ctx.selected
   let row = this.rows.get(previous)
-  if (row !== undefined && row.node !== null) rerunRow(this, row, selected)
+  if (row !== undefined && row.node !== null) rerunRow(this, row, selected, null)
   row = this.rows.get(key)
-  if (row !== undefined && row.node !== null) rerunRow(this, row, selected)
+  if (row !== undefined && row.node !== null) rerunRow(this, row, selected, null)
 }
 
 RowsBinding.prototype.dispose = function () {
@@ -1396,20 +1421,75 @@ RowsBinding.prototype.dispose = function () {
   const list = ctx.rowBindings
   const idx = list === null ? -1 : list.indexOf(this)
   if (idx !== -1) list.splice(idx, 1)
-  if (this.scoped > 0) {
-    for (const row of this.rows.values()) runRowScope(this, row)
-  }
+  runAllRowScopes(this)
   this.rows.clear()
   this.order.length = 0
   this.next.length = 0
+  this.floor = ++this.gen
+  resetRowVals(this, 0)
+}
+
+// Empty the value store, sized for count rows to be mounted next so filling
+// it does not grow it step by step.
+function resetRowVals (rows, count) {
+  if (rows.store === null) return
+  rows.store = count > 0 ? new Array(count * rows.valueSlots.length) : []
+  rows.storeTop = 0
+  rows.freeSlots.length = 0
+}
+
+// Keep the slot values a row was mounted with, for its next run to diff.
+function saveRowVals (rows, row, vals) {
+  const store = rows.store
+  if (store === null) return
+  const slots = rows.valueSlots
+  const free = rows.freeSlots
+  if (free.length > 0) {
+    const base = free.pop()
+    row.slot = base
+    for (let i = 0; i < slots.length; i++) store[base + i] = vals[slots[i].prop]
+  } else {
+    const base = rows.storeTop
+    rows.storeTop = base + slots.length
+    row.slot = base
+    for (let i = 0; i < slots.length; i++) store[base + i] = vals[slots[i].prop]
+  }
+}
+
+// Release a removed row's range of the value store, so it pins no values.
+function freeRowVals (rows, row) {
+  const store = rows.store
+  const base = row.slot
+  if (store === null || base === -1) return
+  row.slot = -1
+  for (let i = 0, n = rows.valueSlots.length; i < n; i++) store[base + i] = undefined
+  rows.freeSlots.push(base)
+}
+
+// The number of ops a walk runs to capture ref.
+function captureEnd (ops, ref) {
+  for (let i = 0; i < ops.length; i++) {
+    if ((ops[i] & 3) === OP_CAPTURE && ops[i] >> 2 === ref) return i + 1
+  }
+  return ops.length
 }
 
 function runRowScope (rows, row) {
-  const scope = row.scope
-  if (scope === null) return
-  row.scope = null
-  rows.scoped--
+  const scopes = rows.scopes
+  if (scopes === null) return
+  const scope = scopes.get(row)
+  if (scope === undefined) return
+  scopes.delete(row)
   for (let i = 0; i < scope.length; i++) runCleanupEntry(scope[i])
+}
+
+function runAllRowScopes (rows) {
+  const scopes = rows.scopes
+  if (scopes === null) return
+  rows.scopes = null
+  for (const scope of scopes.values()) {
+    for (let i = 0; i < scope.length; i++) runCleanupEntry(scope[i])
+  }
 }
 
 // Close the cleanup scope a row's values() and slot writes ran in.
@@ -1417,21 +1497,45 @@ function closeRowScope (rows, row, prevCleanups) {
   const scope = takeRenderCleanups()
   activeRenderCleanups = prevCleanups
   if (scope !== null) {
-    row.scope = scope
-    rows.scoped++
+    if (rows.scopes === null) rows.scopes = new Map()
+    rows.scopes.set(row, scope)
   }
 }
 
 // Locate the bound nodes of a row. The refs live until releaseRowRefs.
 function rowRefs (rows, node) {
-  let refs = rows.scratch
-  if (rows.busy) {
-    refs = new Array(refs.length)
-  } else {
-    rows.busy = true
-  }
+  const refs = acquireRowRefs(rows)
   walkTemplate(rows.ops, node, refs)
   return refs
+}
+
+// The scratch refs array, or a fresh one when a nested run holds it.
+function acquireRowRefs (rows) {
+  if (rows.busy) return new Array(rows.scratch.length)
+  rows.busy = true
+  return rows.scratch
+}
+
+// Run ops[from, to) of a template walk from cur and return where it stopped,
+// so a re-run can walk a prefix and resume it for a later slot.
+function walkOps (ops, from, to, cur, refs) {
+  for (let i = from; i < to; i++) {
+    const op = ops[i]
+    switch (op & 3) {
+      case OP_FIRST_CHILD:
+        cur = cur.firstChild
+        break
+      case OP_NEXT_SIBLING:
+        cur = cur.nextSibling
+        break
+      case OP_CAPTURE:
+        refs[op >> 2] = cur
+        break
+      default:
+        cur = refs[op >> 2].nextSibling
+    }
+  }
+  return cur
 }
 
 function releaseRowRefs (rows, refs) {
@@ -1471,7 +1575,7 @@ function mountRow (rows, row, selected) {
   activeRenderCleanups = NO_CLEANUPS
   try {
     const vals = rows.values(row.item, selected)
-    row.vals = vals
+    saveRowVals(rows, row, vals)
     for (let i = 0; i < slots.length; i++) {
       const b = slots[i]
       const val = vals[b.prop]
@@ -1486,7 +1590,9 @@ function mountRow (rows, row, selected) {
 }
 
 // Run values again for a mounted row and write the slots whose value changed.
-function rerunRow (rows, row, selected) {
+// prevItem is the item the row had before, which is what it showed when the
+// list has no value store.
+function rerunRow (rows, row, selected, prevItem) {
   const slots = rows.valueSlots
   if (slots.length === 0) return
   runRowScope(rows, row)
@@ -1495,17 +1601,27 @@ function rerunRow (rows, row, selected) {
   let refs = null
   try {
     const vals = rows.values(row.item, selected)
-    const old = row.vals
-    row.vals = vals
+    const store = rows.store
+    const base = row.slot
+    const ends = rows.slotEnds
+    let walked = 0
+    let cur = row.node
     for (let i = 0; i < slots.length; i++) {
       const b = slots[i]
       const val = vals[b.prop]
-      const prev = old[b.prop]
+      const prev = store === null ? prevItem[b.prop] : store[base + i]
       if (Object.is(val, prev)) continue
+      if (store !== null) store[base + i] = val
       // The bound nodes are found again instead of being kept per row: a
       // re-run is rare next to a mount, and a node that replaced a slot's
-      // node sits where the old one was, so the walk finds it.
-      if (refs === null) refs = rowRefs(rows, row.node)
+      // node sits where the old one was, so the walk finds it. The walk stops
+      // at this slot's node and resumes from there for a later one.
+      const end = ends[i]
+      if (end > walked) {
+        if (refs === null) refs = acquireRowRefs(rows)
+        cur = walkOps(rows.ops, walked, end, cur, refs)
+        walked = end
+      }
       if ((b.kind === TPL_NODE || b.kind === TPL_ONLY) && typeof val === 'object' && val !== null) assertRowSlotValue(val)
       updateRowSlot(b, refs[b.ref], prev, val)
     }
@@ -1584,6 +1700,8 @@ function replaceRowChild (cur, prev, val) {
 function removeRow (rows, row, detach) {
   runRowScope(rows, row)
   rows.rows.delete(row.key)
+  row.gen = ROW_DEAD
+  freeRowVals(rows, row)
   const node = row.node
   if (node !== null) {
     node._fnRow = undefined
@@ -1594,18 +1712,21 @@ function removeRow (rows, row, detach) {
 // Drop every row whose gen is not keepGen (all of them for -1) and empty the parent.
 function dropAllRows (rows, keepGen) {
   const map = rows.rows
+  // The rows kept are new ones that are not mounted yet, so every scope is a
+  // dropped row's.
+  runAllRowScopes(rows)
   if (keepGen === -1) {
-    if (rows.scoped > 0) {
-      for (const row of map.values()) runRowScope(rows, row)
-    }
     map.clear()
+    rows.floor = ++rows.gen
   } else {
+    // Every row this pass kept has gen keepGen, the newest there is.
+    rows.floor = keepGen
     for (const row of map.values()) {
-      if (row.gen === keepGen) continue
-      runRowScope(rows, row)
-      map.delete(row.key)
+      if (row.gen !== keepGen) map.delete(row.key)
     }
   }
+  // No stored values survive either, and the store is sized for the kept rows.
+  resetRowVals(rows, keepGen === -1 ? 0 : rows.order.length)
   rows.parent.textContent = ''
 }
 
@@ -1641,20 +1762,16 @@ function arrangeRows (rows, oldState) {
 
   for (let i = 0; i < n; i++) {
     const item = values[i]
-    // Most rows keep their position and item, and every row of old is in the
-    // map: the row at the same old position answers when it holds the same
-    // item (items are compared by reference, so it has the same key), or
-    // when its key matches.
+    const key = keyMapper(mapKey, item, i)
+    // The row at this position last pass is the usual match, and a live row is
+    // in the map under its key, so a key equal to it skips the map lookup.
     let row = i < m ? old[i] : undefined
-    if (row === undefined || row.item !== item) {
-      const key = keyMapper(mapKey, item, i)
-      if (row === undefined || row.key !== key) row = map.get(key)
-      if (row === undefined) {
-        row = new Row(key, item, gen)
-        map.set(key, row)
-        next[i] = row
-        continue
-      }
+    if (row === undefined || row.key !== key) row = map.get(key)
+    if (row === undefined) {
+      row = new Row(key, item, gen)
+      map.set(key, row)
+      next[i] = row
+      continue
     }
     if (row.gen === gen) {
       if (oldState) ctx.state(oldState)
@@ -1662,9 +1779,10 @@ function arrangeRows (rows, oldState) {
     }
     matched++
     row.gen = gen
-    if (row.item !== item) {
+    const prevItem = row.item
+    if (prevItem !== item) {
       row.item = item
-      if (row.node !== null) rerunRow(rows, row, selected)
+      if (row.node !== null) rerunRow(rows, row, selected, prevItem)
     }
     next[i] = row
   }
@@ -1674,6 +1792,7 @@ function arrangeRows (rows, oldState) {
 
   if (matched === 0) {
     if (oldSize > 0) dropAllRows(rows, gen)
+    else resetRowVals(rows, n)
     for (let i = 0; i < n; i++) {
       parent.appendChild(mountRow(rows, next[i], selected))
     }
