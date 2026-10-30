@@ -1375,6 +1375,7 @@ function RowsBinding (ctx, parent, tpl, options) {
   this.scopes = null
   this.scratch = new Array(tpl.nRefs).fill(null)
   this.busy = false
+  initRowMaster(this, tpl)
 }
 
 // The one listener a list attaches for a handler name. It finds its row by
@@ -1552,7 +1553,252 @@ function assertRowSlotValue (val) {
   }
 }
 
+// Write then clone. Rows whose values are all primitives going into text,
+// plain attribute or style slots are filled by writing those values into a
+// private copy of the template (the master) and cloning it, so the clone
+// arrives filled and needs no walk or slot writes. A master slot is written
+// only when its value differs from what it holds, which makes repeated values
+// nearly free. Event slots are wired on the clone through a precomputed path
+// to each event node. Any other value takes the clone, walk and fill path.
+// The master is shared by every bindRows list of a template and never seen
+// by fntemplate's own instantiation.
+
+const MASTER_UNSET = {}
+
+function initRowMaster (rows, tpl) {
+  rows.master = null
+  const slots = rows.valueSlots
+  if (slots.length === 0) return
+  for (const b of slots) {
+    if (b.kind !== TPL_NODE && b.kind !== TPL_ONLY && b.kind !== TPL_ATTR && b.kind !== TPL_STYLE) return
+  }
+  const master = tpl.master || (tpl.master = createRowMaster(tpl))
+  rows.master = master
+  // The master slot of each value slot, in value slot order, and a reused
+  // array for the values read from values().
+  rows.masterSlots = slots.map(b => master.slots[tpl.bindings.indexOf(b)])
+  rows.masterVals = new Array(slots.length)
+  // The path from the row root to each event node, taken on the clone to wire
+  // the handlers. It reaches each node from the nearer end of its siblings.
+  const refs = new Array(tpl.nRefs)
+  walkTemplate(tpl.ops, master.root, refs)
+  rows.eventPaths = []
+  for (let i = 0; i < rows.eventSlots.length; i += 2) rows.eventPaths.push(masterPath(master.root, refs[rows.eventSlots[i].ref]))
+}
+
+const PATH_FIRST = 0
+const PATH_LAST = 1
+const PATH_NEXT = 2
+const PATH_PREV = 3
+
+function masterPath (root, node) {
+  const path = []
+  while (node !== root) {
+    const parent = node.parentNode
+    const kids = parent.childNodes
+    let idx = 0
+    while (kids[idx] !== node) idx++
+    const back = kids.length - 1 - idx
+    const steps = []
+    if (idx <= back) {
+      steps.push(PATH_FIRST)
+      for (let k = 0; k < idx; k++) steps.push(PATH_NEXT)
+    } else {
+      steps.push(PATH_LAST)
+      for (let k = 0; k < back; k++) steps.push(PATH_PREV)
+    }
+    path.unshift(...steps)
+    node = parent
+  }
+  return path
+}
+
+// Wire the handlers of a row cloned from the master, which has its structure.
+function wireMasterEvents (rows, node) {
+  const eventSlots = rows.eventSlots
+  const paths = rows.eventPaths
+  for (let i = 0; i < eventSlots.length; i += 2) {
+    const path = paths[i >> 1]
+    let cur = node
+    for (let k = 0; k < path.length; k++) {
+      const step = path[k]
+      cur = step === PATH_FIRST ? cur.firstChild : step === PATH_LAST ? cur.lastChild : step === PATH_NEXT ? cur.nextSibling : cur.previousSibling
+    }
+    const b = eventSlots[i]
+    if (b.kind === TPL_EVENT_DELEGATED) {
+      cur[b.event] = eventSlots[i + 1]
+    } else {
+      cur.addEventListener(b.event, eventSlots[i + 1])
+    }
+  }
+}
+
+// One bound node of the master and the value it holds (last).
+function MasterSlot (kind, name, target, group) {
+  this.kind = kind
+  this.name = name
+  this.target = target
+  this.group = group
+  this.last = MASTER_UNSET
+}
+
+function createRowMaster (tpl) {
+  const root = tpl.root.cloneNode(true)
+  const refs = new Array(tpl.nRefs)
+  walkTemplate(tpl.ops, root, refs)
+  const slots = []
+  const groups = new Map()
+  for (const b of tpl.bindings) {
+    const el = refs[b.ref]
+    if (b.kind === TPL_NODE) {
+      slots.push(new MasterSlot(b.kind, null, el, null))
+    } else if (b.kind === TPL_ONLY) {
+      // The placeholder was dropped from the template. A filled clone always
+      // holds one text node there (empty text included), so the master keeps one.
+      slots.push(new MasterSlot(b.kind, null, el.appendChild(document.createTextNode('')), null))
+    } else if (b.kind === TPL_ATTR || b.kind === TPL_STYLE) {
+      let g = groups.get(el)
+      if (g === undefined) {
+        g = { el, slots: [], hasStyle: false, staticStyle: null, dirty: false }
+        groups.set(el, g)
+      }
+      if (b.kind === TPL_STYLE && !g.hasStyle) {
+        g.hasStyle = true
+        g.staticStyle = el.getAttribute('style')
+      }
+      const s = new MasterSlot(b.kind, b.name, el, g)
+      g.slots.push(s)
+      slots.push(s)
+    } else {
+      slots.push(null)
+    }
+  }
+  return { root, slots, dirty: [] }
+}
+
+// Write one row's values into the master, reading them from vals into out.
+// Returns false, with every value read, when one of them cannot go into the
+// master; the slots written before it stay consistent with their last value.
+// Text slots and attributes whose presence does not change are written in
+// place. Adding an attribute next to other bound attributes, and any style
+// change, rebuilds that element's bound attributes in binding order, so the
+// attribute order and style text match what a fill of a fresh clone produces.
+function writeRowMaster (rows, vals, out) {
+  const slots = rows.masterSlots
+  const props = rows.valueSlots
+  const n = slots.length
+  for (let i = 0; i < n; i++) {
+    const val = vals[props[i].prop]
+    out[i] = val
+    if (val !== null && val !== undefined && typeof val !== 'string' && typeof val !== 'number' && typeof val !== 'boolean') {
+      for (i++; i < n; i++) out[i] = vals[props[i].prop]
+      return false
+    }
+    const s = slots[i]
+    const prev = s.last
+    if (Object.is(val, prev)) continue
+    s.last = val
+    if (s.kind === TPL_NODE || s.kind === TPL_ONLY) {
+      s.target.data = typeof val === 'string' ? val : val + ''
+      continue
+    }
+    const g = s.group
+    if (g.dirty) continue
+    if (s.kind === TPL_ATTR && !g.hasStyle) {
+      const was = prev !== MASTER_UNSET && !isEmptyAttr(prev)
+      if (isEmptyAttr(val)) {
+        if (was) s.target.removeAttribute(s.name)
+        continue
+      }
+      if (was || g.slots.length === 1) {
+        s.target.setAttribute(s.name, val)
+        continue
+      }
+    }
+    g.dirty = true
+    rows.master.dirty.push(g)
+  }
+  const dirty = rows.master.dirty
+  if (dirty.length !== 0) {
+    for (let i = 0; i < dirty.length; i++) rebuildMasterGroup(dirty[i])
+    dirty.length = 0
+  }
+  return true
+}
+
+function rebuildMasterGroup (g) {
+  g.dirty = false
+  const el = g.el
+  const slots = g.slots
+  for (let i = 0; i < slots.length; i++) {
+    if (slots[i].kind === TPL_ATTR) el.removeAttribute(slots[i].name)
+  }
+  if (g.hasStyle) {
+    if (g.staticStyle === null) el.removeAttribute('style')
+    else el.setAttribute('style', g.staticStyle)
+  }
+  for (let i = 0; i < slots.length; i++) {
+    const s = slots[i]
+    if (s.kind === TPL_ATTR) {
+      if (!isEmptyAttr(s.last)) el.setAttribute(s.name, s.last)
+    } else {
+      setStyle(s.name, s.last, el)
+    }
+  }
+}
+
+function wireRowEvents (rows, refs) {
+  const eventSlots = rows.eventSlots
+  for (let i = 0; i < eventSlots.length; i += 2) {
+    const b = eventSlots[i]
+    if (b.kind === TPL_EVENT_DELEGATED) {
+      refs[b.ref][b.event] = eventSlots[i + 1]
+    } else {
+      refs[b.ref].addEventListener(b.event, eventSlots[i + 1])
+    }
+  }
+}
+
+function mountRowFromMaster (rows, row, selected) {
+  const slots = rows.valueSlots
+  const prevCleanups = activeRenderCleanups
+  activeRenderCleanups = NO_CLEANUPS
+  let refs = null
+  try {
+    const vals = rows.values(row.item, selected)
+    row.vals = vals
+    let tmp = rows.masterVals
+    let node
+    if (writeRowMaster(rows, vals, tmp)) {
+      node = rows.master.root.cloneNode(true)
+      row.node = node
+      node._fnRow = row
+      wireMasterEvents(rows, node)
+    } else {
+      // Filling can run user code that mounts rows again, so keep a copy of the values.
+      tmp = tmp.slice()
+      rows.masterVals.fill(undefined)
+      node = rows.root.cloneNode(true)
+      row.node = node
+      node._fnRow = row
+      refs = rowRefs(rows, node)
+      wireRowEvents(rows, refs)
+      for (let i = 0; i < slots.length; i++) {
+        const b = slots[i]
+        const val = tmp[i]
+        if ((b.kind === TPL_NODE || b.kind === TPL_ONLY) && typeof val === 'object' && val !== null) assertRowSlotValue(val)
+        fillBinding(b, refs[b.ref], val)
+      }
+    }
+    return node
+  } finally {
+    closeRowScope(rows, row, prevCleanups)
+    if (refs !== null) releaseRowRefs(rows, refs)
+  }
+}
+
 function mountRow (rows, row, selected) {
+  if (rows.master !== null) return mountRowFromMaster(rows, row, selected)
   const node = rows.root.cloneNode(true)
   row.node = node
   node._fnRow = row
