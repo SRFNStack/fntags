@@ -1,0 +1,13 @@
+{
+  "name": "fntags-profile",
+  "private": true,
+  "type": "module",
+  "description": "CPU/allocation profiling of fntags against the js-framework-benchmark create-rows operations",
+  "scripts": {
+    "profile": "node profile.mjs",
+    "serve": "node server.mjs"
+  },
+  "dependencies": {
+    "puppeteer-core": "24.32.0"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "fntags-bench",
+  "private": true,
+  "type": "module",
+  "description": "Local js-framework-benchmark style harness for fntags",
+  "scripts": {
+    "bench": "node run.mjs",
+    "build-fntags": "JSFB_ENTRY=../../../js-framework-benchmark/frameworks/keyed/fntags rollup -c rollup.fntags.mjs"
+  },
+  "dependencies": {
+    "puppeteer-core": "^24.32.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-terser": "^0.4.4",
+    "rollup": "^4.67.4"
+  }
+}
