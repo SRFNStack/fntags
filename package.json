@@ -16,7 +16,7 @@
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "git@github.com:srfnstack/fntags.git"
+    "url": "git+ssh://git@github.com/srfnstack/fntags.git"
   },
   "keywords": [
     "html",
